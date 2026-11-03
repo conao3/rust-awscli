@@ -40,9 +40,9 @@ pub fn run(args: Vec<String>) -> i32 {
     }
 }
 
-struct Terminal {
-    stdout_is_tty: bool,
-    width: Option<usize>,
+pub(crate) struct Terminal {
+    pub(crate) stdout_is_tty: bool,
+    pub(crate) width: Option<usize>,
 }
 
 impl Terminal {
@@ -66,15 +66,15 @@ fn terminal_width() -> Option<usize> {
     }
 }
 
-struct Context {
-    globals: GlobalArgs,
-    session: Session,
-    runtime: Runtime,
-    terminal: Terminal,
+pub(crate) struct Context {
+    pub(crate) globals: GlobalArgs,
+    pub(crate) session: Session,
+    pub(crate) runtime: Runtime,
+    pub(crate) terminal: Terminal,
 }
 
 impl Context {
-    fn error_format(&self) -> String {
+    pub(crate) fn error_format(&self) -> String {
         self.globals
             .cli_error_format
             .clone()
@@ -83,7 +83,7 @@ impl Context {
             .unwrap_or_else(|| "enhanced".to_string())
     }
 
-    fn color(&self) -> Color {
+    pub(crate) fn color(&self) -> Color {
         match self.globals.color.as_deref() {
             Some("on") => Color::On,
             Some("off") => Color::Off,
@@ -91,7 +91,7 @@ impl Context {
         }
     }
 
-    fn error_options(&self) -> ErrorOutputOptions {
+    pub(crate) fn error_options(&self) -> ErrorOutputOptions {
         ErrorOutputOptions {
             color: self.color(),
             stdout_is_tty: self.terminal.stdout_is_tty,
@@ -100,7 +100,12 @@ impl Context {
     }
 
     /// `FilteredExceptionHandler` for errors with structured info.
-    fn structured_error(&self, code: ExitCode, error_code: &str, message: &str) -> CliError {
+    pub(crate) fn structured_error(
+        &self,
+        code: ExitCode,
+        error_code: &str,
+        message: &str,
+    ) -> CliError {
         CliError::new(
             code,
             render_structured_error(
@@ -112,14 +117,14 @@ impl Context {
         )
     }
 
-    fn session_error(&self, e: &SessionError) -> CliError {
+    pub(crate) fn session_error(&self, e: &SessionError) -> CliError {
         match e.error_info() {
             Some((code, message)) => self.structured_error(e.exit_code(), &code, &message),
             None => CliError::new(e.exit_code(), render_general_error(&e.message)),
         }
     }
 
-    fn general_error(&self, e: &anyhow::Error) -> CliError {
+    pub(crate) fn general_error(&self, e: &anyhow::Error) -> CliError {
         if let Some(cli) = e.downcast_ref::<CliError>() {
             return CliError::new(cli.code, cli.message.clone());
         }
@@ -167,6 +172,7 @@ fn run_inner(args: Vec<String>) -> Result<ExitCode, CliError> {
         }
         Command::Operation(inv) => run_operation(&ctx, inv),
         Command::Wait(inv) => run_wait(&ctx, inv),
+        Command::Custom { path, args } => crate::commands::run(&ctx, &path, &args),
     }
 }
 
@@ -187,13 +193,13 @@ fn version_string() -> String {
 }
 
 /// The outcome of one API call.
-enum CallResult {
+pub(crate) enum CallResult {
     Ok(Value),
     /// A service error: the parsed error response and the rendered info.
     ServiceError(Box<ClientErrorInfo>),
 }
 
-struct Caller<'a> {
+pub(crate) struct Caller<'a> {
     ctx: &'a Context,
     model: &'a ServiceModel,
     operation: Operation<'a>,
@@ -202,7 +208,11 @@ struct Caller<'a> {
 }
 
 impl<'a> Caller<'a> {
-    fn new(ctx: &'a Context, model: &'a ServiceModel, operation_name: &str) -> Result<Caller<'a>> {
+    pub(crate) fn new(
+        ctx: &'a Context,
+        model: &'a ServiceModel,
+        operation_name: &str,
+    ) -> Result<Caller<'a>> {
         let operation = model
             .operation(operation_name)
             .ok_or_else(|| anyhow::anyhow!("unknown operation {operation_name}"))?;
@@ -265,7 +275,7 @@ impl<'a> Caller<'a> {
     }
 
     /// `BaseClient._make_api_call`.
-    fn call(&self, params: &Value) -> Result<CallResult> {
+    pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
         let mut params = params.clone();
         handlers::before_parameter_build(&self.operation, &mut params, &ctx.session);
@@ -379,7 +389,7 @@ fn modeled_error_fields(model: &ServiceModel, code: &str) -> Vec<String> {
     fields
 }
 
-fn client_error(ctx: &Context, info: &ClientErrorInfo) -> CliError {
+pub(crate) fn client_error(ctx: &Context, info: &ClientErrorInfo) -> CliError {
     CliError::new(
         ExitCode::Service,
         render_client_error_with(info, &ctx.error_format(), &ctx.error_options()),
@@ -482,7 +492,11 @@ fn save_streaming_output(
 }
 
 /// `CLIOperationCaller._display_response`.
-fn display_response(ctx: &Context, command_name: &str, response: Response) -> Result<(), CliError> {
+pub(crate) fn display_response(
+    ctx: &Context,
+    command_name: &str,
+    response: Response,
+) -> Result<(), CliError> {
     let output = ctx
         .globals
         .output
@@ -513,7 +527,7 @@ fn display_response(ctx: &Context, command_name: &str, response: Response) -> Re
 
 /// `OutputStreamFactory.get_output_stream`: the pager when stdout is a tty
 /// and a pager is configured, else stdout.
-fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> {
+pub(crate) fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> {
     let pager = ctx
         .session
         .config_variable("pager")
@@ -601,7 +615,7 @@ fn exit_code_from_i32(code: i32) -> ExitCode {
 }
 
 /// Wait for `future` from synchronous code, inside or outside the runtime.
-fn block_on<F: std::future::Future>(runtime: &Runtime, future: F) -> F::Output {
+pub(crate) fn block_on<F: std::future::Future>(runtime: &Runtime, future: F) -> F::Output {
     match tokio::runtime::Handle::try_current() {
         Ok(handle) => tokio::task::block_in_place(|| handle.block_on(future)),
         Err(_) => runtime.block_on(future),

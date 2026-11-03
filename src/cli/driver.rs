@@ -28,7 +28,10 @@ pub(crate) fn dispatch(rest: &[String], ctx: &Ctx<'_>) -> Result<Command, Fail> 
     }
     match find_main(command) {
         Some(MainCommand::Service(cli, service)) => service_command(cli, service, remaining, ctx),
-        Some(MainCommand::Custom(_)) => Err(Fail::NotImplemented),
+        Some(MainCommand::Custom(name)) => Ok(Command::Custom {
+            path: vec![name.to_string()],
+            args: remaining.to_vec(),
+        }),
         None => Err(argparse_error(&format!(
             "argument command: Found invalid choice '{command}'\n"
         ))),
@@ -104,7 +107,10 @@ fn service_command(
     match entry {
         ServiceEntry::Operation(op) => {
             if super::commands::is_customized(cli, name) {
-                return Err(Fail::NotImplemented);
+                return Ok(Command::Custom {
+                    path: vec![cli.to_string(), name.to_string()],
+                    args: remaining.to_vec(),
+                });
             }
             let op = model.operation(&op).expect("operation");
             let path = CommandPath { parent: cli, name };
@@ -117,7 +123,10 @@ fn service_command(
             }
         }
         ServiceEntry::Wait => wait_command(cli, &model, &remaining, ctx),
-        ServiceEntry::Custom => Err(Fail::NotImplemented),
+        ServiceEntry::Custom => Ok(Command::Custom {
+            path: vec![cli.to_string(), name.to_string()],
+            args: remaining.to_vec(),
+        }),
     }
 }
 

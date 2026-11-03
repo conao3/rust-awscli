@@ -6,8 +6,8 @@
 //! `awscli/paramfile.py`, the generic customizations, and
 //! `botocore/validate.py`).
 
-mod argparse;
-mod argprocess;
+pub(crate) mod argparse;
+pub(crate) mod argprocess;
 pub mod arguments;
 mod commands;
 mod difflib;
@@ -22,11 +22,11 @@ mod golden_tests;
 #[cfg(test)]
 mod goldens;
 mod operation;
-mod paramfile;
+pub(crate) mod paramfile;
 mod pyjson;
 mod pynum;
-mod render;
-mod shorthand;
+pub(crate) mod render;
+pub(crate) mod shorthand;
 mod skeleton;
 mod tables;
 mod validate;
@@ -103,6 +103,15 @@ pub enum Command {
     Print(String),
     Operation(OperationInvocation),
     Wait(WaitInvocation),
+    /// A command implemented by `crate::commands` (high-level commands such
+    /// as `s3` or `configure`, commands a customization adds to a service,
+    /// and operations whose arguments a customization reshapes): the
+    /// command path (`["s3", ...]` or `[service, subcommand]`) and the
+    /// arguments after it.
+    Custom {
+        path: Vec<String>,
+        args: Vec<String>,
+    },
 }
 
 /// Split the global options out of `args` (`args[0]` is the first argument
@@ -154,8 +163,6 @@ pub(crate) enum Fail {
     Python(String),
     /// `GeneralExceptionHandler` for any other exception.
     General(String),
-    /// A command this implementation does not provide yet.
-    NotImplemented,
 }
 
 /// The parsed globals and configuration a command is parsed with.

@@ -58,10 +58,6 @@ pub(crate) fn render(
         Fail::Python(message) | Fail::General(message) => {
             CliError::new(ExitCode::General, render_general_error(&message))
         }
-        Fail::NotImplemented => CliError::new(
-            ExitCode::General,
-            "\naws: [ERROR]: awsr: command not implemented yet\n",
-        ),
     }
 }
 

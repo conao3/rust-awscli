@@ -29,7 +29,9 @@ use crate::waiter;
 /// Run the CLI with `args` (without the program name) and return the exit
 /// code.
 pub fn run(args: Vec<String>) -> i32 {
-    match run_inner(args) {
+    let result = run_inner(args);
+    crate::output::stdout::flush();
+    match result {
         Ok(code) => code as i32,
         Err(e) => {
             let mut stderr = std::io::stderr().lock();
@@ -132,7 +134,11 @@ impl Context {
             return self.session_error(se);
         }
         if let Some(pe) = e.downcast_ref::<handlers::ParamValidationError>() {
-            return self.structured_error(ExitCode::Usage, "ParamValidation", &pe.to_string());
+            return cli::render_fail(
+                cli::Fail::ParamValidation(pe.to_string()),
+                &self.globals,
+                &self.session,
+            );
         }
         if let Some(ee @ EndpointError::ParamValidation(_)) = e.downcast_ref::<EndpointError>() {
             return self.structured_error(ExitCode::Usage, "ParamValidation", &ee.to_string());
@@ -280,8 +286,13 @@ impl<'a> Caller<'a> {
         })
     }
 
-    /// `BaseClient._make_api_call`.
-    pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
+    /// `BaseClient._make_api_call` up to `_convert_to_request_dict`:
+    /// `before-parameter-build`, `_resolve_endpoint_ruleset`, and the
+    /// `ParamValidator` run over the parameters the handlers produced.
+    fn prepare(
+        &self,
+        params: &Value,
+    ) -> Result<(Value, handlers::CallContext, endpoint::Endpoint)> {
         let ctx = self.ctx;
         let mut params = params.clone();
         let call_ctx = handlers::before_parameter_build(
@@ -300,8 +311,26 @@ impl<'a> Caller<'a> {
             .endpoint_url
             .as_deref()
             .is_some_and(|u| u.starts_with("http://"));
-        let mut endpoint =
+        let endpoint =
             endpoint::construct_endpoint(self.model, &self.operation, &params, &builtins, use_ssl)?;
+        if let Some(input) = self.operation.input()
+            && let Some(report) = cli::validate::report(&params, &input)
+        {
+            return Err(handlers::ParamValidationError(report).into());
+        }
+        Ok((params, call_ctx, endpoint))
+    }
+
+    /// [`Caller::call`] up to the `before-call` handler that answers
+    /// `--generate-cli-skeleton output` with a stub response.
+    pub(crate) fn check(&self, params: &Value) -> Result<()> {
+        self.prepare(params).map(|_| ())
+    }
+
+    /// `BaseClient._make_api_call`.
+    pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
+        let ctx = self.ctx;
+        let (params, call_ctx, mut endpoint) = self.prepare(params)?;
 
         let mut request = protocol::serialize(self.model, &self.operation, &params)?;
         for (name, values) in &endpoint.headers {
@@ -474,6 +503,10 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
     );
 
     let response = if let Some(stub) = inv.stub_response.clone() {
+        let caller = Caller::new(ctx, &model, &inv.operation).map_err(|e| ctx.general_error(&e))?;
+        caller
+            .check(&inv.params)
+            .map_err(|e| ctx.general_error(&e))?;
         Response::Single(stub)
     } else {
         let caller = Caller::new(ctx, &model, &inv.operation).map_err(|e| ctx.general_error(&e))?;
@@ -623,9 +656,7 @@ pub(crate) fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> 
             }
         }
     }
-    let mut stdout = std::io::stdout().lock();
-    let _ = stdout.write_all(bytes);
-    let _ = stdout.flush();
+    crate::output::stdout::write_flushed(bytes);
     Ok(())
 }
 

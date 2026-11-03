@@ -6,7 +6,7 @@
 
 use anyhow::Result;
 
-use crate::cli::{self, Command, OperationHooks, OperationInvocation, validate};
+use crate::cli::{self, Command, OperationHooks, OperationInvocation};
 use crate::driver::{CallResult, Caller, Context, client_error, display_response, write_stdout};
 use crate::error::{CliError, ExitCode};
 use crate::model::ServiceModel;
@@ -27,30 +27,6 @@ impl<'c> Client<'c> {
         Ok(Client { ctx, model })
     }
 
-    fn validate(&self, operation: &str, params: &Value) -> Result<(), CliError> {
-        let op = self.model.operation(operation).ok_or_else(|| {
-            self.ctx
-                .general_error(&anyhow::anyhow!("unknown operation"))
-        })?;
-        let mut params = params.clone();
-        let _ = crate::handlers::before_parameter_build(
-            &self.model,
-            &op,
-            &mut params,
-            &self.ctx.session,
-        );
-        if let Some(input) = op.input()
-            && let Some(report) = validate::validate(&params, &input)
-        {
-            return Err(cli::render_fail(
-                cli::Fail::ParamValidation(report),
-                &self.ctx.globals,
-                &self.ctx.session,
-            ));
-        }
-        Ok(())
-    }
-
     /// `client.<operation>(**params)`: the parsed response, or the
     /// rendered `ClientError`.
     pub(crate) fn call(&self, operation: &str, params: &Value) -> Result<Value, CliError> {
@@ -63,10 +39,13 @@ impl<'c> Client<'c> {
     /// [`Client::call`] keeping a service error as a value (for commands
     /// that catch `ClientError`).
     pub(crate) fn try_call(&self, operation: &str, params: &Value) -> Result<CallResult, CliError> {
-        self.validate(operation, params)?;
-        let caller = Caller::new(self.ctx, &self.model, operation)
-            .map_err(|e| self.ctx.general_error(&e))?;
-        caller.call(params).map_err(|e| self.ctx.general_error(&e))
+        self.call_raw(operation, params)
+            .map_err(|e| self.ctx.general_error(&e))
+    }
+
+    /// [`Client::try_call`] keeping the exception as raised.
+    pub(crate) fn call_raw(&self, operation: &str, params: &Value) -> Result<CallResult> {
+        Caller::new(self.ctx, &self.model, operation)?.call(params)
     }
 
     /// `client.get_paginator(operation).paginate(**params)`: every page.
@@ -74,7 +53,6 @@ impl<'c> Client<'c> {
         let Some(paginator) = self.model.paginator(operation) else {
             return Ok(vec![self.call(operation, params)?]);
         };
-        self.validate(operation, params)?;
         let op = self.model.operation(operation).expect("operation");
         let caller = Caller::new(self.ctx, &self.model, operation)
             .map_err(|e| self.ctx.general_error(&e))?;

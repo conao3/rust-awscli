@@ -76,6 +76,7 @@ fn run_main(ctx: &Context, a: &basic::Args) -> Result<ExitCode, CfnError> {
             ));
         }
     }
+    basic::flush();
     Ok(ExitCode::Success)
 }
 

@@ -3,7 +3,9 @@
 use std::collections::HashMap;
 
 use super::goldens::{FIXTURES, GOLDENS};
-use super::{Command, capture_warnings, parse_command, parse_globals_with_config};
+use super::{Command, Fail, capture_warnings, parse_command, parse_globals_with_config, validate};
+use crate::handlers;
+use crate::model::ServiceModel;
 use crate::value::Value;
 
 pub(super) struct Golden {
@@ -53,6 +55,58 @@ fn record(cmd: &Command) -> Option<String> {
     Some(serde_json::to_string(&v).expect("json"))
 }
 
+/// What `ref_harness.py`'s client call does before it records the call:
+/// the `before-parameter-build` handlers and botocore's validation of the
+/// first request (with the paginator's limit key).
+fn client_call(cmd: &Command, config: &HashMap<String, String>) -> Result<(), Fail> {
+    let (service, operation, params, limit) = match cmd {
+        Command::Operation(inv) => (
+            inv.service.as_str(),
+            inv.operation.clone(),
+            &inv.params,
+            inv.pagination.page_size.filter(|_| inv.paginate),
+        ),
+        Command::Wait(w) => {
+            let model = ServiceModel::load(&w.service).expect("model");
+            let operation = model
+                .waiters()
+                .and_then(|ws| ws.get(&w.waiter))
+                .and_then(|c| c.get("operation"))
+                .and_then(|o| o.as_str())
+                .expect("waiter operation")
+                .to_string();
+            (w.service.as_str(), operation, &w.params, None)
+        }
+        _ => return Ok(()),
+    };
+    let model = ServiceModel::load(service).expect("model");
+    let op = model.operation(&operation).expect("operation");
+    let mut params = params.clone();
+    if let (Some(size), Some(key), Value::Map(m)) = (
+        limit,
+        model
+            .paginator(&operation)
+            .and_then(|p| p.get("limit_key"))
+            .and_then(|k| k.as_str()),
+        &mut params,
+    ) {
+        m.insert(key.to_string(), Value::int(size));
+    }
+    if let Err(e) = handlers::before_parameter_build(&model, &op, &mut params, config) {
+        return Err(match e.downcast_ref::<handlers::ParamValidationError>() {
+            Some(p) => Fail::ParamValidation(p.to_string()),
+            None => Fail::General(e.to_string()),
+        });
+    }
+    match op
+        .input()
+        .and_then(|input| validate::validate(&params, &input))
+    {
+        Some(report) => Err(Fail::ParamValidation(report)),
+        None => Ok(()),
+    }
+}
+
 fn run(golden: &Golden, dir: &str) -> (i32, String, String, Option<String>) {
     let args: Vec<String> = golden
         .args
@@ -66,8 +120,11 @@ fn run(golden: &Golden, dir: &str) -> (i32, String, String, Option<String>) {
         }
     }
     let (result, warnings) = capture_warnings(|| {
-        parse_globals_with_config(&args, &config)
-            .and_then(|(g, rest)| parse_command(&rest, &g, &config))
+        parse_globals_with_config(&args, &config).and_then(|(g, rest)| {
+            let cmd = parse_command(&rest, &g, &config)?;
+            client_call(&cmd, &config).map_err(|fail| super::render_fail(fail, &g, &config))?;
+            Ok(cmd)
+        })
     });
     let mut stderr = warnings.concat();
     match result {

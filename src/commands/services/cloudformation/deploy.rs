@@ -314,6 +314,7 @@ fn run_main(ctx: &Context, a: &Args) -> Result<ExitCode, CfnError> {
             changeset.0
         ));
     }
+    basic::flush();
     Ok(ExitCode::Success)
 }
 
@@ -521,6 +522,7 @@ impl Deployer<'_> {
     /// `Deployer.wait_for_changeset`.
     fn wait_for_changeset(&self, changeset_id: &str, stack_name: &str) -> Result<(), Waited> {
         basic::print("\nWaiting for changeset to be created..\n");
+        basic::flush();
         let mut p = Map::new();
         p.insert("ChangeSetName".to_string(), Value::str(changeset_id));
         p.insert("StackName".to_string(), Value::str(stack_name));
@@ -567,6 +569,7 @@ impl Deployer<'_> {
     /// `Deployer.wait_for_execute`.
     fn wait_for_execute(&self, stack_name: &str, changeset_type: &str) -> Result<(), CfnError> {
         basic::print("Waiting for stack create/update to complete\n");
+        basic::flush();
         let name = match changeset_type {
             "CREATE" => "StackCreateComplete",
             _ => "StackUpdateComplete",

@@ -110,6 +110,10 @@ pub fn load(path: &Path) -> Result<Vec<Scenario>> {
     serde_json::from_str(&text).with_context(|| format!("parse {}", path.display()))
 }
 
+fn fixture_mtime() -> std::time::SystemTime {
+    std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_700_000_000)
+}
+
 pub struct Outcome {
     pub pass: bool,
     pub detail: String,
@@ -149,7 +153,11 @@ async fn run_side(
             Some(_) => bytes_of(content)?,
             None => subst(content).into_bytes(),
         };
-        std::fs::write(path, data)?;
+        std::fs::write(&path, data)?;
+        std::fs::File::options()
+            .write(true)
+            .open(&path)?
+            .set_modified(fixture_mtime())?;
     }
     let argv: Vec<String> = s.argv.iter().map(|a| subst(a)).collect();
     let mut out = run::run(bin, &argv, &dir, env, None, None).await?;

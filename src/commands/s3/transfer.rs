@@ -2224,6 +2224,7 @@ impl<'a> Handler<'a> {
                                 Err(e)
                             }
                             None if is_stream => {
+                                crate::output::stdout::flush();
                                 let mut o = std::io::stdout().lock();
                                 for c in state.chunks.lock().unwrap().iter().flatten() {
                                     let _ = o.write_all(c);

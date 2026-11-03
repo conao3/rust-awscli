@@ -437,10 +437,12 @@ pub(crate) fn print(text: &str) {
 }
 
 pub(crate) fn print_bytes(bytes: &[u8]) {
-    use std::io::Write as _;
-    let mut out = std::io::stdout().lock();
-    let _ = out.write_all(bytes);
-    let _ = out.flush();
+    crate::output::stdout::write(bytes);
+}
+
+/// `sys.stdout.flush()`.
+pub(crate) fn flush() {
+    crate::output::stdout::flush();
 }
 
 /// `sys.stderr.write(text)`.

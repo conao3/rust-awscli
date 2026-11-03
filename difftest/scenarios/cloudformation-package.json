@@ -1,0 +1,431 @@
+[
+ {
+  "name": "cloudformation package full",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml",
+   "--output-template-file",
+   "out.yaml",
+   "--s3-prefix",
+   "pre",
+   "--metadata",
+   "k=v,a=b"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: 2010-09-09\nTransform: AWS::Serverless-2016-10-31\nDescription: >\n  A long folded description that goes on and on and on and on and on and on and on and on past eighty columns\nMetadata:\n  AWS::ServerlessRepo::Application:\n    Name: app\n    ReadmeUrl: README.md\n    LicenseUrl: s3://x/LICENSE\nConditions:\n  IsProd: !Equals [!Ref Env, prod]\nResources:\n  Api:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n      Enabled: yes\n      Quoted: 'yes'\n      Num: 0x1F\n      F: 1.50\n      Neg: -3\n      Unicode: \"caf\u00e9 \u2603\"\n      Multi: |\n        line1\n        line2\n      Empty: ''\n      Star: '*'\n      Colon: 'a: b'\n      Body:\n        Fn::Transform:\n          Name: AWS::Include\n          Parameters:\n            Location: inc.yaml\n  Job:\n    Type: AWS::Glue::Job\n    Properties:\n      Command:\n        Name: glueetl\n        ScriptLocation: script.py\n  Nested:\n    Type: AWS::CloudFormation::Stack\n    Properties:\n      TemplateURL: nested.yaml\n      Parameters:\n        A: !GetAtt Job.Arn\n  Fn:\n    Type: AWS::Lambda::Function\n    Properties:\n      Code: s3://code/key.zip\n      Role: !Sub 'arn:${AWS::Partition}:iam::role'\n  SM:\n    Type: AWS::StepFunctions::StateMachine\n    Properties:\n      DefinitionS3Location: sm.json\nOutputs:\n  O:\n    Value: !If [IsProd, !Ref Api, !Join ['', [a, !Select [0, !GetAZs '']]]]\n",
+   "README.md": "# readme\n",
+   "api.yaml": "openapi: 3.0.0\n",
+   "inc.yaml": "x: 1\n",
+   "script.py": "print(1)\n",
+   "nested.yaml": "Resources:\n  Q:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n",
+   "sm.json": "{}\n"
+  },
+  "responses": [
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   }
+  ],
+  "outputs": [
+   "out.yaml"
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package json stdout",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml",
+   "--use-json",
+   "--force-upload",
+   "--kms-key-id",
+   "kid"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: 2010-09-09\nTransform: AWS::Serverless-2016-10-31\nDescription: >\n  A long folded description that goes on and on and on and on and on and on and on and on past eighty columns\nMetadata:\n  AWS::ServerlessRepo::Application:\n    Name: app\n    ReadmeUrl: README.md\n    LicenseUrl: s3://x/LICENSE\nConditions:\n  IsProd: !Equals [!Ref Env, prod]\nResources:\n  Api:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n      Enabled: yes\n      Quoted: 'yes'\n      Num: 0x1F\n      F: 1.50\n      Neg: -3\n      Unicode: \"caf\u00e9 \u2603\"\n      Multi: |\n        line1\n        line2\n      Empty: ''\n      Star: '*'\n      Colon: 'a: b'\n      Body:\n        Fn::Transform:\n          Name: AWS::Include\n          Parameters:\n            Location: inc.yaml\n  Job:\n    Type: AWS::Glue::Job\n    Properties:\n      Command:\n        Name: glueetl\n        ScriptLocation: script.py\n  Nested:\n    Type: AWS::CloudFormation::Stack\n    Properties:\n      TemplateURL: nested.yaml\n      Parameters:\n        A: !GetAtt Job.Arn\n  Fn:\n    Type: AWS::Lambda::Function\n    Properties:\n      Code: s3://code/key.zip\n      Role: !Sub 'arn:${AWS::Partition}:iam::role'\n  SM:\n    Type: AWS::StepFunctions::StateMachine\n    Properties:\n      DefinitionS3Location: sm.json\nOutputs:\n  O:\n    Value: !If [IsProd, !Ref Api, !Join ['', [a, !Select [0, !GetAZs '']]]]\n",
+   "README.md": "# readme\n",
+   "api.yaml": "openapi: 3.0.0\n",
+   "inc.yaml": "x: 1\n",
+   "script.py": "print(1)\n",
+   "nested.yaml": "Resources:\n  Q:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n",
+   "sm.json": "{}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "body": ""
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package json stdout no date",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml",
+   "--use-json",
+   "--force-upload",
+   "--kms-key-id",
+   "kid"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nTransform: AWS::Serverless-2016-10-31\nDescription: >\n  A long folded description that goes on and on and on and on and on and on and on and on past eighty columns\nMetadata:\n  AWS::ServerlessRepo::Application:\n    Name: app\n    ReadmeUrl: README.md\n    LicenseUrl: s3://x/LICENSE\nConditions:\n  IsProd: !Equals [!Ref Env, prod]\nResources:\n  Api:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n      Enabled: yes\n      Quoted: 'yes'\n      Num: 0x1F\n      F: 1.50\n      Neg: -3\n      Unicode: \"caf\u00e9 \u2603\"\n      Multi: |\n        line1\n        line2\n      Empty: ''\n      Star: '*'\n      Colon: 'a: b'\n      Body:\n        Fn::Transform:\n          Name: AWS::Include\n          Parameters:\n            Location: inc.yaml\n  Job:\n    Type: AWS::Glue::Job\n    Properties:\n      Command:\n        Name: glueetl\n        ScriptLocation: script.py\n  Nested:\n    Type: AWS::CloudFormation::Stack\n    Properties:\n      TemplateURL: nested.yaml\n      Parameters:\n        A: !GetAtt Job.Arn\n  Fn:\n    Type: AWS::Lambda::Function\n    Properties:\n      Code: s3://code/key.zip\n      Role: !Sub 'arn:${AWS::Partition}:iam::role'\n  SM:\n    Type: AWS::StepFunctions::StateMachine\n    Properties:\n      DefinitionS3Location: sm.json\nOutputs:\n  O:\n    Value: !If [IsProd, !Ref Api, !Join ['', [a, !Select [0, !GetAZs '']]]]\n",
+   "README.md": "# readme\n",
+   "api.yaml": "openapi: 3.0.0\n",
+   "inc.yaml": "x: 1\n",
+   "script.py": "print(1)\n",
+   "nested.yaml": "Resources:\n  Q:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n",
+   "sm.json": "{}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "body": ""
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package existing",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: 2010-09-09\nTransform: AWS::Serverless-2016-10-31\nDescription: >\n  A long folded description that goes on and on and on and on and on and on and on and on past eighty columns\nMetadata:\n  AWS::ServerlessRepo::Application:\n    Name: app\n    ReadmeUrl: README.md\n    LicenseUrl: s3://x/LICENSE\nConditions:\n  IsProd: !Equals [!Ref Env, prod]\nResources:\n  Api:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n      Enabled: yes\n      Quoted: 'yes'\n      Num: 0x1F\n      F: 1.50\n      Neg: -3\n      Unicode: \"caf\u00e9 \u2603\"\n      Multi: |\n        line1\n        line2\n      Empty: ''\n      Star: '*'\n      Colon: 'a: b'\n      Body:\n        Fn::Transform:\n          Name: AWS::Include\n          Parameters:\n            Location: inc.yaml\n  Job:\n    Type: AWS::Glue::Job\n    Properties:\n      Command:\n        Name: glueetl\n        ScriptLocation: script.py\n  Nested:\n    Type: AWS::CloudFormation::Stack\n    Properties:\n      TemplateURL: nested.yaml\n      Parameters:\n        A: !GetAtt Job.Arn\n  Fn:\n    Type: AWS::Lambda::Function\n    Properties:\n      Code: s3://code/key.zip\n      Role: !Sub 'arn:${AWS::Partition}:iam::role'\n  SM:\n    Type: AWS::StepFunctions::StateMachine\n    Properties:\n      DefinitionS3Location: sm.json\nOutputs:\n  O:\n    Value: !If [IsProd, !Ref Api, !Join ['', [a, !Select [0, !GetAZs '']]]]\n",
+   "README.md": "# readme\n",
+   "api.yaml": "openapi: 3.0.0\n",
+   "inc.yaml": "x: 1\n",
+   "script.py": "print(1)\n",
+   "nested.yaml": "Resources:\n  Q:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n",
+   "sm.json": "{}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "body": ""
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package json template",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.json"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.json": "{\"Resources\": {\"A\": {\"Type\": \"AWS::Serverless::Api\", \"Properties\": {\"DefinitionUri\": \"api.yaml\", \"N\": 1.0, \"L\": [true, null]}}}, \"Z\": \"yes\"}",
+   "api.yaml": "x\n"
+  },
+  "responses": [
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package missing artifact",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Resources:\n  A:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: missing.yaml\n"
+  },
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package missing include",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Resources:\n  A:\n    Type: X\n    Properties:\n      Fn::Transform:\n        Name: AWS::Include\n        Parameters:\n          Location: nope.yaml\n"
+  },
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package bad nested",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Resources:\n  A:\n    Type: AWS::CloudFormation::Stack\n    Properties:\n      TemplateURL: nope.yaml\n"
+  },
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package foreach",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Resources:\n  Fn::ForEach::X:\n    - a\n"
+  },
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package no bucket",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Resources:\n  A:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: a.txt\n",
+   "a.txt": "a"
+  },
+  "responses": [
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<Error><Code>NoSuchBucket</Code><Message>no</Message></Error>"
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package put error",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Resources:\n  A:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: a.txt\n",
+   "a.txt": "a"
+  },
+  "responses": [
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package invalid template path",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "nope.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "ignore_headers": [
+   "expect"
+  ]
+ },
+ {
+  "name": "cloudformation package no resources",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "Description: x\nList:\n- a\n- {b: c}\n- [1, 2]\nEmptyMap: {}\nEmptyList: []\n"
+  },
+  "ignore_headers": [
+   "expect"
+  ]
+ }
+]

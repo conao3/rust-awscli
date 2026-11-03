@@ -1,0 +1,714 @@
+[
+ {
+  "name": "cloudformation deploy create",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--parameter-overrides",
+   "Env=prod",
+   "Size=3",
+   "--tags",
+   "a=1",
+   "b=2=3",
+   "--capabilities",
+   "CAPABILITY_IAM",
+   "--role-arn",
+   "arn:role",
+   "--notification-arns",
+   "arn:t1",
+   "arn:t2",
+   "--disable-rollback"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>CREATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy no execute",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-execute-changeset",
+   "--parameter-overrides",
+   "[{\"ParameterKey\": \"Env\", \"ParameterValue\": \"x\"}]"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy update",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--parameter-overrides",
+   "{\"Parameters\": {\"Size\": \"5\"}}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>UPDATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetTemplateSummaryResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><GetTemplateSummaryResult><Parameters><member><ParameterKey>Env</ParameterKey></member></Parameters></GetTemplateSummaryResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetTemplateSummaryResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>UPDATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy review in progress",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>REVIEW_IN_PROGRESS</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>CREATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy empty changeset",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>UPDATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetTemplateSummaryResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><GetTemplateSummaryResult><Parameters><member><ParameterKey>Env</ParameterKey></member></Parameters></GetTemplateSummaryResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetTemplateSummaryResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>FAILED</Status><StatusReason>The submitted information didn&apos;t contain changes. Submit different information to create a change set.</StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy empty changeset fail",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--fail-on-empty-changeset"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>UPDATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetTemplateSummaryResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><GetTemplateSummaryResult><Parameters><member><ParameterKey>Env</ParameterKey></member></Parameters></GetTemplateSummaryResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetTemplateSummaryResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>FAILED</Status><StatusReason>No updates are to be performed.</StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy changeset failed",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>FAILED</Status><StatusReason>Template error: bad</StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy changeset validation error",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy stack failed",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>ROLLBACK_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy describe error",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>AccessDenied</Code><Message>denied</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy bad override",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--parameter-overrides",
+   "Env"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy bad json override",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--parameter-overrides",
+   "[1, 2]"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy bad tags",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tags",
+   "x"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy bad capability",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--capabilities",
+   "CAP"
+  ],
+  "files": {
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>CREATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ]
+ },
+ {
+  "name": "cloudformation deploy missing template",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "nope.yaml",
+   "--stack-name",
+   "st"
+  ]
+ },
+ {
+  "name": "cloudformation deploy missing stack name",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml"
+  ]
+ },
+ {
+  "name": "cloudformation deploy big template",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "t.yaml": "Resources:\n  B0:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000000\n  B1:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000001\n  B2:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000002\n  B3:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000003\n  B4:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000004\n  B5:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000005\n  B6:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000006\n  B7:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000007\n  B8:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000008\n  B9:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000009\n  B10:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000010\n  B11:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000011\n  B12:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000012\n  B13:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000013\n  B14:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000014\n  B15:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000015\n  B16:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000016\n  B17:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000017\n  B18:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000018\n  B19:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000019\n  B20:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000020\n  B21:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000021\n  B22:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000022\n  B23:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000023\n  B24:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000024\n  B25:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000025\n  B26:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000026\n  B27:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000027\n  B28:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000028\n  B29:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000029\n  B30:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000030\n  B31:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000031\n  B32:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000032\n  B33:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000033\n  B34:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000034\n  B35:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000035\n  B36:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000036\n  B37:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000037\n  B38:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000038\n  B39:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000039\n  B40:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000040\n  B41:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000041\n  B42:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000042\n  B43:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000043\n  B44:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000044\n  B45:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000045\n  B46:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000046\n  B47:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000047\n  B48:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000048\n  B49:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000049\n  B50:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000050\n  B51:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000051\n  B52:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000052\n  B53:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000053\n  B54:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000054\n  B55:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000055\n  B56:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000056\n  B57:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000057\n  B58:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000058\n  B59:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000059\n  B60:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000060\n  B61:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000061\n  B62:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000062\n  B63:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000063\n  B64:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000064\n  B65:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000065\n  B66:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000066\n  B67:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000067\n  B68:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000068\n  B69:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000069\n  B70:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000070\n  B71:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000071\n  B72:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000072\n  B73:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000073\n  B74:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000074\n  B75:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000075\n  B76:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000076\n  B77:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000077\n  B78:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000078\n  B79:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000079\n  B80:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000080\n  B81:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000081\n  B82:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000082\n  B83:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000083\n  B84:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000084\n  B85:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000085\n  B86:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000086\n  B87:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000087\n  B88:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000088\n  B89:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000089\n  B90:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000090\n  B91:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000091\n  B92:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000092\n  B93:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000093\n  B94:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000094\n  B95:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000095\n  B96:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000096\n  B97:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000097\n  B98:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000098\n  B99:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000099\n  B100:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000100\n  B101:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000101\n  B102:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000102\n  B103:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000103\n  B104:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000104\n  B105:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000105\n  B106:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000106\n  B107:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000107\n  B108:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000108\n  B109:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000109\n  B110:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000110\n  B111:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000111\n  B112:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000112\n  B113:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000113\n  B114:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000114\n  B115:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000115\n  B116:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000116\n  B117:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000117\n  B118:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000118\n  B119:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000119\n  B120:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000120\n  B121:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000121\n  B122:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000122\n  B123:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000123\n  B124:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000124\n  B125:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000125\n  B126:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000126\n  B127:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000127\n  B128:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000128\n  B129:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000129\n  B130:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000130\n  B131:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000131\n  B132:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000132\n  B133:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000133\n  B134:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000134\n  B135:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000135\n  B136:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000136\n  B137:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000137\n  B138:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000138\n  B139:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000139\n  B140:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000140\n  B141:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000141\n  B142:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000142\n  B143:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000143\n  B144:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000144\n  B145:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000145\n  B146:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000146\n  B147:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000147\n  B148:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000148\n  B149:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000149\n  B150:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000150\n  B151:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000151\n  B152:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000152\n  B153:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000153\n  B154:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000154\n  B155:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000155\n  B156:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000156\n  B157:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000157\n  B158:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000158\n  B159:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000159\n  B160:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000160\n  B161:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000161\n  B162:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000162\n  B163:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000163\n  B164:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000164\n  B165:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000165\n  B166:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000166\n  B167:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000167\n  B168:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000168\n  B169:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000169\n  B170:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000170\n  B171:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000171\n  B172:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000172\n  B173:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000173\n  B174:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000174\n  B175:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000175\n  B176:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000176\n  B177:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000177\n  B178:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000178\n  B179:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000179\n  B180:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000180\n  B181:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000181\n  B182:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000182\n  B183:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000183\n  B184:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000184\n  B185:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000185\n  B186:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000186\n  B187:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000187\n  B188:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000188\n  B189:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000189\n  B190:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000190\n  B191:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000191\n  B192:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000192\n  B193:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000193\n  B194:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000194\n  B195:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000195\n  B196:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000196\n  B197:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000197\n  B198:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000198\n  B199:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000199\n  B200:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000200\n  B201:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000201\n  B202:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000202\n  B203:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000203\n  B204:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000204\n  B205:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000205\n  B206:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000206\n  B207:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000207\n  B208:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000208\n  B209:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000209\n  B210:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000210\n  B211:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000211\n  B212:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000212\n  B213:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000213\n  B214:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000214\n  B215:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000215\n  B216:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000216\n  B217:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000217\n  B218:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000218\n  B219:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000219\n  B220:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000220\n  B221:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000221\n  B222:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000222\n  B223:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000223\n  B224:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000224\n  B225:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000225\n  B226:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000226\n  B227:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000227\n  B228:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000228\n  B229:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000229\n  B230:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000230\n  B231:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000231\n  B232:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000232\n  B233:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000233\n  B234:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000234\n  B235:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000235\n  B236:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000236\n  B237:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000237\n  B238:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000238\n  B239:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000239\n  B240:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000240\n  B241:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000241\n  B242:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000242\n  B243:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000243\n  B244:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000244\n  B245:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000245\n  B246:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000246\n  B247:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000247\n  B248:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000248\n  B249:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000249\n  B250:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000250\n  B251:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000251\n  B252:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000252\n  B253:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000253\n  B254:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000254\n  B255:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000255\n  B256:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000256\n  B257:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000257\n  B258:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000258\n  B259:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000259\n  B260:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000260\n  B261:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000261\n  B262:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000262\n  B263:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000263\n  B264:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000264\n  B265:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000265\n  B266:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000266\n  B267:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000267\n  B268:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000268\n  B269:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000269\n  B270:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000270\n  B271:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000271\n  B272:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000272\n  B273:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000273\n  B274:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000274\n  B275:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000275\n  B276:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000276\n  B277:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000277\n  B278:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000278\n  B279:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000279\n  B280:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000280\n  B281:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000281\n  B282:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000282\n  B283:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000283\n  B284:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000284\n  B285:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000285\n  B286:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000286\n  B287:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000287\n  B288:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000288\n  B289:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000289\n  B290:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000290\n  B291:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000291\n  B292:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000292\n  B293:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000293\n  B294:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000294\n  B295:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000295\n  B296:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000296\n  B297:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000297\n  B298:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000298\n  B299:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000299\n  B300:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000300\n  B301:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000301\n  B302:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000302\n  B303:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000303\n  B304:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000304\n  B305:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000305\n  B306:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000306\n  B307:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000307\n  B308:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000308\n  B309:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000309\n  B310:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000310\n  B311:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000311\n  B312:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000312\n  B313:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000313\n  B314:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000314\n  B315:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000315\n  B316:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000316\n  B317:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000317\n  B318:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000318\n  B319:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000319\n  B320:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000320\n  B321:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000321\n  B322:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000322\n  B323:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000323\n  B324:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000324\n  B325:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000325\n  B326:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000326\n  B327:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000327\n  B328:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000328\n  B329:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000329\n  B330:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000330\n  B331:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000331\n  B332:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000332\n  B333:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000333\n  B334:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000334\n  B335:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000335\n  B336:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000336\n  B337:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000337\n  B338:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000338\n  B339:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000339\n  B340:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000340\n  B341:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000341\n  B342:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000342\n  B343:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000343\n  B344:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000344\n  B345:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000345\n  B346:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000346\n  B347:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000347\n  B348:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000348\n  B349:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000349\n  B350:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000350\n  B351:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000351\n  B352:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000352\n  B353:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000353\n  B354:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000354\n  B355:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000355\n  B356:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000356\n  B357:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000357\n  B358:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000358\n  B359:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000359\n  B360:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000360\n  B361:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000361\n  B362:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000362\n  B363:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000363\n  B364:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000364\n  B365:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000365\n  B366:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000366\n  B367:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000367\n  B368:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000368\n  B369:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000369\n  B370:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000370\n  B371:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000371\n  B372:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000372\n  B373:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000373\n  B374:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000374\n  B375:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000375\n  B376:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000376\n  B377:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000377\n  B378:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000378\n  B379:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000379\n  B380:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000380\n  B381:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000381\n  B382:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000382\n  B383:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000383\n  B384:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000384\n  B385:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000385\n  B386:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000386\n  B387:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000387\n  B388:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000388\n  B389:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000389\n  B390:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000390\n  B391:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000391\n  B392:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000392\n  B393:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000393\n  B394:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000394\n  B395:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000395\n  B396:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000396\n  B397:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000397\n  B398:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000398\n  B399:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000399\n  B400:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000400\n  B401:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000401\n  B402:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000402\n  B403:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000403\n  B404:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000404\n  B405:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000405\n  B406:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000406\n  B407:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000407\n  B408:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000408\n  B409:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000409\n  B410:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000410\n  B411:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000411\n  B412:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000412\n  B413:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000413\n  B414:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000414\n  B415:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000415\n  B416:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000416\n  B417:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000417\n  B418:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000418\n  B419:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000419\n  B420:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000420\n  B421:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000421\n  B422:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000422\n  B423:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000423\n  B424:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000424\n  B425:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000425\n  B426:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000426\n  B427:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000427\n  B428:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000428\n  B429:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000429\n  B430:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000430\n  B431:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000431\n  B432:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000432\n  B433:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000433\n  B434:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000434\n  B435:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000435\n  B436:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000436\n  B437:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000437\n  B438:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000438\n  B439:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000439\n  B440:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000440\n  B441:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000441\n  B442:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000442\n  B443:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000443\n  B444:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000444\n  B445:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000445\n  B446:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000446\n  B447:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000447\n  B448:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000448\n  B449:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000449\n  B450:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000450\n  B451:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000451\n  B452:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000452\n  B453:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000453\n  B454:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000454\n  B455:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000455\n  B456:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000456\n  B457:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000457\n  B458:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000458\n  B459:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000459\n  B460:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000460\n  B461:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000461\n  B462:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000462\n  B463:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000463\n  B464:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000464\n  B465:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000465\n  B466:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000466\n  B467:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000467\n  B468:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000468\n  B469:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000469\n  B470:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000470\n  B471:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000471\n  B472:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000472\n  B473:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000473\n  B474:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000474\n  B475:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000475\n  B476:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000476\n  B477:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000477\n  B478:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000478\n  B479:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000479\n  B480:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000480\n  B481:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000481\n  B482:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000482\n  B483:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000483\n  B484:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000484\n  B485:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000485\n  B486:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000486\n  B487:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000487\n  B488:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000488\n  B489:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000489\n  B490:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000490\n  B491:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000491\n  B492:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000492\n  B493:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000493\n  B494:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000494\n  B495:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000495\n  B496:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000496\n  B497:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000497\n  B498:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000498\n  B499:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000499\n  B500:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000500\n  B501:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000501\n  B502:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000502\n  B503:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000503\n  B504:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000504\n  B505:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000505\n  B506:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000506\n  B507:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000507\n  B508:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000508\n  B509:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000509\n  B510:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000510\n  B511:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000511\n  B512:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000512\n  B513:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000513\n  B514:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000514\n  B515:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000515\n  B516:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000516\n  B517:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000517\n  B518:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000518\n  B519:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000519\n  B520:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000520\n  B521:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000521\n  B522:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000522\n  B523:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000523\n  B524:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000524\n  B525:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000525\n  B526:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000526\n  B527:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000527\n  B528:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000528\n  B529:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000529\n  B530:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000530\n  B531:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000531\n  B532:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000532\n  B533:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000533\n  B534:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000534\n  B535:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000535\n  B536:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000536\n  B537:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000537\n  B538:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000538\n  B539:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000539\n  B540:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000540\n  B541:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000541\n  B542:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000542\n  B543:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000543\n  B544:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000544\n  B545:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000545\n  B546:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000546\n  B547:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000547\n  B548:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000548\n  B549:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000549\n  B550:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000550\n  B551:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000551\n  B552:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000552\n  B553:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000553\n  B554:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000554\n  B555:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000555\n  B556:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000556\n  B557:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000557\n  B558:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000558\n  B559:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000559\n  B560:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000560\n  B561:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000561\n  B562:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000562\n  B563:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000563\n  B564:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000564\n  B565:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000565\n  B566:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000566\n  B567:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000567\n  B568:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000568\n  B569:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000569\n  B570:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000570\n  B571:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000571\n  B572:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000572\n  B573:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000573\n  B574:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000574\n  B575:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000575\n  B576:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000576\n  B577:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000577\n  B578:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000578\n  B579:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000579\n  B580:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000580\n  B581:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000581\n  B582:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000582\n  B583:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000583\n  B584:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000584\n  B585:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000585\n  B586:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000586\n  B587:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000587\n  B588:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000588\n  B589:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000589\n  B590:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000590\n  B591:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000591\n  B592:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000592\n  B593:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000593\n  B594:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000594\n  B595:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000595\n  B596:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000596\n  B597:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000597\n  B598:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000598\n  B599:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000599\n  B600:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000600\n  B601:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000601\n  B602:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000602\n  B603:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000603\n  B604:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000604\n  B605:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000605\n  B606:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000606\n  B607:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000607\n  B608:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000608\n  B609:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000609\n  B610:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000610\n  B611:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000611\n  B612:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000612\n  B613:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000613\n  B614:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000614\n  B615:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000615\n  B616:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000616\n  B617:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000617\n  B618:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000618\n  B619:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000619\n  B620:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000620\n  B621:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000621\n  B622:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000622\n  B623:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000623\n  B624:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000624\n  B625:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000625\n  B626:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000626\n  B627:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000627\n  B628:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000628\n  B629:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000629\n  B630:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000630\n  B631:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000631\n  B632:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000632\n  B633:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000633\n  B634:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000634\n  B635:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000635\n  B636:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000636\n  B637:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000637\n  B638:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000638\n  B639:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000639\n  B640:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000640\n  B641:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000641\n  B642:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000642\n  B643:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000643\n  B644:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000644\n  B645:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000645\n  B646:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000646\n  B647:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000647\n  B648:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000648\n  B649:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000649\n  B650:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000650\n  B651:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000651\n  B652:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000652\n  B653:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000653\n  B654:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000654\n  B655:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000655\n  B656:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000656\n  B657:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000657\n  B658:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000658\n  B659:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000659\n  B660:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000660\n  B661:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000661\n  B662:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000662\n  B663:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000663\n  B664:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000664\n  B665:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000665\n  B666:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000666\n  B667:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000667\n  B668:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000668\n  B669:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000669\n  B670:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000670\n  B671:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000671\n  B672:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000672\n  B673:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000673\n  B674:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000674\n  B675:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000675\n  B676:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000676\n  B677:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000677\n  B678:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000678\n  B679:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000679\n  B680:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000680\n  B681:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000681\n  B682:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000682\n  B683:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000683\n  B684:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000684\n  B685:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000685\n  B686:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000686\n  B687:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000687\n  B688:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000688\n  B689:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000689\n  B690:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000690\n  B691:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000691\n  B692:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000692\n  B693:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000693\n  B694:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000694\n  B695:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000695\n  B696:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000696\n  B697:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000697\n  B698:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000698\n  B699:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000699\n  B700:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000700\n  B701:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000701\n  B702:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000702\n  B703:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000703\n  B704:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000704\n  B705:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000705\n  B706:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000706\n  B707:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000707\n  B708:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000708\n  B709:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000709\n  B710:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000710\n  B711:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000711\n  B712:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000712\n  B713:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000713\n  B714:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000714\n  B715:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000715\n  B716:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000716\n  B717:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000717\n  B718:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000718\n  B719:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000719\n  B720:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000720\n  B721:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000721\n  B722:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000722\n  B723:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000723\n  B724:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000724\n  B725:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000725\n  B726:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000726\n  B727:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000727\n  B728:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000728\n  B729:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000729\n  B730:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000730\n  B731:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000731\n  B732:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000732\n  B733:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000733\n  B734:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000734\n  B735:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000735\n  B736:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000736\n  B737:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000737\n  B738:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000738\n  B739:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000739\n  B740:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000740\n  B741:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000741\n  B742:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000742\n  B743:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000743\n  B744:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000744\n  B745:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000745\n  B746:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000746\n  B747:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000747\n  B748:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000748\n  B749:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000749\n  B750:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000750\n  B751:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000751\n  B752:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000752\n  B753:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000753\n  B754:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000754\n  B755:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000755\n  B756:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000756\n  B757:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000757\n  B758:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000758\n  B759:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000759\n  B760:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000760\n  B761:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000761\n  B762:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000762\n  B763:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000763\n  B764:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000764\n  B765:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000765\n  B766:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000766\n  B767:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000767\n  B768:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000768\n  B769:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000769\n  B770:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000770\n  B771:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000771\n  B772:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000772\n  B773:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000773\n  B774:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000774\n  B775:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000775\n  B776:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000776\n  B777:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000777\n  B778:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000778\n  B779:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000779\n  B780:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000780\n  B781:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000781\n  B782:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000782\n  B783:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000783\n  B784:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000784\n  B785:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000785\n  B786:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000786\n  B787:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000787\n  B788:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000788\n  B789:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000789\n  B790:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000790\n  B791:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000791\n  B792:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000792\n  B793:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000793\n  B794:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000794\n  B795:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000795\n  B796:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000796\n  B797:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000797\n  B798:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000798\n  B799:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: bucket-name-number-000799\n"
+  }
+ },
+ {
+  "name": "cloudformation deploy s3 bucket",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--s3-bucket",
+   "bkt",
+   "--s3-prefix",
+   "p",
+   "--kms-key-id",
+   "k1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>CREATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ]
+ }
+]

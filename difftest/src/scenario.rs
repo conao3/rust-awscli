@@ -43,6 +43,14 @@ pub struct Scenario {
     pub responses: Vec<RespDef>,
     #[serde(default)]
     pub outputs: Vec<String>,
+    /// Regular expressions whose matches in request targets and bodies
+    /// are masked (values that depend on the time of the run).
+    #[serde(default)]
+    pub mask: Vec<String>,
+    /// Request headers left out of the comparison (lower case), for
+    /// known gaps outside the command under test.
+    #[serde(default)]
+    pub ignore_headers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -160,7 +168,21 @@ pub async fn exec(
     };
     let stub = Stub::start(responses).await?;
     let (ra, qa, oa, argv) = run_side(reference, s, &stub, work, env).await?;
-    let (rb, qb, ob, _) = run_side(candidate, s, &stub, work, env).await?;
+    let (rb, mut qb, ob, _) = run_side(candidate, s, &stub, work, env).await?;
+    let mut qa = qa;
+    for r in qa.iter_mut().chain(qb.iter_mut()) {
+        r.headers
+            .retain(|(k, _)| !s.ignore_headers.contains(&k.to_ascii_lowercase()));
+    }
+    for pattern in &s.mask {
+        let re = regex::bytes::Regex::new(pattern)?;
+        for r in qa.iter_mut().chain(qb.iter_mut()) {
+            r.body = re.replace_all(&r.body, &b"<masked>"[..]).into_owned();
+            r.target =
+                String::from_utf8_lossy(&re.replace_all(r.target.as_bytes(), &b"<masked>"[..]))
+                    .into_owned();
+        }
+    }
     let mut detail = format!("scenario: {}\nargv: aws {}\n", s.name, argv.join(" "));
     let _ = writeln!(detail, "== reference exit: {:?}", ra.code);
     let _ = writeln!(

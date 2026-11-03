@@ -353,8 +353,9 @@ impl Session {
             .cloned()
     }
 
-    fn user_agent(&self, settings: &ClientSettings) -> String {
+    fn user_agent(&self, settings: &ClientSettings, extra: &[Feature]) -> String {
         let mut features = self.features.lock().unwrap().clone();
+        features.extend_from_slice(extra);
         features.push(match settings.retry_mode {
             RetryMode::Standard => Feature::RetryModeStandard,
             RetryMode::Adaptive => Feature::RetryModeAdaptive,
@@ -544,7 +545,16 @@ impl Session {
                 headers::set(&mut base_headers, k, first);
             }
         }
-        headers::set(&mut base_headers, "User-Agent", &self.user_agent(&settings));
+        let extra_features: &[Feature] = if matches!(choice.version, SignatureVersion::V4a { .. }) {
+            &[Feature::Sigv4aSigning]
+        } else {
+            &[]
+        };
+        headers::set(
+            &mut base_headers,
+            "User-Agent",
+            &self.user_agent(&settings, extra_features),
+        );
 
         let ctx = PayloadContext {
             payload_signing_enabled: choice.payload_signing_enabled,

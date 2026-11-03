@@ -492,16 +492,18 @@ impl SigV4a {
         let (instructions, _) = sign(signable, &params)
             .map_err(|e| SessionError::new(ErrorKind::General, e.to_string()))?
             .into_parts();
-        for (name, value) in instructions.headers() {
-            let name = match name {
-                "x-amz-date" => "X-Amz-Date",
-                "x-amz-region-set" => "X-Amz-Region-Set",
-                "x-amz-security-token" => "X-Amz-Security-Token",
-                "x-amz-content-sha256" => "x-amz-content-sha256",
-                "authorization" => "Authorization",
-                other => other,
-            };
-            headers::replace(&mut req.headers, name, value);
+        // The CRT signer appends its headers in this order and case.
+        let signed: Vec<(&str, &str)> = instructions.headers().collect();
+        for name in [
+            "X-Amz-Security-Token",
+            "X-Amz-Date",
+            "X-Amz-Region-Set",
+            "x-amz-content-sha256",
+            "Authorization",
+        ] {
+            if let Some((_, value)) = signed.iter().find(|(k, _)| k.eq_ignore_ascii_case(name)) {
+                headers::replace(&mut req.headers, name, value);
+            }
         }
         Ok(())
     }
@@ -980,6 +982,71 @@ mod tests {
         assert!(auth.starts_with(
             "AWS4-ECDSA-P256-SHA256 Credential=AKIDEXAMPLE/20261103/cloudfront-keyvaluestore/aws4_request"
         ));
+    }
+
+    /// Header order and `SignedHeaders` of `CrtS3SigV4AsymAuth` /
+    /// `CrtSigV4AsymAuth` for a PUT with `Content-MD5` over https.
+    #[test]
+    fn sigv4a_matches_crt_layout() {
+        for (s3, token, names, signed) in [
+            (
+                true,
+                Some("tok"),
+                &[
+                    "User-Agent",
+                    "Content-MD5",
+                    "host",
+                    "X-Amz-Security-Token",
+                    "X-Amz-Date",
+                    "X-Amz-Region-Set",
+                    "x-amz-content-sha256",
+                    "Authorization",
+                ][..],
+                "SignedHeaders=content-md5;host;x-amz-content-sha256;x-amz-date;x-amz-region-set;x-amz-security-token",
+            ),
+            (
+                false,
+                None,
+                &[
+                    "User-Agent",
+                    "Content-MD5",
+                    "host",
+                    "X-Amz-Date",
+                    "X-Amz-Region-Set",
+                    "Authorization",
+                ][..],
+                "SignedHeaders=content-md5;host;x-amz-date;x-amz-region-set",
+            ),
+        ] {
+            let signer = SigV4a {
+                credentials: creds(token),
+                service_name: "s3".into(),
+                region_set: "*".into(),
+                s3,
+            };
+            let mut req = SignableRequest {
+                method: "PUT".into(),
+                url: "https://b.s3.amazonaws.com/k".into(),
+                headers: vec![
+                    ("User-Agent".into(), "ua".into()),
+                    ("Content-MD5".into(), "x".into()),
+                ],
+                body: b"abc".to_vec(),
+            };
+            signer
+                .add_auth(&mut req, &PayloadContext::default(), now())
+                .unwrap();
+            let got: Vec<&str> = req.headers.iter().map(|(k, _)| k.as_str()).collect();
+            assert_eq!(got, names);
+            if s3 {
+                assert_eq!(
+                    headers::get(&req.headers, "x-amz-content-sha256"),
+                    Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+                );
+            }
+            let auth = headers::get(&req.headers, "Authorization").unwrap();
+            assert_eq!(auth.split(", ").nth(1), Some(signed));
+        }
     }
 
     fn inputs<'a>() -> AuthInputs<'a> {

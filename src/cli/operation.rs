@@ -66,8 +66,13 @@ struct NoHooks;
 impl OperationHooks for NoHooks {}
 
 pub(crate) enum Invocation {
-    /// Text for stdout (help, `--generate-cli-skeleton`).
+    /// Text for stdout (`--generate-cli-skeleton`).
     Print(String),
+    /// The `help` positional: `OperationHelpCommand`, with whether
+    /// `override_required_args` cleared the required flags.
+    Help {
+        clear_required: bool,
+    },
     Call(Box<OperationInvocation>),
 }
 
@@ -121,7 +126,7 @@ fn ns_value(v: &NsVal) -> Value {
 
 /// `OverrideRequiredArgsArgument.override_required_args` for
 /// `--cli-input-json`, `--cli-input-yaml`, and `--generate-cli-skeleton`.
-fn override_required_args(table: &mut ArgTable<'_>, args: &[String]) {
+fn override_required_args(table: &mut ArgTable<'_>, args: &[String]) -> bool {
     let mut clear = false;
     for name in ["cli-input-json", "cli-input-yaml"] {
         if table.contains_key(name) && args.iter().any(|a| *a == format!("--{name}")) {
@@ -139,6 +144,7 @@ fn override_required_args(table: &mut ArgTable<'_>, args: &[String]) {
             a.required = false;
         }
     }
+    clear
 }
 
 struct State<'m> {
@@ -172,10 +178,10 @@ pub(crate) fn run_with<'m>(
     let waiter = path.parent == "wait";
     let (mut table, mut extras) =
         build_argument_table_with(op, path, &mut |table| hooks.table(op, table));
-    override_required_args(&mut table, args);
+    let clear_required = override_required_args(&mut table, args);
 
     if args.len() == 1 && args[0] == "help" {
-        return Ok(Invocation::Print(operation_help(path, &table)));
+        return Ok(Invocation::Help { clear_required });
     }
     let parser = operation_parser(&table, true);
     let (ns, mut remaining) = match parser
@@ -187,7 +193,7 @@ pub(crate) fn run_with<'m>(
     };
     match ns.get("help") {
         Some(NsVal::Str(h)) if h == "help" => {
-            return Ok(Invocation::Print(operation_help(path, &table)));
+            return Ok(Invocation::Help { clear_required });
         }
         Some(NsVal::Str(h)) if !h.is_empty() => remaining.push(h.clone()),
         _ => {}
@@ -380,16 +386,6 @@ pub(crate) fn run_with<'m>(
         outfile: state.outfile,
         stub_response: None,
     })))
-}
-
-fn operation_help(path: CommandPath<'_>, table: &ArgTable<'_>) -> String {
-    let mut out = format!("{}\n\nOptions:\n\n", path.name);
-    for a in table.values() {
-        if !a.undocumented {
-            out.push_str(&format!("  {}\n", a.cli_name()));
-        }
-    }
-    out
 }
 
 /// The `add_to_params` of each argument class. `ec2/addcount.py` raises

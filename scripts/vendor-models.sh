@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Usage: scripts/vendor-models.sh <aws-cli source checkout at the reference tag>
+# Needs the devShell (jq, zstd, and a Python that imports the checkout).
 set -euo pipefail
 
 src="$1"
@@ -45,3 +46,15 @@ for f in partitions.json endpoints.json; do
 done
 jq -c . "$src/awscli/data/cli.json" | zstd -19 -q -o "$out/cli.json.zst"
 sed -n "s/^__version__ = .\(.*\).$/\1/p" "$src/awscli/__init__.py" > "$out/VERSION"
+
+scripts_dir="$(dirname "$0")"
+python3 "$scripts_dir/vendor-docs.py" "$src" "$tmp_dir/docs"
+PYTHONPATH="$src" python3 "$scripts_dir/gen-help-data.py" "$tmp_dir/help"
+mkdir -p "$out/examples" "$out/help"
+for f in "$tmp_dir"/docs/examples/*.json; do
+  zstd -19 -q -o "$out/examples/$(basename "$f").zst" "$f"
+done
+zstd -19 -q -o "$out/topics.json.zst" "$tmp_dir/docs/topics.json"
+for f in "$tmp_dir"/help/*.json; do
+  zstd -19 -q -o "$out/help/$(basename "$f").zst" "$f"
+done

@@ -184,7 +184,11 @@ fn run_inner(args: Vec<String>) -> Result<ExitCode, CliError> {
         }
         Command::Operation(inv) => run_operation(&ctx, inv),
         Command::Wait(inv) => run_wait(&ctx, inv),
-        Command::Custom { path, args } => crate::commands::run(&ctx, &path, &args),
+        Command::Help(req) => crate::help::run(&ctx, &req),
+        Command::Custom { path, args } => match crate::help::custom_request(&path, &args) {
+            Some(req) => crate::help::run(&ctx, &req),
+            None => crate::commands::run(&ctx, &path, &args),
+        },
     }
 }
 

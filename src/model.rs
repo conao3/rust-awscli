@@ -93,6 +93,14 @@ impl ServiceModel {
         &self.doc["service"]
     }
 
+    /// `ServiceModel.documentation`.
+    pub fn documentation(&self) -> &str {
+        self.service()
+            .get("documentation")
+            .and_then(Json::as_str)
+            .unwrap_or_default()
+    }
+
     pub fn metadata(&self) -> &JsonMap<String, Json> {
         self.service()["metadata"].as_object().expect("metadata")
     }

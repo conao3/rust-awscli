@@ -5,12 +5,11 @@
 
 use super::argparse::{Action, Nargs, NsVal, Parsed, Parser};
 use super::arguments::CommandPath;
-use super::commands::{
-    MainCommand, ServiceEntry, find_main, main_commands, service_commands, waiter_commands,
-};
+use super::commands::{MainCommand, ServiceEntry, find_main, service_commands, waiter_commands};
 use super::operation::{self, Invocation};
 use super::render::argparse_error;
 use super::{Command, Ctx, Fail, WaitInvocation};
+use crate::help::HelpRequest;
 use crate::model::ServiceModel;
 
 pub(crate) fn dispatch(rest: &[String], ctx: &Ctx<'_>) -> Result<Command, Fail> {
@@ -24,7 +23,7 @@ pub(crate) fn dispatch(rest: &[String], ctx: &Ctx<'_>) -> Result<Command, Fail> 
     };
     session_initialized(ctx)?;
     if command == "help" {
-        return Ok(Command::Print(provider_help()));
+        return provider_help(remaining);
     }
     match find_main(command) {
         Some(MainCommand::Service(cli, service)) => service_command(cli, service, remaining, ctx),
@@ -57,18 +56,37 @@ pub(crate) fn binary_format(ctx: &Ctx<'_>) -> String {
         .unwrap_or_else(|| "base64".to_string())
 }
 
-fn provider_help() -> String {
-    let mut out = String::from("aws\n\nAvailable services:\n\n");
-    let mut names: Vec<&str> = main_commands()
-        .map(|c| match c {
-            MainCommand::Service(n, _) | MainCommand::Custom(n) => n,
-        })
-        .collect();
-    names.sort();
-    for n in names {
-        out.push_str(&format!("  * {n}\n"));
+/// `ProviderHelpCommand.__call__`: a topic from the subcommand table
+/// (`topics` and the topic names), or the provider page.
+fn provider_help(args: &[String]) -> Result<Command, Fail> {
+    if args.is_empty() || (args.len() == 1 && args[0] == "help") {
+        return Ok(Command::Help(HelpRequest::Provider));
     }
-    out
+    let topics = crate::help::topic_names();
+    let mut parser = Parser::new();
+    let mut sub = Action::positional("subcommand", Nargs::Optional);
+    let mut choices = vec!["topics".to_string()];
+    choices.extend(topics);
+    sub.choices = Some(choices);
+    parser.add(sub);
+    let ns = match parser
+        .parse_known_args(args)
+        .map_err(|e| argparse_error(&e.to_string()))?
+    {
+        Parsed::Args { ns, .. } => ns,
+        Parsed::Version => unreachable!("no version action"),
+    };
+    Ok(Command::Help(match &ns["subcommand"] {
+        NsVal::Str(t) if t == "topics" => HelpRequest::TopicLister,
+        NsVal::Str(t) => HelpRequest::Topic(t.clone()),
+        _ => HelpRequest::Provider,
+    }))
+}
+
+/// The help request of `help` for a customization's command (`args` is
+/// exactly `['help']` after its subcommands).
+fn custom_help(cli: &str, name: &str, args: &[String]) -> Option<Command> {
+    crate::help::custom_request(&[cli.to_string(), name.to_string()], args).map(Command::Help)
 }
 
 /// `ServiceCommand.__call__`.
@@ -97,7 +115,7 @@ fn service_command(
         unreachable!("required positional")
     };
     if name == "help" {
-        return Ok(Command::Print(service_help(cli, &table)));
+        return Ok(Command::Help(HelpRequest::Service(cli.to_string())));
     }
     let entry = table
         .iter()
@@ -107,6 +125,9 @@ fn service_command(
     match entry {
         ServiceEntry::Operation(op) => {
             if super::commands::is_customized(cli, name) {
+                if let Some(help) = custom_help(cli, name, &remaining) {
+                    return Ok(help);
+                }
                 return Ok(Command::Custom {
                     path: vec![cli.to_string(), name.to_string()],
                     args: remaining.to_vec(),
@@ -116,6 +137,11 @@ fn service_command(
             let path = CommandPath { parent: cli, name };
             match operation::run(&op, path, &remaining, ctx)? {
                 Invocation::Print(text) => Ok(Command::Print(text)),
+                Invocation::Help { clear_required } => Ok(Command::Help(HelpRequest::Operation {
+                    service: cli.to_string(),
+                    name: name.to_string(),
+                    clear_required,
+                })),
                 Invocation::Call(mut inv) => {
                     inv.cli_service = cli.to_string();
                     Ok(Command::Operation(*inv))
@@ -123,10 +149,15 @@ fn service_command(
             }
         }
         ServiceEntry::Wait => wait_command(cli, &model, &remaining, ctx),
-        ServiceEntry::Custom => Ok(Command::Custom {
-            path: vec![cli.to_string(), name.to_string()],
-            args: remaining.to_vec(),
-        }),
+        ServiceEntry::Custom => {
+            if let Some(help) = custom_help(cli, name, &remaining) {
+                return Ok(help);
+            }
+            Ok(Command::Custom {
+                path: vec![cli.to_string(), name.to_string()],
+                args: remaining.to_vec(),
+            })
+        }
     }
 }
 
@@ -167,19 +198,21 @@ pub(crate) fn customized_operation(
     let path = CommandPath { parent: cli, name };
     match operation::run_with(&op, path, args, ctx, hooks)? {
         Invocation::Print(text) => Ok(Command::Print(text)),
+        Invocation::Help { clear_required } => {
+            let req = HelpRequest::Operation {
+                service: cli.to_string(),
+                name: name.to_string(),
+                clear_required,
+            };
+            crate::help::render_text(&req)
+                .map(Command::Print)
+                .map_err(Fail::General)
+        }
         Invocation::Call(mut inv) => {
             inv.cli_service = cli.to_string();
             Ok(Command::Operation(*inv))
         }
     }
-}
-
-fn service_help(cli: &str, table: &[(String, ServiceEntry)]) -> String {
-    let mut out = format!("{cli}\n\nAvailable commands:\n\n");
-    for (n, _) in table {
-        out.push_str(&format!("  * {n}\n"));
-    }
-    out
 }
 
 /// `WaitCommand` (`BasicCommand.__call__` with the waiter subcommands).
@@ -191,11 +224,7 @@ fn wait_command(
 ) -> Result<Command, Fail> {
     let waiters = waiter_commands(model);
     if args.len() == 1 && args[0] == "help" {
-        let mut out = format!("{cli} wait\n\nAvailable commands:\n\n");
-        for (n, _) in &waiters {
-            out.push_str(&format!("  * {n}\n"));
-        }
-        return Ok(Command::Print(out));
+        return Ok(Command::Help(HelpRequest::Wait(cli.to_string())));
     }
     let mut parser = Parser::new();
     let mut sub = Action::positional("subcommand", Nargs::Optional);
@@ -241,6 +270,11 @@ fn wait_command(
     };
     match operation::run(&op, path, &new_args, ctx)? {
         Invocation::Print(text) => Ok(Command::Print(text)),
+        Invocation::Help { clear_required } => Ok(Command::Help(HelpRequest::Waiter {
+            service: cli.to_string(),
+            name: sub.clone(),
+            clear_required,
+        })),
         Invocation::Call(inv) => Ok(Command::Wait(WaitInvocation {
             cli_service: cli.to_string(),
             service: model.name.clone(),

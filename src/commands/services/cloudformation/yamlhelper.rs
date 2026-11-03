@@ -40,6 +40,7 @@ pub(super) fn yaml_dump(value: &Value) -> String {
             yaml11_bools: true,
             timestamp_prefix: Some(TIMESTAMP_PREFIX),
             pure_python: true,
+            width: 80,
         },
     )
 }

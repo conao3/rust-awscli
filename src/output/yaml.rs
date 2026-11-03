@@ -96,6 +96,8 @@ pub struct DumpOptions {
     /// words longer than the line on a line of their own, and line
     /// wrapping at the width itself.
     pub pure_python: bool,
+    /// `yaml.width`.
+    pub width: usize,
 }
 
 const CLI_OPTIONS: DumpOptions = DumpOptions {
@@ -103,6 +105,7 @@ const CLI_OPTIONS: DumpOptions = DumpOptions {
     yaml11_bools: false,
     timestamp_prefix: None,
     pure_python: false,
+    width: 80,
 };
 
 /// `YAML.dump` of one document.
@@ -118,6 +121,7 @@ pub fn yaml_dump_with(value: &Value, options: &DumpOptions) -> String {
     events.push(Event::StreamEnd);
     let mut emitter = Emitter::new();
     emitter.pure_python = options.pure_python;
+    emitter.best_width = i32::try_from(options.width).unwrap_or(i32::MAX);
     emitter.emit_all(&events);
     String::from_utf8(emitter.buffer).expect("emitter output is UTF-8")
 }

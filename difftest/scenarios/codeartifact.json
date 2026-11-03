@@ -1,0 +1,488 @@
+[
+ {
+  "name": "codeartifact login npm dry-run ",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "npm",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login npm dry-run --namespace scope",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "npm",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900",
+   "--namespace",
+   "scope"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login pip dry-run ",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "pip",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login twine dry-run ",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "twine",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login swift dry-run --namespace my-scope",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "swift",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900",
+   "--namespace",
+   "my-scope"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login dotnet dry-run ",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "dotnet",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login nuget dry-run ",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "nuget",
+   "--dry-run",
+   "--domain-owner",
+   "123",
+   "--duration-seconds",
+   "900"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login npm writes npmrc",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "npm"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ],
+  "files": {
+   "home/.npmrc": "a=b\n//d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/:_authToken=old\n"
+  },
+  "outputs": [
+   "home/.npmrc"
+  ]
+ },
+ {
+  "name": "codeartifact login twine existing pypirc",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "twine",
+   "--dry-run"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ],
+  "files": {
+   "home/.pypirc": "[distutils]\nindex-servers =\n  pypi\n\n[pypi]\nusername: me\n"
+  }
+ },
+ {
+  "name": "codeartifact login twine bad pypirc",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "twine",
+   "--dry-run"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ],
+  "files": {
+   "home/.pypirc": "[x]\n"
+  }
+ },
+ {
+  "name": "codeartifact login pip namespace",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "pip",
+   "--namespace",
+   "x"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login npm bad scope",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "npm",
+   "--namespace",
+   "_x",
+   "--dry-run"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ]
+ },
+ {
+  "name": "codeartifact login bad tool",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--tool",
+   "maven",
+   "--domain",
+   "d",
+   "--repository",
+   "r"
+  ]
+ },
+ {
+  "name": "codeartifact login twine write",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "twine"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ],
+  "outputs": [
+   "home/.pypirc"
+  ]
+ },
+ {
+  "name": "codeartifact login swift netrc",
+  "argv": [
+   "codeartifact",
+   "login",
+   "--domain",
+   "d",
+   "--repository",
+   "r",
+   "--endpoint-url",
+   "{endpoint}",
+   "--tool",
+   "swift"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"authorizationToken\": \"secret-tok\", \"expiration\": 1893456000}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"repositoryEndpoint\": \"https://d-1.d.codeartifact.us-east-1.amazonaws.com/npm/r/\"}"
+   }
+  ],
+  "files": {
+   "home/.netrc": "machine d-1.d.codeartifact.us-east-1.amazonaws.com login token password old\n"
+  },
+  "outputs": [
+   "home/.netrc"
+  ]
+ }
+]

@@ -38,6 +38,7 @@ mod lambda;
 mod lambda_web;
 mod lightsail;
 mod logs;
+pub(crate) mod presign;
 mod quicksight;
 mod rds;
 mod rekognition;

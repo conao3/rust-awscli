@@ -1,0 +1,8 @@
+[
+  {"name": "dsql generate-db-connect-auth-token missing hostname",
+   "argv": ["dsql", "generate-db-connect-auth-token"]},
+  {"name": "dsql generate-db-connect-admin-auth-token bad expires",
+   "argv": ["dsql", "generate-db-connect-admin-auth-token", "--hostname", "h", "--expires-in", "x"]},
+  {"name": "dsql generate-db-connect-auth-token unknown option",
+   "argv": ["dsql", "generate-db-connect-auth-token", "--hostname", "h", "--expire", "y"]}
+]

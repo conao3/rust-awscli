@@ -1,0 +1,12 @@
+[
+  {"name": "cloudtrail validate-logs missing args", "argv": ["cloudtrail", "validate-logs"]},
+  {"name": "cloudtrail validate-logs bad start", "argv": ["cloudtrail", "validate-logs", "--trail-arn", "x", "--start-time", "nope"]},
+  {"name": "cloudtrail validate-logs bad range", "argv": ["cloudtrail", "validate-logs", "--trail-arn", "x", "--start-time", "2020-01-02", "--end-time", "2020-01-01T00:00:00Z"]},
+  {"name": "cloudtrail validate-logs bad arn", "argv": ["cloudtrail", "validate-logs", "--trail-arn", "arn:aws:cloudtrail:us-east-1:12:trail/x", "--start-time", "2020-01-01T00:00:00Z", "--end-time", "2020-01-02T00:00:00Z"]},
+  {"name": "cloudtrail validate-logs unknown trail",
+   "argv": ["cloudtrail", "validate-logs", "--trail-arn", "arn:aws:cloudtrail:us-east-1:123456789012:trail/x", "--start-time", "2020-01-01T00:00:00Z", "--end-time", "2020-01-02T00:00:00Z", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"trailList\": [{\"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/y\"}]}"}]},
+  {"name": "cloudtrail validate-logs org trail without account",
+   "argv": ["cloudtrail", "validate-logs", "--trail-arn", "arn:aws:cloudtrail:us-east-1:123456789012:trail/x", "--start-time", "2020-01-01T00:00:00Z", "--end-time", "2020-01-02T00:00:00Z", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"trailList\": [{\"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/x\", \"S3BucketName\": \"b\", \"IsOrganizationTrail\": true}]}"}]}
+]

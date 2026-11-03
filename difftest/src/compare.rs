@@ -30,6 +30,17 @@ fn uuid_re() -> &'static Regex {
     })
 }
 
+/// The time-dependent parts of presigned URLs in request bodies (the
+/// cross-region `PresignedUrl` / `PreSignedUrl` of ec2 and rds), plain or
+/// percent-encoded.
+fn presigned_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new("(X-Amz-Date(?:=|%3D))[0-9]{8}T[0-9]{6}Z|(X-Amz-Signature(?:=|%3D))[0-9a-f]{64}")
+            .unwrap()
+    })
+}
+
 /// Make control characters visible so diffs of terminal output and
 /// binary data stay readable.
 pub fn visible(bytes: &[u8]) -> String {
@@ -77,12 +88,16 @@ fn body_text(content_type: &str, body: &[u8]) -> String {
 
 pub fn render_request(r: &Recorded) -> String {
     let mut out = format!("{} {}\n", r.method, r.target);
+    // A generated idempotency token in the body makes its checksums
+    // differ between runs.
+    let body_has_uuid = uuid_re().is_match(&String::from_utf8_lossy(&r.body));
     let mut headers: Vec<(String, String)> = r
         .headers
         .iter()
         .map(|(k, v)| {
             let k = k.to_ascii_lowercase();
-            let v = if MASKED_HEADERS.contains(&k.as_str()) {
+            let body_digest = k.starts_with("x-amz-checksum-") || k == "content-md5";
+            let v = if MASKED_HEADERS.contains(&k.as_str()) || (body_has_uuid && body_digest) {
                 "<masked>".to_string()
             } else {
                 String::from_utf8_lossy(v).into_owned()
@@ -101,7 +116,10 @@ pub fn render_request(r: &Recorded) -> String {
     }
     out.push('\n');
     out.push_str(&body_text(&content_type, &r.body));
-    uuid_re().replace_all(&out, "<uuid>").into_owned()
+    let out = uuid_re().replace_all(&out, "<uuid>");
+    presigned_re()
+        .replace_all(&out, "${1}${2}<masked>")
+        .into_owned()
 }
 
 pub fn render_requests(reqs: &[Recorded]) -> String {
@@ -197,5 +215,18 @@ mod tests {
         let text = render_request(&r);
         assert!(text.contains("x-amz-date: <masked>"));
         assert!(text.contains(r#""Request": "<uuid>""#));
+
+        let r = Recorded {
+            method: "POST".into(),
+            target: "/".into(),
+            headers: vec![],
+            body: format!(
+                "PresignedUrl=http%3A%2F%2Fh%2F%3FX-Amz-Date%3D20261103T172307Z%26X-Amz-Signature%3D{}",
+                "a".repeat(64)
+            )
+            .into_bytes(),
+        };
+        let text = render_request(&r);
+        assert!(text.contains("X-Amz-Date%3D<masked>%26X-Amz-Signature%3D<masked>"));
     }
 }

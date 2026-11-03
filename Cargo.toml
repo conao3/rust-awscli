@@ -1,0 +1,56 @@
+[package]
+name = "awsr"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "A fast, output-compatible Rust reimplementation of the AWS CLI v2"
+repository = "https://github.com/conao3/rust-awscli"
+rust-version = "1.94"
+
+[[bin]]
+name = "awsr"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-credential-types = "1"
+aws-sigv4 = { version = "1", features = ["sign-http", "sigv4a"] }
+aws-smithy-runtime-api = { version = "1", features = ["client"] }
+aws-types = "1"
+base64 = "0.22"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+ciborium = "0.2"
+crc32c = "0.6"
+crc32fast = "1"
+crc64fast-nvme = "1"
+flate2 = "1"
+hex = "0.4"
+http = "1"
+indexmap = "2"
+jmespath = "0.5"
+md-5 = "0.10"
+num-bigint = "0.4"
+num-traits = "0.2"
+percent-encoding = "2"
+quick-xml = "0.38"
+rand = "0.9"
+regex = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-native-roots", "rustls-tls", "http2", "gzip"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+sha1 = "0.10"
+sha2 = "0.10"
+thiserror = "2"
+tokio = { version = "1", features = ["rt", "macros", "time", "net", "io-util", "fs"] }
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+zstd = "0.13"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

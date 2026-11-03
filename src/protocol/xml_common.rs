@@ -1704,9 +1704,7 @@ impl XmlParser<'_> {
                 .member_shape(payload)
                 .ok_or_else(|| anyhow!("unknown payload member: {payload}"))?;
             if body_shape.get_bool("eventstream") {
-                // The raw event stream; `commands::services::s3api`
-                // decodes it (the only rest-xml event stream output is
-                // `SelectObjectContent`).
+                // The raw event stream, read by `protocol::eventstream`.
                 out.insert(payload.to_string(), Value::Bytes(response.body.clone()));
             } else if matches!(body_shape.type_name(), "string" | "blob") {
                 let value =

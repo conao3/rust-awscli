@@ -9,6 +9,7 @@ use crate::value::Value;
 pub mod cbor;
 pub mod common;
 pub mod ec2;
+pub mod eventstream;
 pub mod json;
 pub mod query;
 pub mod rest_json;

@@ -1,0 +1,247 @@
+[
+ {
+  "name": "s3api select-object-content all events",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:AAAAaQAAAFXqAW8uDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbWEsYgrjZ+sdAAAAOQAAACmLoZ3yDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcABENvbnSchkoNAAAAzQAAAEObcuMpDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcABVN0YXRzDTpjb250ZW50LXR5cGUHAAh0ZXh0L3htbDxTdGF0cyB4bWxucz0iIj48Qnl0ZXNTY2FubmVkPjEwPC9CeXRlc1NjYW5uZWQ+PEJ5dGVzUHJvY2Vzc2VkPjEwPC9CeXRlc1Byb2Nlc3NlZD48Qnl0ZXNSZXR1cm5lZD41PC9CeXRlc1JldHVybmVkPjwvU3RhdHM+dSsiYAAAAIkAAABGRmvpLw06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAAhQcm9ncmVzcw06Y29udGVudC10eXBlBwAIdGV4dC94bWw8UHJvZ3Jlc3M+PEJ5dGVzU2Nhbm5lZD4xPC9CeXRlc1NjYW5uZWQ+PC9Qcm9ncmVzcz5E5rrUAAAAaQAAAFXqAW8uDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbWMsZAofNIQQAAAAOAAAACjBxoTUDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAA0VuZM+X05I="
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ },
+ {
+  "name": "s3api select-object-content unknown event",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:AAAAZwAAAFVVMdFPDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbXgKiPrB9QAAADoAAAAqVQi2mA06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAAVPdGhlcnAf+3QAAAA4AAAAKMHGhNQNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwADRW5kz5fTkg=="
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ },
+ {
+  "name": "s3api select-object-content unmodeled exception",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:AAAAZwAAAFVVMdFPDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbXgKiPrB9QAAAGQAAAAxWE4O3g06bWVzc2FnZS10eXBlBwAJZXhjZXB0aW9uDzpleGNlcHRpb24tdHlwZQcABE5vcGU8RXJyb3I+PE1lc3NhZ2U+bTwvTWVzc2FnZT48L0Vycm9yPnkMXAcAAABnAAAAVVUx0U8NOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwAHUmVjb3Jkcw06Y29udGVudC10eXBlBwAYYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFteQqR4fC0"
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ },
+ {
+  "name": "s3api select-object-content error event",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:AAAAZwAAAFVVMdFPDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbXgKiPrB9QAAAHUAAABlacglAQ06bWVzc2FnZS10eXBlBwAFZXJyb3ILOmVycm9yLWNvZGUHAA1JbnRlcm5hbEVycm9yDjplcnJvci1tZXNzYWdlBwAhV2UgZW5jb3VudGVyZWQgYW4gaW50ZXJuYWwgZXJyb3IuNHXv3g=="
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ },
+ {
+  "name": "s3api select-object-content empty error event",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:AAAAJgAAABbfd7CcDTptZXNzYWdlLXR5cGUHAAVlcnJvcm50cdI="
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ },
+ {
+  "name": "s3api select-object-content empty stream",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:"
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ },
+ {
+  "name": "s3api select-object-content truncated",
+  "argv": [
+   "s3api",
+   "select-object-content",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--expression",
+   "select * from s3object",
+   "--expression-type",
+   "SQL",
+   "--input-serialization",
+   "{\"CSV\": {}}",
+   "--output-serialization",
+   "{\"CSV\": {}}",
+   "out.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-request-id": "R"
+    },
+    "body": "base64:AAAAZwAAAFVVMdFPDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbXgKiPrB9QAAAGcAAABVVTHRTw06bWVzc2Fn"
+   }
+  ],
+  "outputs": [
+   "out.csv"
+  ]
+ }
+]

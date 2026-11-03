@@ -15,7 +15,7 @@ use crate::driver::{CallResult, Caller, Context, client_error};
 use crate::error::{CliError, ExitCode};
 use crate::output::Color;
 use crate::paginate::{PageIterator, PaginationConfig, limit_key_type};
-use crate::protocol::timestamp;
+use crate::protocol::{eventstream, timestamp};
 use crate::value::{Map, Value};
 
 const GREEN: &str = "\x1b[32m";
@@ -417,8 +417,111 @@ fn live_tail_args() -> Vec<ArgDef> {
     ]
 }
 
-/// `StartLiveTailCommand._run_main`: the request and the checks before the
-/// session. Reading the event stream of the response is not supported.
+/// The state `LiveTailLogEventsCollector` and `PrintOnlyPrinter` share:
+/// the stream read as the response body arrives (`EventStream`), the log
+/// events printed as they are collected, and the exception that ended the
+/// collection.
+struct LiveTail {
+    model: crate::model::ServiceModel,
+    buffer: eventstream::Buffer,
+    initial_seen: bool,
+    print: bool,
+    stopped: bool,
+    exception: Option<String>,
+}
+
+impl LiveTail {
+    fn feed(&mut self, chunk: &[u8]) {
+        self.buffer.add_data(chunk);
+        while !self.stopped {
+            match self.buffer.next_message() {
+                Ok(Some(message)) => self.handle(&message),
+                Ok(None) => break,
+                Err(e) => self.stop(Some(e.to_string())),
+            }
+        }
+    }
+
+    fn stop(&mut self, exception: Option<String>) {
+        if self.initial_seen {
+            self.exception = exception;
+        }
+        self.stopped = true;
+    }
+
+    fn handle(&mut self, message: &eventstream::Message) {
+        if !self.initial_seen {
+            // `get_initial_response`; the parser raises when the first
+            // event is another one.
+            if message.header_str(":event-type") == Some("initial-response") {
+                self.initial_seen = true;
+            } else {
+                self.stopped = true;
+            }
+            return;
+        }
+        let shape = self
+            .model
+            .shape("StartLiveTailResponseStream")
+            .expect("StartLiveTailResponseStream");
+        let parser = eventstream::EventParser {
+            model: &self.model,
+            shape,
+            protocol: eventstream::Protocol::Json,
+            options: Default::default(),
+        };
+        let event = match parser.parse(message) {
+            Ok(Some(e)) => e,
+            Ok(None) => return,
+            Err(eventstream::EventError::Stream(parsed)) => {
+                let text = eventstream::stream_error_message(&parsed, "StartLiveTail");
+                return self.stop(Some(text));
+            }
+            Err(eventstream::EventError::Other(e)) => return self.stop(Some(e.to_string())),
+        };
+        if let Err(missing) = self.collect(&event) {
+            self.stop(Some(crate::pyfmt::str_repr(&missing)));
+        }
+    }
+
+    /// `LiveTailLogEventsCollector._collect_log_events` for one event: the
+    /// `KeyError` key when a member is missing.
+    fn collect(&mut self, event: &Value) -> Result<(), String> {
+        let Some(update) = event.get("sessionUpdate") else {
+            return Ok(());
+        };
+        let get = |v: &Value, k: &str| v.get(k).cloned().ok_or_else(|| k.to_string());
+        let metadata = get(update, "sessionMetadata")?;
+        get(&metadata, "sampled")?;
+        let results = get(update, "sessionResults")?;
+        for result in results.as_list().map(Vec::as_slice).unwrap_or_default() {
+            let message = get(result, "message")?;
+            if self.print {
+                let mut line = crate::protocol::common::py_str(&message).unwrap_or_default();
+                line.push('\n');
+                crate::output::stdout::write_flushed(line.as_bytes());
+            }
+        }
+        Ok(())
+    }
+}
+
+/// `handle_signal`: SIGINT, SIGTERM, and SIGPIPE end the session; the
+/// command returns normally after printing what was collected.
+fn exit_on_signal() {
+    extern "C" fn on_signal(_: libc::c_int) {
+        unsafe { libc::_exit(0) };
+    }
+    for sig in [libc::SIGINT, libc::SIGTERM, libc::SIGPIPE] {
+        unsafe {
+            libc::signal(sig, on_signal as *const () as libc::sighandler_t);
+        }
+    }
+}
+
+/// `StartLiveTailCommand._run_main`: the request, then the print-only UI
+/// writing the `sessionUpdate` log events as the stream delivers them and
+/// the exception that ended the stream.
 pub(super) fn start_live_tail(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     let Some(a) = basic::parse(ctx, &["logs", "start-live-tail"], &live_tail_args(), args)? else {
         return Ok(ExitCode::Success);
@@ -440,8 +543,26 @@ pub(super) fn start_live_tail(ctx: &Context, args: &[String]) -> Result<ExitCode
             kwargs.insert(key.to_string(), v.clone());
         }
     }
-    client.call("StartLiveTail", &Value::Map(kwargs))?;
-    if a.str("mode").as_deref() == Some("interactive") {
+    let interactive = a.str("mode").as_deref() == Some("interactive");
+    let state = std::sync::Arc::new(std::sync::Mutex::new(LiveTail {
+        model: crate::model::ServiceModel::load("logs").map_err(|e| ctx.general_error(&e))?,
+        buffer: eventstream::Buffer::new(),
+        initial_seen: false,
+        print: !interactive,
+        stopped: false,
+        exception: None,
+    }));
+    let sink_state = state.clone();
+    crate::session::http::set_body_sink(Some(Box::new(move |chunk| {
+        sink_state.lock().unwrap().feed(chunk)
+    })));
+    if !interactive {
+        exit_on_signal();
+    }
+    let result = client.call("StartLiveTail", &Value::Map(kwargs));
+    crate::session::http::set_body_sink(None);
+    result?;
+    if interactive {
         let allowed = match ctx.color() {
             Color::On => true,
             Color::Off => false,
@@ -453,6 +574,17 @@ pub(super) fn start_live_tail(ctx: &Context, args: &[String]) -> Result<ExitCode
                 "Color is not allowed by your output. Use print-only mode or enable color.",
             ));
         }
+        // `InteractiveUI` (a prompt_toolkit application) cannot start
+        // without a terminal and an event loop in the main thread.
+        return Err(CliError::new(
+            ExitCode::General,
+            crate::output::errors::render_general_error(
+                "There is no current event loop in thread 'MainThread'.",
+            ),
+        ));
+    }
+    if let Some(exception) = state.lock().unwrap().exception.take() {
+        crate::output::stdout::write_flushed(format!("{exception}\n").as_bytes());
     }
     Ok(ExitCode::Success)
 }

@@ -1,0 +1,293 @@
+[
+ {
+  "name": "logs start-live-tail basic",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAClAAAAUliA/1cNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwAMc2Vzc2lvblN0YXJ0DTpjb250ZW50LXR5cGUHABBhcHBsaWNhdGlvbi9qc29ueyJyZXF1ZXN0SWQiOiAiciIsICJzZXNzaW9uSWQiOiAiczEiLCAibG9nR3JvdXBJZGVudGlmaWVycyI6IFsiZyJdfQkmALQAAAGzAAAAUwt7fkYNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogImhlbGxvIiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9LCB7Im1lc3NhZ2UiOiAiY2FmXHUwMGU5IHtcImFcIjogMX0iLCAidGltZXN0YW1wIjogMTcwMDAwMDAwMDAwMCwgImxvZ1N0cmVhbU5hbWUiOiAicyIsICJsb2dHcm91cElkZW50aWZpZXIiOiAiZyIsICJpbmdlc3Rpb25UaW1lIjogMTcwMDAwMDAwMDEwMH1dfXk3rWMAAACgAAAAU+dnQLENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbXX07RyEVAAABJgAAAFMSndYmDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADXNlc3Npb25VcGRhdGUNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257InNlc3Npb25NZXRhZGF0YSI6IHsic2FtcGxlZCI6IHRydWV9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIm11bHRpXG5saW5lIiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9XX15yOUF"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail exception",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAClAAAAUliA/1cNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwAMc2Vzc2lvblN0YXJ0DTpjb250ZW50LXR5cGUHABBhcHBsaWNhdGlvbi9qc29ueyJyZXF1ZXN0SWQiOiAiciIsICJzZXNzaW9uSWQiOiAiczEiLCAibG9nR3JvdXBJZGVudGlmaWVycyI6IFsiZyJdfQkmALQAAAEfAAAAU76sDNENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIm9uZSIsICJ0aW1lc3RhbXAiOiAxNzAwMDAwMDAwMDAwLCAibG9nU3RyZWFtTmFtZSI6ICJzIiwgImxvZ0dyb3VwSWRlbnRpZmllciI6ICJnIiwgImluZ2VzdGlvblRpbWUiOiAxNzAwMDAwMDAwMTAwfV19Xb+kuwAAAJUAAABlQRzi3g06bWVzc2FnZS10eXBlBwAJZXhjZXB0aW9uDzpleGNlcHRpb24tdHlwZQcAF1Nlc3Npb25UaW1lb3V0RXhjZXB0aW9uDTpjb250ZW50LXR5cGUHABBhcHBsaWNhdGlvbi9qc29ueyJtZXNzYWdlIjogIlNlc3Npb24gdGltZWQgb3V0In351AHnAAABIQAAAFOgvQo2DTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADXNlc3Npb25VcGRhdGUNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257InNlc3Npb25NZXRhZGF0YSI6IHsic2FtcGxlZCI6IGZhbHNlfSwgInNlc3Npb25SZXN1bHRzIjogW3sibWVzc2FnZSI6ICJhZnRlciIsICJ0aW1lc3RhbXAiOiAxNzAwMDAwMDAwMDAwLCAibG9nU3RyZWFtTmFtZSI6ICJzIiwgImxvZ0dyb3VwSWRlbnRpZmllciI6ICJnIiwgImluZ2VzdGlvblRpbWUiOiAxNzAwMDAwMDAwMTAwfV19yMlGCQ=="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail error message",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAEfAAAAU76sDNENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIm9uZSIsICJ0aW1lc3RhbXAiOiAxNzAwMDAwMDAwMDAwLCAibG9nU3RyZWFtTmFtZSI6ICJzIiwgImxvZ0dyb3VwSWRlbnRpZmllciI6ICJnIiwgImluZ2VzdGlvblRpbWUiOiAxNzAwMDAwMDAwMTAwfV19Xb+kuwAAAFoAAABKgYigjQ06bWVzc2FnZS10eXBlBwAFZXJyb3ILOmVycm9yLWNvZGUHAA9JbnRlcm5hbEZhaWx1cmUOOmVycm9yLW1lc3NhZ2UHAARib29t144HAw=="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail unmodeled exception",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAABRAAAAMTGPOSgNOm1lc3NhZ2UtdHlwZQcACWV4Y2VwdGlvbg86ZXhjZXB0aW9uLXR5cGUHAAROb3BleyJtZXNzYWdlIjogIngifSUxsFI="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail missing sampled",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAACgAAAAU+dnQLENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjoge30sICJzZXNzaW9uUmVzdWx0cyI6IFt7Im1lc3NhZ2UiOiAibSJ9XX0eUeBM"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail missing message",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAADZAAAAUxOlwg8NOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogdHJ1ZX0sICJzZXNzaW9uUmVzdWx0cyI6IFt7Im1lc3NhZ2UiOiAiYSJ9LCB7ImxvZ1N0cmVhbU5hbWUiOiAicyJ9LCB7Im1lc3NhZ2UiOiAiYyJ9XX38wBie"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail unknown event",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAABlAAAAU8aSJxoNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc29tZXRoaW5nRWxzZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnt9qOsuIgAAAR0AAABTxGxfsQ06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAA1zZXNzaW9uVXBkYXRlDTpjb250ZW50LXR5cGUHABBhcHBsaWNhdGlvbi9qc29ueyJzZXNzaW9uTWV0YWRhdGEiOiB7InNhbXBsZWQiOiBmYWxzZX0sICJzZXNzaW9uUmVzdWx0cyI6IFt7Im1lc3NhZ2UiOiAieiIsICJ0aW1lc3RhbXAiOiAxNzAwMDAwMDAwMDAwLCAibG9nU3RyZWFtTmFtZSI6ICJzIiwgImxvZ0dyb3VwSWRlbnRpZmllciI6ICJnIiwgImluZ2VzdGlvblRpbWUiOiAxNzAwMDAwMDAwMTAwfV19wQuvnQ=="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail checksum",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAEeAAAAU4PMJWENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIm9rIiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9XX10vikJAAABHQAAAFPEbF+xDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADXNlc3Npb25VcGRhdGUNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257InNlc3Npb25NZXRhZGF0YSI6IHsic2FtcGxlZCI6IGZhbHNlfSwgInNlc3Npb25SZXN1bHRzIjogW3sibWVzc2FnZSI6ICJ4IiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9XH09BflNAAABIQAAAFOgvQo2DTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADXNlc3Npb25VcGRhdGUNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257InNlc3Npb25NZXRhZGF0YSI6IHsic2FtcGxlZCI6IGZhbHNlfSwgInNlc3Npb25SZXN1bHRzIjogW3sibWVzc2FnZSI6ICJuZXZlciIsICJ0aW1lc3RhbXAiOiAxNzAwMDAwMDAwMDAwLCAibG9nU3RyZWFtTmFtZSI6ICJzIiwgImxvZ0dyb3VwSWRlbnRpZmllciI6ICJnIiwgImluZ2VzdGlvblRpbWUiOiAxNzAwMDAwMDAwMTAwfV19NHxJUg=="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail no initial response",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAApQAAAFJYgP9XDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADHNlc3Npb25TdGFydA06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsicmVxdWVzdElkIjogInIiLCAic2Vzc2lvbklkIjogInMxIiwgImxvZ0dyb3VwSWRlbnRpZmllcnMiOiBbImciXX0JJgC0AAABHQAAAFPEbF+xDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADXNlc3Npb25VcGRhdGUNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257InNlc3Npb25NZXRhZGF0YSI6IHsic2FtcGxlZCI6IGZhbHNlfSwgInNlc3Npb25SZXN1bHRzIjogW3sibWVzc2FnZSI6ICJ4IiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9XX09BflN"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail empty stream",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail only initial",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}",
+   "--log-stream-names",
+   "a",
+   "b",
+   "--log-event-filter-pattern",
+   "ERROR"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail interactive color off",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}",
+   "--mode",
+   "interactive",
+   "--color",
+   "off"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAEdAAAAU8RsX7ENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIngiLCAidGltZXN0YW1wIjogMTcwMDAwMDAwMDAwMCwgImxvZ1N0cmVhbU5hbWUiOiAicyIsICJsb2dHcm91cElkZW50aWZpZXIiOiAiZyIsICJpbmdlc3Rpb25UaW1lIjogMTcwMDAwMDAwMDEwMH1dfT0F+U0="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail interactive auto",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}",
+   "--mode",
+   "interactive"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAEdAAAAU8RsX7ENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIngiLCAidGltZXN0YW1wIjogMTcwMDAwMDAwMDAwMCwgImxvZ1N0cmVhbU5hbWUiOiAicyIsICJsb2dHcm91cElkZW50aWZpZXIiOiAiZyIsICJpbmdlc3Rpb25UaW1lIjogMTcwMDAwMDAwMDEwMH1dfT0F+U0="
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail service error",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"ResourceNotFoundException\", \"message\": \"no group\"}"
+   }
+  ]
+ }
+]

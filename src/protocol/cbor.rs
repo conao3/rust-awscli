@@ -416,10 +416,20 @@ fn initial_body_parse(body: &[u8], options: &ParseOptions) -> Result<Value> {
     .item()
 }
 
+/// `parse_data_item` of a whole body (`EventStreamCBORParser`).
+pub(crate) fn decode_item(body: &[u8], options: &ParseOptions) -> Result<Value> {
+    Decoder {
+        data: body,
+        pos: 0,
+        options,
+    }
+    .item()
+}
+
 /// `ResponseParser._parse_shape` with the RPCv2 handlers: structures and
 /// lists are walked, everything else (maps included) is returned as
 /// decoded.
-fn parse_shape(shape: &Shape<'_>, value: &Value) -> Result<Value> {
+pub(crate) fn parse_shape(shape: &Shape<'_>, value: &Value) -> Result<Value> {
     match shape.type_name() {
         "structure" => {
             let m = value
@@ -548,10 +558,21 @@ fn parse_with_shape(
     } else {
         let mut out = Map::new();
         if let Some(shape) = &shape {
-            if event_stream_name(shape).is_some() {
-                bail!("event stream responses are not supported");
+            match event_stream_name(shape) {
+                // `RpcV2CBORParser._handle_event_stream`.
+                Some(name) => {
+                    let (initial, rest) =
+                        crate::protocol::eventstream::initial_response(&response.body)?;
+                    let initial = HttpResponse {
+                        status: response.status,
+                        headers: response.headers.clone(),
+                        body: initial,
+                    };
+                    parse_payload(&initial, shape, options, &mut out)?;
+                    out.insert(name.to_string(), Value::Bytes(rest));
+                }
+                None => parse_payload(response, shape, options, &mut out)?,
             }
-            parse_payload(response, shape, options, &mut out)?;
             let mut metadata = Map::new();
             if let Some(id) = headers.get("x-amzn-requestid") {
                 metadata.insert("RequestId".into(), Value::str(id));

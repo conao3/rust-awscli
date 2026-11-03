@@ -411,12 +411,19 @@ fn parse_with_shape(
         }
     } else {
         let mut parsed = match &shape {
-            Some(shape) => {
-                if event_stream_name(shape).is_some() {
-                    bail!("event stream responses are not supported");
+            // `JSONParser._handle_event_stream`: the initial response is
+            // the body; the rest of the stream stays as bytes for
+            // `protocol::eventstream`.
+            Some(shape) => match event_stream_name(shape) {
+                Some(name) => {
+                    let (initial, rest) =
+                        crate::protocol::eventstream::initial_response(&response.body)?;
+                    let mut parsed = into_map(handle_json_body(&initial, shape, options)?)?;
+                    parsed.insert(name.to_string(), Value::Bytes(rest));
+                    parsed
                 }
-                into_map(handle_json_body(&response.body, shape, options)?)?
-            }
+                None => into_map(handle_json_body(&response.body, shape, options)?)?,
+            },
             None => Map::new(),
         };
         inject_response_metadata(&mut parsed, headers);

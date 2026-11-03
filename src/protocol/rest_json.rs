@@ -2,7 +2,7 @@
 //! and `RestJSONSerializer`, `botocore/parsers.py` `BaseRestParser` and
 //! `RestJSONParser`.
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, anyhow};
 use indexmap::IndexMap;
 
 use crate::model::{Operation, ServiceModel, Shape};
@@ -356,7 +356,8 @@ fn add_modeled_parse(
                 .member_shape(payload)
                 .ok_or_else(|| anyhow!("payload member {payload} not found"))?;
             if body_shape.get_bool("eventstream") {
-                bail!("event stream responses are not supported");
+                // The raw event stream, read by `protocol::eventstream`.
+                out.insert(payload.to_string(), Value::Bytes(response.body.clone()));
             } else if matches!(body_shape.type_name(), "string" | "blob") {
                 let v = if body_shape.type_name() == "blob" {
                     Value::Bytes(response.body.clone())

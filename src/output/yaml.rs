@@ -68,17 +68,25 @@ enum Event {
 
 /// `YAML.dump` of one document.
 pub fn yaml_dump(value: &Value) -> String {
+    yaml_dump_with(value, 80, true)
+}
+
+/// [`yaml_dump`] with `yaml.width = width`; mappings keep their order
+/// unless `sort` (the `OrderedDict` representer of
+/// `awscli/customizations/eks/ordered_yaml.py`).
+pub fn yaml_dump_with(value: &Value, width: usize, sort: bool) -> String {
     let mut events = vec![Event::StreamStart, Event::DocumentStart];
-    represent(value, &mut events);
+    represent(value, &mut events, sort);
     events.push(Event::DocumentEnd);
     events.push(Event::StreamEnd);
     let mut emitter = Emitter::new();
+    emitter.best_width = i32::try_from(width).unwrap_or(i32::MAX);
     emitter.emit_all(&events);
     String::from_utf8(emitter.buffer).expect("emitter output is UTF-8")
 }
 
 /// `SafeRepresenter.represent_*` plus `CEmitter._serialize_node`.
-fn represent(value: &Value, events: &mut Vec<Event>) {
+fn represent(value: &Value, events: &mut Vec<Event>, sort: bool) {
     match value {
         Value::Null => scalar(TAG_NULL, "null".to_string(), None, events),
         Value::Bool(b) => scalar(
@@ -108,17 +116,19 @@ fn represent(value: &Value, events: &mut Vec<Event>) {
         Value::List(l) => {
             events.push(Event::SequenceStart { flow: false });
             for item in l {
-                represent(item, events);
+                represent(item, events, sort);
             }
             events.push(Event::SequenceEnd);
         }
         Value::Map(m) => {
             events.push(Event::MappingStart { flow: false });
             let mut entries: Vec<(&String, &Value)> = m.iter().collect();
-            entries.sort_by(|a, b| a.0.cmp(b.0));
+            if sort {
+                entries.sort_by(|a, b| a.0.cmp(b.0));
+            }
             for (k, v) in entries {
                 scalar(TAG_STR, k.clone(), None, events);
-                represent(v, events);
+                represent(v, events, sort);
             }
             events.push(Event::MappingEnd);
         }

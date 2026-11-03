@@ -1,0 +1,1 @@
+https://abc.dsql.us-east-1.on.aws/?Action=DbConnectAdmin&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIDEXAMPLE%2F20260102%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Date=20260102T030405Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=500635ef0a7d7749bd0b1a3f2478b24cb2e1719c8ea788512675f08e21f6572a

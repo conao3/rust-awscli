@@ -1,0 +1,1 @@
+https://db.example.com:5432/?Action=connect&DBUser=admin%20user&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIDEXAMPLE%2F20260102%2Fus-east-1%2Frds-db%2Faws4_request&X-Amz-Date=20260102T030405Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=f856e513044d39cbdacc38fa28a8679f51c4502ac576c0c60c8ca8581666c037

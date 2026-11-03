@@ -2,6 +2,7 @@
 //! `--monitor-resources` / `--monitor-mode` arguments of the express
 //! gateway service mutations (`monitormutatinggatewayservice.py`).
 
+mod deploy;
 mod execute;
 
 use std::io::IsTerminal;
@@ -21,6 +22,7 @@ pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode
         "create-express-gateway-service" | "update-express-gateway-service" => "DEPLOYMENT",
         "delete-express-gateway-service" => "RESOURCE",
         "execute-command" => return execute::execute_command(ctx, args),
+        "deploy" => return deploy::deploy(ctx, args),
         _ => return Err(crate::commands::not_implemented()),
     };
     let mut hooks = Monitor {

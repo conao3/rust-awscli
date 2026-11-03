@@ -1,0 +1,27 @@
+[
+  {
+    "name": "ssm start-session with plugin (PATH=/tmp/fakeplugin:$PATH)",
+    "argv": [
+      "ssm",
+      "start-session",
+      "--target",
+      "i-123",
+      "--document-name",
+      "AWS-StartPortForwardingSession",
+      "--parameters",
+      "portNumber=80,localPortNumber=8080",
+      "--profile",
+      "default",
+      "--endpoint-url",
+      "{endpoint}"
+    ],
+    "responses": [
+      {
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.1"
+        },
+        "body": "{\"SessionId\": \"s-1\", \"TokenValue\": \"tok\", \"StreamUrl\": \"wss://x\"}"
+      }
+    ]
+  }
+]

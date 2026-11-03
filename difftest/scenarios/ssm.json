@@ -1,0 +1,29 @@
+[
+  {
+    "name": "ssm start-session missing target",
+    "argv": [
+      "ssm",
+      "start-session"
+    ]
+  },
+  {
+    "name": "ssm start-session service error",
+    "argv": [
+      "ssm",
+      "start-session",
+      "--target",
+      "i-1",
+      "--endpoint-url",
+      "{endpoint}"
+    ],
+    "responses": [
+      {
+        "status": 400,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.1"
+        },
+        "body": "{\"__type\": \"TargetNotConnected\", \"Message\": \"no\"}"
+      }
+    ]
+  }
+]

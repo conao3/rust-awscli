@@ -145,11 +145,21 @@ pub(crate) fn customized_operation(
         _ => return Err(Fail::General(format!("unknown service command {cli}"))),
     };
     let model = ServiceModel::load(service).map_err(|e| Fail::General(e.to_string()))?;
-    let Some(ServiceEntry::Operation(op)) = service_commands(cli, &model)
+    // A custom command that is a `ServiceOperation` of a model operation
+    // (`ssm start-session`, ...) replaces the operation's table entry.
+    let op = match service_commands(cli, &model)
         .into_iter()
         .find(|(n, _)| n == name)
         .map(|(_, e)| e)
-    else {
+    {
+        Some(ServiceEntry::Operation(op)) => Some(op),
+        _ => model
+            .operation_names()
+            .into_iter()
+            .find(|o| super::arguments::xform_name(o, '-') == name)
+            .map(str::to_string),
+    };
+    let Some(op) = op else {
         return Err(Fail::General(format!("unknown operation {cli} {name}")));
     };
     let op = model.operation(&op).expect("operation");

@@ -1,0 +1,188 @@
+[
+ {
+  "name": "configservice get-status",
+  "argv": [
+   "configservice",
+   "get-status",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ConfigurationRecordersStatus\": [{\"name\": \"default\", \"recording\": true, \"lastStatus\": \"FAILURE\", \"lastErrorCode\": \"E1\", \"lastErrorMessage\": \"boom\"}, {\"name\": \"r2\", \"recording\": false}]}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"DeliveryChannelsStatus\": [{\"name\": \"default\", \"configStreamDeliveryInfo\": {\"lastStatus\": \"SUCCESS\"}, \"configHistoryDeliveryInfo\": {\"lastStatus\": \"FAILURE\", \"lastErrorCode\": \"E2\", \"lastErrorMessage\": \"m2\"}, \"configSnapshotDeliveryInfo\": {}}]}"
+   }
+  ]
+ },
+ {
+  "name": "configservice get-status empty",
+  "argv": [
+   "configservice",
+   "get-status",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "configservice get-status error",
+  "argv": [
+   "configservice",
+   "get-status",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"AccessDenied\", \"message\": \"no\"}"
+   }
+  ]
+ },
+ {
+  "name": "configservice get-status extra",
+  "argv": [
+   "configservice",
+   "get-status",
+   "x"
+  ]
+ },
+ {
+  "name": "configservice subscribe new bucket and topic",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-west-2\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "configservice",
+   "subscribe",
+   "--s3-bucket",
+   "bkt/pre/fix",
+   "--sns-topic",
+   "t",
+   "--iam-role",
+   "arn:aws:iam::1:role/r"
+  ],
+  "responses": [
+   {
+    "status": 404
+   },
+   {
+    "status": 200
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateTopicResponse xmlns=\"http://sns.amazonaws.com/doc/2010-03-31/\"><CreateTopicResult><TopicArn>arn:aws:sns:us-west-2:1:t</TopicArn></CreateTopicResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateTopicResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ConfigurationRecorders\": [{\"name\": \"default\", \"roleARN\": \"arn:aws:iam::1:role/r\\u00e9\", \"recordingGroup\": {\"allSupported\": true}}]}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"DeliveryChannels\": [{\"name\": \"default\", \"s3BucketName\": \"bkt\", \"s3KeyPrefix\": \"pre/fix\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "configservice subscribe existing",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-west-2\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "configservice",
+   "subscribe",
+   "--s3-bucket",
+   "bkt",
+   "--sns-topic",
+   "arn:aws:sns:us-west-2:1:t",
+   "--iam-role",
+   "arn:aws:iam::1:role/r"
+  ],
+  "responses": [
+   {
+    "status": 200
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ConfigurationRecorders\": [{\"name\": \"default\", \"roleARN\": \"arn:aws:iam::1:role/r\\u00e9\", \"recordingGroup\": {\"allSupported\": true}}]}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"DeliveryChannels\": []}"
+   }
+  ]
+ },
+ {
+  "name": "configservice subscribe missing",
+  "argv": [
+   "configservice",
+   "subscribe",
+   "--s3-bucket",
+   "b"
+  ]
+ }
+]

@@ -1,6 +1,8 @@
 //! `configservice put-configuration-recorder --recording-group`
 //! (`awscli/customizations/configservice/putconfigurationrecorder.py`).
 
+pub(crate) mod cmds;
+
 use super::exec;
 use crate::cli::argprocess::{ArgContext, unpack_argument};
 use crate::cli::{Arg, ArgTable, CustomSpec, Fail, OperationHooks};
@@ -11,6 +13,7 @@ use crate::value::{Map, Value};
 
 pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
     match name {
+        "subscribe" | "get-status" => cmds::run(ctx, name, args),
         "put-configuration-recorder" => {
             let model = ServiceModel::load("config").map_err(|e| ctx.general_error(&e))?;
             exec::run_operation(

@@ -32,8 +32,10 @@ impl<'c> Client<'c> {
             self.ctx
                 .general_error(&anyhow::anyhow!("unknown operation"))
         })?;
+        let mut params = params.clone();
+        crate::handlers::before_parameter_build(&op, &mut params, &self.ctx.session);
         if let Some(input) = op.input()
-            && let Some(report) = validate::validate(params, &input)
+            && let Some(report) = validate::validate(&params, &input)
         {
             return Err(cli::render_fail(
                 cli::Fail::ParamValidation(report),
@@ -210,4 +212,49 @@ pub(crate) fn run_operation(
         Some(inv) => invoke(ctx, inv, &mut |_| Ok(After::Display)),
         None => Ok(ExitCode::Success),
     }
+}
+
+/// The context of a client a customization creates with arguments other
+/// than the global ones (`session.create_client(service, region_name=...,
+/// endpoint_url=..., aws_access_key_id=...)`): `endpoint_url` replaces
+/// `--endpoint-url` (`None` resolves the endpoint from the configuration),
+/// `region` replaces `--region` when given, and `credentials`
+/// (access key, secret key, session token) replace the credential chain.
+pub(crate) fn sub_context(
+    ctx: &Context,
+    endpoint_url: Option<String>,
+    region: Option<String>,
+    credentials: Option<(String, String, Option<String>)>,
+) -> Result<Context, CliError> {
+    let mut globals = ctx.globals.clone();
+    globals.endpoint_url = endpoint_url;
+    if region.is_some() {
+        globals.region = region;
+    }
+    let mut env: std::collections::HashMap<String, String> = std::env::vars().collect();
+    if let Some((access_key, secret_key, token)) = credentials {
+        globals.profile = None;
+        env.insert("AWS_ACCESS_KEY_ID".to_string(), access_key);
+        env.insert("AWS_SECRET_ACCESS_KEY".to_string(), secret_key);
+        match token {
+            Some(t) => env.insert("AWS_SESSION_TOKEN".to_string(), t),
+            None => env.remove("AWS_SESSION_TOKEN"),
+        };
+    }
+    let session =
+        crate::session::Session::with_env(&globals, env).map_err(|e| ctx.session_error(&e))?;
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(1)
+        .enable_all()
+        .build()
+        .map_err(|e| ctx.general_error(&e.into()))?;
+    Ok(Context {
+        globals,
+        session,
+        runtime,
+        terminal: crate::driver::Terminal {
+            stdout_is_tty: ctx.terminal.stdout_is_tty,
+            width: ctx.terminal.width,
+        },
+    })
 }

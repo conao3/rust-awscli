@@ -4,6 +4,9 @@
 
 mod ops;
 
+pub(crate) mod cmds;
+pub(crate) mod zipfile;
+
 use crate::driver::Context;
 use crate::error::{CliError, ExitCode};
 
@@ -12,11 +15,7 @@ pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode
         "create-deployment" | "get-application-revision" | "register-application-revision" => {
             ops::run(ctx, name, args)
         }
-        _ => commands(ctx, name, args),
+        "push" | "register" | "deregister" | "install" | "uninstall" => cmds::run(ctx, name, args),
+        _ => Err(crate::commands::not_implemented()),
     }
-}
-
-fn commands(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
-    let _ = (ctx, name, args);
-    Err(crate::commands::not_implemented())
 }

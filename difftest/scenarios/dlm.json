@@ -1,0 +1,194 @@
+[
+ {
+  "name": "dlm create-default-role creates",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><PolicyName>p</PolicyName><Arn>arn:aws:iam::aws:policy/service-role/x</Arn><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>AWSDataLifecycleManagerDefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/AWSDataLifecycleManagerDefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><PolicyName>p</PolicyName><Arn>arn:aws:iam::aws:policy/service-role/x</Arn><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Action%22%3A%20%22ec2%3ACreateSnapshot%22%2C%20%22Resource%22%3A%20%22%2A%22%7D%5D%7D</Document><VersionId>v3</VersionId><IsDefaultVersion>true</IsDefaultVersion><CreateDate>2020-01-01T00:00:00Z</CreateDate></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   }
+  ]
+ },
+ {
+  "name": "dlm create-default-role image table",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--resource-type",
+   "image",
+   "--output",
+   "table"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><PolicyName>p</PolicyName><Arn>arn:aws:iam::aws:policy/service-role/x</Arn><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>AWSDataLifecycleManagerDefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/AWSDataLifecycleManagerDefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><PolicyName>p</PolicyName><Arn>arn:aws:iam::aws:policy/service-role/x</Arn><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Action%22%3A%20%22ec2%3ACreateSnapshot%22%2C%20%22Resource%22%3A%20%22%2A%22%7D%5D%7D</Document><VersionId>v3</VersionId><IsDefaultVersion>true</IsDefaultVersion><CreateDate>2020-01-01T00:00:00Z</CreateDate></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   }
+  ]
+ },
+ {
+  "name": "dlm create-default-role exists",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><RoleName>x</RoleName></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ]
+ },
+ {
+  "name": "dlm create-default-role no policy",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "dlm create-default-role error",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>AccessDenied</Code><Message>no</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "dlm create-default-role bad type",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--resource-type",
+   "volume"
+  ]
+ },
+ {
+  "name": "dlm create-default-role no region",
+  "files": {
+   "home/.aws/config": "[default]\n"
+  },
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ }
+]

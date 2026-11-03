@@ -1,0 +1,437 @@
+[
+ {
+  "name": "deploy push",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "app/appspec.yml": "version: 0.0\n",
+   "app/src/main.txt": "hello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\n",
+   "app/.hidden": "secret\n"
+  },
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "s3://bkt/rev.zip",
+   "--source",
+   "app",
+   "--description",
+   "d"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"abc123\"",
+     "x-amz-version-id": "v1"
+    }
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "deploy push ignore hidden",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "app/appspec.yml": "version: 0.0\n",
+   "app/src/main.txt": "hello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\n",
+   "app/.hidden": "secret\n"
+  },
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "s3://bkt/rev.zip",
+   "--source",
+   "app",
+   "--ignore-hidden-files",
+   "--description",
+   "d"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"abc123\""
+    }
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "deploy push no appspec",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "app/x.txt": "x"
+  },
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "s3://bkt/rev.zip",
+   "--source",
+   "app"
+  ]
+ },
+ {
+  "name": "deploy push bad location",
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "bkt/rev.zip"
+  ]
+ },
+ {
+  "name": "deploy push both hidden flags",
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "s3://b/k",
+   "--ignore-hidden-files",
+   "--no-ignore-hidden-files"
+  ]
+ },
+ {
+  "name": "deploy push missing required",
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app"
+  ]
+ },
+ {
+  "name": "deploy push upload error",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "app/appspec.yml": "version: 0.0\n",
+   "app/src/main.txt": "hello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\n",
+   "app/.hidden": "secret\n"
+  },
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "s3://bkt/rev.zip",
+   "--source",
+   "app",
+   "--description",
+   "d"
+  ],
+  "responses": [
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<Error><Code>AccessDenied</Code><Message>denied</Message></Error>"
+   }
+  ]
+ },
+ {
+  "name": "deploy register with arn and tags",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "onprem1",
+   "--iam-user-arn",
+   "arn:aws:iam::123456789012:user/u",
+   "--tags",
+   "Key=a,Value=b",
+   "Key=c,Value=d"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "deploy register creates user",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "onprem1"
+  ],
+  "outputs": [
+   "codedeploy.onpremises.yml"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateUserResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateUserResult><User><Path>/AWS/CodeDeploy/</Path><UserName>onprem1</UserName><UserId>AID</UserId><Arn>arn:aws:iam::123456789012:user/AWS/CodeDeploy/onprem1</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></User></CreateUserResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateUserResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateAccessKeyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateAccessKeyResult><AccessKey><UserName>onprem1</UserName><AccessKeyId>AKIA1</AccessKeyId><Status>Active</Status><SecretAccessKey>sek</SecretAccessKey></AccessKey></CreateAccessKeyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateAccessKeyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<PutUserPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></PutUserPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "deploy register service error",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "onprem1",
+   "--iam-user-arn",
+   "arn:aws:iam::123456789012:user/u"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"InstanceNameAlreadyRegisteredException\", \"message\": \"dup\"}"
+   }
+  ]
+ },
+ {
+  "name": "deploy register bad name",
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "i-123"
+  ]
+ },
+ {
+  "name": "deploy register bad chars",
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "a b"
+  ]
+ },
+ {
+  "name": "deploy register bad arn",
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "x",
+   "--iam-user-arn",
+   "arn:bad"
+  ]
+ },
+ {
+  "name": "deploy register no region",
+  "files": {
+   "home/.aws/config": "[default]\n"
+  },
+  "argv": [
+   "deploy",
+   "register",
+   "--instance-name",
+   "x"
+  ]
+ },
+ {
+  "name": "deploy deregister",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "deregister",
+   "--instance-name",
+   "onprem1"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"instanceInfo\": {\"iamUserArn\": \"arn:aws:iam::123456789012:user/AWS/CodeDeploy/onprem1\", \"tags\": [{\"Key\": \"a\", \"Value\": \"b\"}]}}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ListUserPoliciesResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ListUserPoliciesResult><PolicyNames><member>codedeploy-agent</member></PolicyNames><IsTruncated>false</IsTruncated></ListUserPoliciesResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ListUserPoliciesResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DeleteUserPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DeleteUserPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ListAccessKeysResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ListAccessKeysResult><AccessKeyMetadata><member><UserName>onprem1</UserName><AccessKeyId>AKIA1</AccessKeyId><Status>Active</Status></member></AccessKeyMetadata><IsTruncated>false</IsTruncated></ListAccessKeysResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ListAccessKeysResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DeleteAccessKeyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DeleteAccessKeyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DeleteUserResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DeleteUserResponse>"
+   }
+  ]
+ },
+ {
+  "name": "deploy deregister no delete",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "deregister",
+   "--instance-name",
+   "onprem1",
+   "--no-delete-iam-user"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"instanceInfo\": {\"iamUserArn\": \"arn:aws:iam::123456789012:user/x\", \"tags\": []}}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "deploy deregister nosuchentity",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "deregister",
+   "--instance-name",
+   "onprem1"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"instanceInfo\": {\"iamUserArn\": \"arn:aws:iam::123456789012:user/x\", \"tags\": []}}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "deploy install unsupported",
+  "argv": [
+   "deploy",
+   "install",
+   "--config-file",
+   "c.yml"
+  ]
+ },
+ {
+  "name": "deploy uninstall unsupported",
+  "argv": [
+   "deploy",
+   "uninstall"
+  ]
+ },
+ {
+  "name": "deploy install bad installer",
+  "argv": [
+   "deploy",
+   "install",
+   "--config-file",
+   "c.yml",
+   "--agent-installer",
+   "x"
+  ]
+ }
+]

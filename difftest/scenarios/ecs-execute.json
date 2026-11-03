@@ -1,0 +1,22 @@
+[
+  {"name": "ecs execute-command",
+   "argv": ["ecs", "execute-command", "--cluster", "c1", "--task", "t1", "--container", "web", "--command", "ls", "--interactive", "--endpoint-url", "{endpoint}"],
+   "outputs": ["plugin-args.txt"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\", \"containerName\": \"web\", \"containerArn\": \"x\", \"interactive\": true, \"taskArn\": \"arn:aws:ecs:us-east-1:1:task/c1/t1\", \"session\": {\"sessionId\": \"s\", \"streamUrl\": \"wss://x\", \"tokenValue\": \"tok\"}}"},
+                 {"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"tasks\": [{\"containers\": [{\"name\": \"db\", \"runtimeId\": \"r0\"}, {\"name\": \"web\", \"runtimeId\": \"r1\"}]}], \"failures\": []}"}]},
+  {"name": "ecs execute-command profile and region",
+   "argv": ["ecs", "execute-command", "--cluster", "c1", "--task", "t1", "--command", "ls", "--interactive", "--profile", "default", "--region", "eu-west-1", "--endpoint-url", "{endpoint}"],
+   "outputs": ["plugin-args.txt"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\", \"containerName\": \"web\", \"containerArn\": \"x\", \"interactive\": true, \"taskArn\": \"arn:aws:ecs:us-east-1:1:task/c1/t1\", \"session\": {\"sessionId\": \"s\", \"streamUrl\": \"wss://x\", \"tokenValue\": \"tok\"}}"},
+                 {"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"tasks\": []}"}]},
+  {"name": "ecs execute-command plugin fails",
+   "argv": ["ecs", "execute-command", "--cluster", "c1", "--task", "t1", "--command", "ls", "--interactive", "--endpoint-url", "{endpoint}"],
+   "files": {"plugin-fail": ""},
+   "outputs": ["plugin-args.txt"]},
+  {"name": "ecs execute-command missing",
+   "argv": ["ecs", "execute-command", "--cluster", "c1", "--task", "t1"]},
+  {"name": "ecs execute-command non-interactive rename",
+   "argv": ["ecs", "execute-command", "--task", "t1", "--command", "ls", "--non-interactive", "--endpoint-url", "{endpoint}"],
+   "outputs": ["plugin-args.txt"],
+   "responses": [{"status": 400, "headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"__type\": \"InvalidParameterException\", \"message\": \"nope\"}"}]}
+]

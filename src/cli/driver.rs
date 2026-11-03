@@ -145,12 +145,23 @@ pub(crate) fn customized_operation(
         _ => return Err(Fail::General(format!("unknown service command {cli}"))),
     };
     let model = ServiceModel::load(service).map_err(|e| Fail::General(e.to_string()))?;
-    let Some(ServiceEntry::Operation(op)) = service_commands(cli, &model)
+    // A custom command that is a `ServiceOperation` of a removed model
+    // operation (`ecs execute-command`) parses the model operation's
+    // arguments.
+    let op = match service_commands(cli, &model)
         .into_iter()
         .find(|(n, _)| n == name)
         .map(|(_, e)| e)
-    else {
-        return Err(Fail::General(format!("unknown operation {cli} {name}")));
+    {
+        Some(ServiceEntry::Operation(op)) => op,
+        _ => match model
+            .operation_names()
+            .into_iter()
+            .find(|o| super::arguments::xform_name(o, '-') == name)
+        {
+            Some(op) => op.to_string(),
+            None => return Err(Fail::General(format!("unknown operation {cli} {name}"))),
+        },
     };
     let op = model.operation(&op).expect("operation");
     let path = CommandPath { parent: cli, name };

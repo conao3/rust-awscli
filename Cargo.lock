@@ -464,6 +464,7 @@ dependencies = [
  "anyhow",
  "aws-config",
  "aws-credential-types",
+ "aws-runtime",
  "aws-sigv4",
  "aws-smithy-runtime-api",
  "aws-types",
@@ -475,6 +476,7 @@ dependencies = [
  "crc64fast-nvme",
  "flate2",
  "hex",
+ "hmac 0.12.1",
  "http 1.5.0",
  "indexmap",
  "jmespath",
@@ -486,6 +488,8 @@ dependencies = [
  "rand 0.9.5",
  "regex",
  "reqwest",
+ "rustls",
+ "rustls-native-certs",
  "serde",
  "serde_json",
  "sha1",
@@ -493,8 +497,10 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tokio-rustls",
  "url",
  "uuid",
+ "webpki-roots",
  "zstd",
 ]
 
@@ -1971,6 +1977,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "aws-lc-rs",
+ "log",
  "once_cell",
  "ring",
  "rustls-pki-types",

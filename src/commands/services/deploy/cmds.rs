@@ -99,10 +99,14 @@ pub(crate) fn raw_call(
     op: &str,
     params: &Value,
 ) -> Result<CallResult, String> {
-    if let Some(input) = client.model.operation(op).and_then(|o| o.input())
-        && let Some(report) = crate::cli::validate::validate(params, &input)
+    if let Some(operation) = client.model.operation(op)
+        && let Some(input) = operation.input()
     {
-        return Err(report);
+        let mut check = params.clone();
+        crate::handlers::before_parameter_build(&operation, &mut check, &client.ctx.session);
+        if let Some(report) = crate::cli::validate::validate(&check, &input) {
+            return Err(report);
+        }
     }
     client.try_call(op, params).map_err(|e| {
         e.message

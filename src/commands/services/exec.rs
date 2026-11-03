@@ -32,8 +32,10 @@ impl<'c> Client<'c> {
             self.ctx
                 .general_error(&anyhow::anyhow!("unknown operation"))
         })?;
+        let mut params = params.clone();
+        crate::handlers::before_parameter_build(&op, &mut params, &self.ctx.session);
         if let Some(input) = op.input()
-            && let Some(report) = validate::validate(params, &input)
+            && let Some(report) = validate::validate(&params, &input)
         {
             return Err(cli::render_fail(
                 cli::Fail::ParamValidation(report),

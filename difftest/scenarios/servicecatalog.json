@@ -1,0 +1,242 @@
+[
+ {
+  "name": "servicecatalog generate product",
+  "files": {
+   "t.yaml": "Resources: {}\n"
+  },
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "product",
+   "--product-name",
+   "n",
+   "--product-owner",
+   "o",
+   "--product-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--tags",
+   "Key=a,Value=b",
+   "--file-path",
+   "t.yaml",
+   "--bucket-name",
+   "bkt",
+   "--support-email",
+   "e@x",
+   "--provisioning-artifact-name",
+   "v1",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--endpoint-url",
+   "{endpoint}",
+   "--region",
+   "us-west-2"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"e\""
+    }
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ProductViewDetail\": {\"ProductViewSummary\": {\"Id\": \"prod-1\", \"Name\": \"n\\u00e9\", \"Owner\": \"o\"}, \"Status\": \"CREATED\", \"CreatedTime\": 1600000000.5}, \"ProvisioningArtifactDetail\": {\"Id\": \"pa-1\", \"Name\": \"v1\", \"CreatedTime\": 1600000000}, \"Tags\": [{\"Key\": \"a\", \"Value\": \"b\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "servicecatalog generate provisioning-artifact",
+  "files": {
+   "t.yaml": "Resources: {}\n"
+  },
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "provisioning-artifact",
+   "--file-path",
+   "t.yaml",
+   "--bucket-name",
+   "bkt",
+   "--provisioning-artifact-name",
+   "v2",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--product-id",
+   "prod-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"e\""
+    }
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ProvisioningArtifactDetail\": {\"Id\": \"pa-2\", \"Name\": \"v2\"}, \"Info\": {\"LoadTemplateFromURL\": \"u\"}, \"Status\": \"CREATING\"}"
+   }
+  ]
+ },
+ {
+  "name": "servicecatalog generate missing file",
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "provisioning-artifact",
+   "--file-path",
+   "nope.yaml",
+   "--bucket-name",
+   "bkt",
+   "--provisioning-artifact-name",
+   "v2",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--product-id",
+   "prod-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "servicecatalog generate bad region",
+  "files": {
+   "t.yaml": "Resources: {}\n"
+  },
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "provisioning-artifact",
+   "--file-path",
+   "t.yaml",
+   "--bucket-name",
+   "bkt",
+   "--provisioning-artifact-name",
+   "v2",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--product-id",
+   "prod-1",
+   "--region",
+   "xx-nowhere-1"
+  ]
+ },
+ {
+  "name": "servicecatalog generate no bucket",
+  "files": {
+   "t.yaml": "Resources: {}\n"
+  },
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "provisioning-artifact",
+   "--file-path",
+   "t.yaml",
+   "--bucket-name",
+   "bkt",
+   "--provisioning-artifact-name",
+   "v2",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--product-id",
+   "prod-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<Error><Code>NoSuchBucket</Code><Message>nb</Message></Error>"
+   }
+  ]
+ },
+ {
+  "name": "servicecatalog generate bad tag",
+  "files": {
+   "t.yaml": "Resources: {}\n"
+  },
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "product",
+   "--product-name",
+   "n",
+   "--product-owner",
+   "o",
+   "--product-type",
+   "MARKETPLACE",
+   "--tags",
+   "Key",
+   "--file-path",
+   "t.yaml",
+   "--bucket-name",
+   "bkt",
+   "--provisioning-artifact-name",
+   "v1",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "MARKETPLACE_AMI",
+   "--endpoint-url",
+   "{endpoint}",
+   "--region",
+   "us-west-2"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"e\""
+    }
+   }
+  ]
+ },
+ {
+  "name": "servicecatalog generate no subcommand",
+  "argv": [
+   "servicecatalog",
+   "generate"
+  ]
+ },
+ {
+  "name": "servicecatalog generate bad subcommand",
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "prod"
+  ]
+ },
+ {
+  "name": "servicecatalog generate unknown option",
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "--foo"
+  ]
+ },
+ {
+  "name": "servicecatalog generate product missing",
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "product",
+   "--product-name",
+   "x"
+  ]
+ }
+]

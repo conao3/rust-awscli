@@ -21,10 +21,10 @@ mod globals;
 mod golden_tests;
 #[cfg(test)]
 mod goldens;
-mod operation;
+pub(crate) mod operation;
 pub(crate) mod paramfile;
 pub(crate) mod pyjson;
-mod pynum;
+pub(crate) mod pynum;
 pub(crate) mod render;
 pub(crate) mod shorthand;
 mod skeleton;

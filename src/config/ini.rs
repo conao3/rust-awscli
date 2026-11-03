@@ -228,6 +228,34 @@ pub fn parse_ini_text(text: &str) -> Result<RawConfig, ParseError> {
     Ok(config)
 }
 
+/// `raw_config_parse(path, parse_subsections=False)`: the options of
+/// every section as written (multi-line values joined, not parsed).
+pub fn raw_config_parse_flat(
+    path: &str,
+) -> Result<IndexMap<String, IndexMap<String, String>>, LoadError> {
+    let p = Path::new(path);
+    if !p.is_file() {
+        return Err(LoadError::NotFound(path.to_string()));
+    }
+    let parse = || -> Result<_, ParseError> {
+        let bytes = std::fs::read(p).map_err(|_| ParseError)?;
+        let text = String::from_utf8(bytes).map_err(|_| ParseError)?;
+        let parser = RawConfigParser::read(&text)?;
+        let mut config = IndexMap::new();
+        for (name, options) in &parser.sections {
+            let mut section: IndexMap<String, String> = options.clone();
+            for (k, v) in &parser.defaults {
+                if !section.contains_key(k) {
+                    section.insert(k.clone(), v.clone());
+                }
+            }
+            config.insert(name.clone(), section);
+        }
+        Ok(config)
+    };
+    parse().map_err(|ParseError| LoadError::Parse(path.to_string()))
+}
+
 /// `_parse_nested`.
 fn parse_nested(value: &str) -> Result<IndexMap<String, String>, ParseError> {
     let mut parsed = IndexMap::new();
@@ -313,6 +341,13 @@ pub fn build_profile_map(parsed: RawConfig) -> FullConfig {
 /// `shlex.split(s)` (POSIX mode, no comments). `None` where Python
 /// raises `ValueError`.
 pub fn shlex_split(s: &str) -> Option<Vec<String>> {
+    shlex_split_checked(s).ok()
+}
+
+/// [`shlex_split`] with the message of the `ValueError` Python raises.
+pub fn shlex_split_checked(s: &str) -> Result<Vec<String>, &'static str> {
+    const NO_CLOSING: &str = "No closing quotation";
+    const NO_ESCAPED: &str = "No escaped character";
     let mut out = Vec::new();
     let mut token = String::new();
     let mut in_token = false;
@@ -326,13 +361,13 @@ pub fn shlex_split(s: &str) -> Option<Vec<String>> {
                 }
             }
             '\\' => {
-                token.push(chars.next()?);
+                token.push(chars.next().ok_or(NO_ESCAPED)?);
                 in_token = true;
             }
             '\'' => {
                 in_token = true;
                 loop {
-                    match chars.next()? {
+                    match chars.next().ok_or(NO_CLOSING)? {
                         '\'' => break,
                         ch => token.push(ch),
                     }
@@ -341,10 +376,10 @@ pub fn shlex_split(s: &str) -> Option<Vec<String>> {
             '"' => {
                 in_token = true;
                 loop {
-                    match chars.next()? {
+                    match chars.next().ok_or(NO_CLOSING)? {
                         '"' => break,
                         '\\' => {
-                            let next = chars.next()?;
+                            let next = chars.next().ok_or(NO_ESCAPED)?;
                             if next != '"' && next != '\\' {
                                 token.push('\\');
                             }
@@ -363,7 +398,7 @@ pub fn shlex_split(s: &str) -> Option<Vec<String>> {
     if in_token {
         out.push(token);
     }
-    Some(out)
+    Ok(out)
 }
 
 /// The state `RawConfigParser._read` builds: sections in file order and

@@ -132,6 +132,9 @@ pub(crate) fn parse(
     if let Err(f) = first_pass(args).and_then(|()| validate_auto_prompt(args)) {
         return Err(render(f, None, None));
     }
+    if let Err(f) = super::alias::get(&[]) {
+        return Err(render(f, None, None));
+    }
     let parsed = main_parser()
         .parse_known_args(args)
         .map_err(|e| render(argparse_error(&e.to_string()), None, error_config))?;
@@ -147,27 +150,7 @@ pub(crate) fn parse(
         }
         Parsed::Args { ns, extras } => (ns, extras),
     };
-    let globals = GlobalArgs {
-        debug: ns_bool(&ns, "debug"),
-        endpoint_url: ns_str(&ns, "endpoint_url"),
-        no_verify_ssl: ns.get("verify_ssl") == Some(&NsVal::Bool(false)),
-        no_paginate: ns.get("paginate") == Some(&NsVal::Bool(false)),
-        output: ns_str(&ns, "output"),
-        query: ns_str(&ns, "query"),
-        profile: ns_str(&ns, "profile"),
-        region: ns_str(&ns, "region"),
-        version: false,
-        color: ns_str(&ns, "color"),
-        no_sign_request: ns.get("sign_request") == Some(&NsVal::Bool(false)),
-        ca_bundle: ns_str(&ns, "ca_bundle"),
-        cli_read_timeout: ns_str(&ns, "read_timeout"),
-        cli_connect_timeout: ns_str(&ns, "connect_timeout"),
-        cli_binary_format: ns_str(&ns, "cli_binary_format"),
-        no_cli_pager: ns_bool(&ns, "no_cli_pager"),
-        cli_auto_prompt: ns_bool(&ns, "cli_auto_prompt"),
-        no_cli_auto_prompt: ns_bool(&ns, "no_cli_auto_prompt"),
-        cli_error_format: ns_str(&ns, "cli_error_format"),
-    };
+    let globals = globals_from_ns(&ns);
     if let Err(f) = top_level_args_parsed(&globals) {
         return Err(render(f, Some(&globals), error_config));
     }
@@ -175,6 +158,60 @@ pub(crate) fn parse(
     let mut rest = vec![command];
     rest.extend(extras);
     Ok((globals, rest))
+}
+
+fn globals_from_ns(ns: &indexmap::IndexMap<String, NsVal>) -> GlobalArgs {
+    GlobalArgs {
+        debug: ns_bool(ns, "debug"),
+        endpoint_url: ns_str(ns, "endpoint_url"),
+        no_verify_ssl: ns.get("verify_ssl") == Some(&NsVal::Bool(false)),
+        no_paginate: ns.get("paginate") == Some(&NsVal::Bool(false)),
+        output: ns_str(ns, "output"),
+        query: ns_str(ns, "query"),
+        profile: ns_str(ns, "profile"),
+        region: ns_str(ns, "region"),
+        version: false,
+        color: ns_str(ns, "color"),
+        no_sign_request: ns.get("sign_request") == Some(&NsVal::Bool(false)),
+        ca_bundle: ns_str(ns, "ca_bundle"),
+        cli_read_timeout: ns_str(ns, "read_timeout"),
+        cli_connect_timeout: ns_str(ns, "connect_timeout"),
+        cli_binary_format: ns_str(ns, "cli_binary_format"),
+        no_cli_pager: ns_bool(ns, "no_cli_pager"),
+        cli_auto_prompt: ns_bool(ns, "cli_auto_prompt"),
+        no_cli_auto_prompt: ns_bool(ns, "no_cli_auto_prompt"),
+        cli_error_format: ns_str(ns, "cli_error_format"),
+    }
+}
+
+/// `MainArgParser.parse_known_args` of an alias value
+/// (`awscli/alias.py`): the globals it gives and the command name
+/// followed by the arguments the parser did not consume.
+pub(crate) fn parse_alias(args: &[String]) -> Result<(GlobalArgs, Vec<String>), Fail> {
+    let parsed = main_parser()
+        .parse_known_args(args)
+        .map_err(|e| argparse_error(&e.to_string()))?;
+    let (ns, extras) = match parsed {
+        Parsed::Version => {
+            return Ok((
+                GlobalArgs {
+                    version: true,
+                    ..GlobalArgs::default()
+                },
+                Vec::new(),
+            ));
+        }
+        Parsed::Args { ns, extras } => (ns, extras),
+    };
+    let command = ns_str(&ns, "command").expect("command");
+    let mut rest = vec![command];
+    rest.extend(extras);
+    Ok((globals_from_ns(&ns), rest))
+}
+
+/// `emit_top_level_args_parsed_event` for globals parsed from an alias.
+pub(crate) fn validate(globals: &GlobalArgs) -> Result<(), Fail> {
+    top_level_args_parsed(globals)
 }
 
 /// The `top-level-args-parsed` handlers of `globalargs.py`.

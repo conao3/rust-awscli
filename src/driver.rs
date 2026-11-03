@@ -32,7 +32,7 @@ pub fn run(args: Vec<String>) -> i32 {
     let result = run_inner(args);
     crate::output::stdout::flush();
     match result {
-        Ok(code) => code as i32,
+        Ok(code) => code,
         Err(e) => {
             let mut stderr = std::io::stderr().lock();
             let _ = stderr.write_all(e.message.as_bytes());
@@ -155,13 +155,76 @@ impl Context {
     }
 }
 
-fn run_inner(args: Vec<String>) -> Result<ExitCode, CliError> {
-    let (globals, rest) = cli::parse_globals(&args)?;
-    let session = Session::new(&globals).map_err(|e| match e.downcast::<SessionError>() {
+/// Python's recursion limit as it shows for an alias that expands to
+/// itself.
+const MAX_ALIAS_DEPTH: usize = 200;
+
+fn new_session(globals: &GlobalArgs) -> Result<Session, CliError> {
+    Session::new(globals).map_err(|e| match e.downcast::<SessionError>() {
         Ok(se) => se.to_cli_error(),
         Err(e) => CliError::new(ExitCode::General, render_general_error(&e.to_string())),
-    })?;
-    let command = cli::parse_command(&rest, &globals, &session)?;
+    })
+}
+
+fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
+    let (mut globals, mut rest) = cli::parse_globals(&args)?;
+    let mut session = new_session(&globals)?;
+    let mut shadow: Vec<Vec<String>> = Vec::new();
+    let mut depth = 0;
+    let command = loop {
+        match cli::parse_command_shadowed(&rest, &globals, &session, &shadow)? {
+            Command::Alias(cli::alias::Expansion::Dispatch {
+                globals: new_globals,
+                rest: new_rest,
+                shadow: new_shadow,
+            }) => {
+                depth += 1;
+                if depth > MAX_ALIAS_DEPTH {
+                    return Err(CliError::new(
+                        ExitCode::General,
+                        render_general_error("maximum recursion depth exceeded"),
+                    ));
+                }
+                globals = *new_globals;
+                session = new_session(&globals)?;
+                rest = new_rest;
+                shadow.extend(new_shadow);
+            }
+            Command::Alias(cli::alias::Expansion::External(command)) => {
+                return Ok(run_external_alias(&command));
+            }
+            command => break command,
+        }
+    };
+    run_command(globals, session, command).map(|code| code as i32)
+}
+
+/// `ExternalAliasCommand.__call__`: `subprocess.call(command,
+/// shell=True)`, whose return code is the exit status.
+fn run_external_alias(command: &str) -> i32 {
+    crate::output::stdout::flush();
+    match Process::new("/bin/sh").arg("-c").arg(command).status() {
+        Ok(status) => {
+            use std::os::unix::process::ExitStatusExt;
+            match (status.code(), status.signal()) {
+                (Some(code), _) => code,
+                (None, Some(signal)) => (256 - signal) & 0xff,
+                _ => 255,
+            }
+        }
+        Err(e) => {
+            let mut stderr = std::io::stderr().lock();
+            let _ = stderr.write_all(render_general_error(&e.to_string()).as_bytes());
+            255
+        }
+    }
+}
+
+fn run_command(
+    globals: GlobalArgs,
+    session: Session,
+    command: Command,
+) -> Result<ExitCode, CliError> {
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(1)
         .enable_all()
@@ -185,6 +248,7 @@ fn run_inner(args: Vec<String>) -> Result<ExitCode, CliError> {
         Command::Operation(inv) => run_operation(&ctx, inv),
         Command::Wait(inv) => run_wait(&ctx, inv),
         Command::Custom { path, args } => crate::commands::run(&ctx, &path, &args),
+        Command::Alias(_) => unreachable!("expanded by run_inner"),
     }
 }
 

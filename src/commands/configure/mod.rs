@@ -22,7 +22,7 @@ use crate::session::error::{ErrorKind, SessionError};
 use crate::session::prompt::{self, PromptError};
 use crate::value::Value;
 
-const SUBCOMMANDS: &[&str] = &[
+pub(crate) const SUBCOMMANDS: &[&str] = &[
     "list",
     "get",
     "set",

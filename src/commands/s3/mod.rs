@@ -18,7 +18,7 @@ use crate::driver::{Context, client_error};
 use crate::error::{CliError, ExitCode};
 use client::CallError;
 
-const SUBCOMMANDS: &[&str] = &[
+pub(crate) const SUBCOMMANDS: &[&str] = &[
     "ls", "website", "cp", "mv", "rm", "sync", "mb", "rb", "presign",
 ];
 

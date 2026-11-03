@@ -1,0 +1,749 @@
+[
+ {
+  "name": "alias toplevel query",
+  "argv": [
+   "whoami",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias toplevel user globals",
+  "argv": [
+   "--output",
+   "text",
+   "whoami",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias toplevel alias global wins",
+  "argv": [
+   "whoami",
+   "--query",
+   "Arn",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias external args",
+  "argv": [
+   "ext",
+   "a",
+   "b c",
+   "it's",
+   "",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias external function",
+  "argv": [
+   "ext2",
+   "x",
+   "y"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias external exit code",
+  "argv": [
+   "extexit"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias debug unsupported",
+  "argv": [
+   "dbg",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias profile unsupported",
+  "argv": [
+   "prof",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias unparseable",
+  "argv": [
+   "bad"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias unparseable escape",
+  "argv": [
+   "badesc"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias invalid command",
+  "argv": [
+   "nosuch"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias typo suggests alias",
+  "argv": [
+   "whoam"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias self recursion",
+  "argv": [
+   "self"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias shadow builtin",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias chain",
+  "argv": [
+   "chain",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias region",
+  "argv": [
+   "reg",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias bad query",
+  "argv": [
+   "badquery",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias mixed case name",
+  "argv": [
+   "mixed",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias mixed case name original",
+  "argv": [
+   "Mixed",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias options",
+  "argv": [
+   "withopt",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand",
+  "argv": [
+   "sts",
+   "me",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand proxied",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand chained",
+  "argv": [
+   "sts",
+   "me2",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand external",
+  "argv": [
+   "sts",
+   "extsub",
+   "q r",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand debug",
+  "argv": [
+   "sts",
+   "subdbg",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand typo",
+  "argv": [
+   "sts",
+   "mee",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias wait alias",
+  "argv": [
+   "ec2",
+   "wait",
+   "fast",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><instancesSet><item><instanceId>i-1</instanceId><instanceState><code>16</code><name>running</name></instanceState></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias wait alias proxied",
+  "argv": [
+   "ec2",
+   "wait",
+   "instance-stopped",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><instancesSet><item><instanceId>i-2</instanceId><instanceState><code>80</code><name>stopped</name></instanceState></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand recursion",
+  "argv": [
+   "sts",
+   "loop"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias subcommand mutual recursion",
+  "argv": [
+   "sts",
+   "loop2"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias s3 alias",
+  "argv": [
+   "s3",
+   "myls",
+   "s3://bucket",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bucket</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>2048</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   }
+  ]
+ },
+ {
+  "name": "alias s3 proxied",
+  "argv": [
+   "s3",
+   "ls",
+   "s3://bucket",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bucket</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>2048</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   }
+  ]
+ },
+ {
+  "name": "alias s3 typo",
+  "argv": [
+   "s3",
+   "mylsx"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias configure alias",
+  "argv": [
+   "configure",
+   "myget"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias configure external",
+  "argv": [
+   "configure",
+   "extc",
+   "x"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\next2 =\n  !f() {\n    echo \"args: $@\"\n  }; f\nextexit = !exit 3\ndbg = sts get-caller-identity --debug\nprof = sts get-caller-identity --profile foo\nbad = sts \"unterminated\nbadesc = sts \\\nnosuch = nosuchcmd foo\nreg = --region eu-west-1 sts get-caller-identity\nsts = sts --output text\nchain = whoami\nself = self\nbadquery = sts get-caller-identity --query \"[[\"\nMixed = sts get-caller-identity\nwithopt = sts get-caller-identity --output yaml --color off\n[command sts]\nme = get-caller-identity --output text\nget-caller-identity = get-caller-identity --output yaml\nextsub = !echo sub\nme2 = me --query Arn\nsubdbg = get-caller-identity --debug\nloop = loop\nloop2 = loop3\nloop3 = loop2\n[command s3]\nmyls = ls --summarize\nls = ls --human-readable\n[command configure]\nmyget = get region\nextc = !echo configure\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\ninstance-stopped = instance-stopped --instance-ids i-2\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias parse error",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nfoo = sts\ngarbage\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "alias parse error version",
+  "argv": [
+   "--version"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[toplevel]\nfoo = sts\ngarbage\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ }
+]

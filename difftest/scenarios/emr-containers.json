@@ -1,0 +1,754 @@
+[
+ {
+  "name": "emr-containers update-role-trust-policy",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>MyRole</RoleName><RoleId>A</RoleId><Arn>arn:aws:iam::1:role/MyRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Principal%22%3A%20%7B%22Service%22%3A%20%22ec2.amazonaws.com%22%7D%2C%20%22Action%22%3A%20%22sts%3AAssumeRole%22%7D%5D%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<UpdateAssumeRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><UpdateAssumeRolePolicyResult></UpdateAssumeRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></UpdateAssumeRolePolicyResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers update-role-trust-policy dry run",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--dry-run"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>MyRole</RoleName><RoleId>A</RoleId><Arn>arn:aws:iam::1:role/MyRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Principal%22%3A%20%7B%22Service%22%3A%20%22ec2.amazonaws.com%22%7D%2C%20%22Action%22%3A%20%22sts%3AAssumeRole%22%7D%5D%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers update-role-trust-policy exists",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>MyRole</RoleName><RoleId>A</RoleId><Arn>arn:aws:iam::1:role/MyRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Principal%22%3A%20%7B%22Federated%22%3A%20%22arn%3Aaws%3Aiam%3A%3A123456789012%3Aoidc-provider/oidc.eks.us-east-1.amazonaws.com/id/ABC%22%7D%2C%20%22Action%22%3A%20%22sts%3AAssumeRoleWithWebIdentity%22%2C%20%22Condition%22%3A%20%7B%22StringLike%22%3A%20%7B%22oidc.eks.us-east-1.amazonaws.com/id/ABC%3Asub%22%3A%20%22system%3Aserviceaccount%3Ans%3Aemr-containers-sa-%2A-%2A-123456789012-u70qubg4l%22%7D%7D%7D%5D%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers update-role-trust-policy iam endpoint",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--dry-run"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>MyRole</RoleName><RoleId>A</RoleId><Arn>arn:aws:iam::1:role/MyRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%20%221%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers update-role-trust-policy missing",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers update-role-trust-policy eks error",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/json",
+     "x-amzn-ErrorType": "ResourceNotFoundException"
+    },
+    "body": "{\"message\":\"no cluster\"}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations start_job_run",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "start_job_run",
+   "--operator-namespace",
+   "op"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"two\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-two\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations interactive_endpoint",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "interactive_endpoint",
+   "--operator-namespace",
+   "op"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"two\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-two\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations spark_operator",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "spark_operator",
+   "--operator-namespace",
+   "op"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"two\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-two\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations flink_operator",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "flink_operator",
+   "--operator-namespace",
+   "op"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"two\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-two\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations livy",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "livy",
+   "--operator-namespace",
+   "op"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"two\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-two\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations service account",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--service-account-name",
+   "sa"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"sa\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-sa\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations in use",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 409,
+    "headers": {
+     "Content-Type": "application/json",
+     "x-amzn-ErrorType": "ResourceInUseException"
+    },
+    "body": "{\"message\":\"exists\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations rollback",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/json",
+     "x-amzn-ErrorType": "InvalidParameterException"
+    },
+    "body": "{\"message\":\"bad\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations timestamp",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--service-account-name",
+   "sa"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"createdAt\": 1700000000}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers create-role-associations bad type",
+  "argv": [
+   "emr-containers",
+   "create-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "foo"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers delete-role-associations",
+  "argv": [
+   "emr-containers",
+   "delete-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"associations\": [{\"associationId\": \"a-1\", \"clusterName\": \"c\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"one\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-one\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"associations\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"associations\": [{\"associationId\": \"a-1\", \"clusterName\": \"c\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"association\": {\"clusterName\": \"c\", \"namespace\": \"ns\", \"serviceAccount\": \"three\", \"roleArn\": \"arn:aws:iam::123456789012:role/MyRole\", \"associationArn\": \"arn:x\", \"associationId\": \"a-ree\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers delete-role-associations none",
+  "argv": [
+   "emr-containers",
+   "delete-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole",
+   "--type",
+   "livy"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"associations\": []}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ },
+ {
+  "name": "emr-containers delete-role-associations error",
+  "argv": [
+   "emr-containers",
+   "delete-role-associations",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/json",
+     "x-amzn-ErrorType": "InvalidParameterException"
+    },
+    "body": "{\"message\":\"bad\"}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  }
+ }
+]

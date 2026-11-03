@@ -1,0 +1,19 @@
+[
+  {"name": "s3api select-object-content",
+   "argv": ["s3api", "select-object-content", "--bucket", "b", "--key", "k", "--expression", "select * from s3object", "--expression-type", "SQL", "--input-serialization", "CSV={}", "--output-serialization", "CSV={}", "out.csv", "--endpoint-url", "{endpoint}"],
+   "outputs": ["out.csv"],
+   "responses": [{"headers": {"Content-Type": "application/octet-stream"}, "body": "base64:AAAAbQAAAFUfgcnuDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbWEsYgoxLDIKM5rSnwAAAJMAAABDHFGSgw06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAAVTdGF0cw06Y29udGVudC10eXBlBwAIdGV4dC94bWw8U3RhdHM+PERldGFpbHM+PEJ5dGVzU2Nhbm5lZD4xPC9CeXRlc1NjYW5uZWQ+PC9EZXRhaWxzPjwvU3RhdHM+PTq81wAAAEAAAAAsDwnrww06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAAdSZWNvcmRzMyw0CnkTonoAAAA4AAAAKMHGhNQNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwADRW5kz5fTkg=="}]},
+  {"name": "s3api select-object-content error event",
+   "argv": ["s3api", "select-object-content", "--bucket", "b", "--key", "k", "--expression", "select * from s3object", "--expression-type", "SQL", "--input-serialization", "CSV={}", "--output-serialization", "CSV={}", "out.csv", "--endpoint-url", "{endpoint}"],
+   "outputs": ["out.csv"],
+   "responses": [{"headers": {"Content-Type": "application/octet-stream"}, "body": "base64:AAAAPgAAACxJ67VtDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHN4CmuXPrYAAABYAAAASBVGksENOm1lc3NhZ2UtdHlwZQcABWVycm9yCzplcnJvci1jb2RlBwANSW50ZXJuYWxFcnJvcg46ZXJyb3ItbWVzc2FnZQcABGJvb22WHLRW"}]},
+  {"name": "s3api select-object-content bad crc",
+   "argv": ["s3api", "select-object-content", "--bucket", "b", "--key", "k", "--expression", "select * from s3object", "--expression-type", "SQL", "--input-serialization", "CSV={}", "--output-serialization", "CSV={}", "out.csv", "--endpoint-url", "{endpoint}"],
+   "outputs": ["out.csv"],
+   "responses": [{"headers": {"Content-Type": "application/octet-stream"}, "body": "base64:AAAAbQAAAFUfgcnuDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAB1JlY29yZHMNOmNvbnRlbnQtdHlwZQcAGGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbWEsYgoxLDIKM5rSnwAAAJMAAABDHFGSgw06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAAVTdGF0cw06Y29udGVudC10eXBlBwAIdGV4dC94bWw8U3RhdHM+PERldGFpbHM+PEJ5dGVzU2Nhbm5lZD4xPC9CeXRlc1NjYW5uZWQ+PC9EZXRhaWxzPjwvU3RhdHM+PTq81wAAAEAAAAAsDwnrww06bWVzc2FnZS10eXBlBwAFZXZlbnQLOmV2ZW50LXR5cGUHAAdSZWNvcmRzMyw0CnkTonoAAAA4AAAAKMHGhNQNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwADRW5kz5fTkw=="}]},
+  {"name": "s3api select-object-content no outfile",
+   "argv": ["s3api", "select-object-content", "--bucket", "b", "--key", "k", "--expression", "select * from s3object", "--expression-type", "SQL", "--input-serialization", "CSV={}", "--output-serialization", "CSV={}", "--endpoint-url", "{endpoint}"]},
+  {"name": "s3api select-object-content service error",
+   "argv": ["s3api", "select-object-content", "--bucket", "b", "--key", "k", "--expression", "select * from s3object", "--expression-type", "SQL", "--input-serialization", "CSV={}", "--output-serialization", "CSV={}", "out.csv", "--endpoint-url", "{endpoint}"],
+   "responses": [{"status": 400, "headers": {"Content-Type": "application/xml"}, "body": "<Error><Code>InvalidRequest</Code><Message>bad</Message></Error>"}]}
+]

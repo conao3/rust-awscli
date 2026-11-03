@@ -134,6 +134,9 @@ impl Context {
         if let Some(pe) = e.downcast_ref::<handlers::ParamValidationError>() {
             return self.structured_error(ExitCode::Usage, "ParamValidation", &pe.to_string());
         }
+        if let Some(ee @ EndpointError::ParamValidation(_)) = e.downcast_ref::<EndpointError>() {
+            return self.structured_error(ExitCode::Usage, "ParamValidation", &ee.to_string());
+        }
         if let Some(ee) = e.downcast_ref::<EndpointError>() {
             let code = if ee.exit_code() == 252 {
                 ExitCode::Usage
@@ -350,10 +353,13 @@ impl<'a> Caller<'a> {
             request.host_prefix = None;
         }
 
+        let adjust = |response: &mut protocol::HttpResponse| {
+            handlers::adjust_attempt_response(self.model, &self.operation, response)
+        };
         let outcome = block_on(
             &ctx.runtime,
             ctx.session
-                .send(self.model, &self.operation, &endpoint, &request),
+                .send_adjusted(self.model, &self.operation, &endpoint, &request, &adjust),
         )?;
         let mut response = outcome.response;
         let customized = handlers::before_parse(self.model, &self.operation, &mut response);

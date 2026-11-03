@@ -230,9 +230,7 @@ fn add_expect_header(operation: &Operation<'_>, params: &Value, request: &mut Ht
 /// `before-parse.s3.*`: `_handle_200_error` (registered first) and
 /// `handle_expires_header`. Returns `customized_response_dict`.
 pub(super) fn before_parse(operation: &Operation<'_>, response: &mut HttpResponse) -> Map {
-    if should_handle_200_error(operation) && looks_like_special_case_error(response) {
-        response.status = 500;
-    }
+    handle_200_error(operation, response);
     let mut customized = Map::new();
     if has_expires_shape(operation)
         && let Some(expires) = header_value(response, "Expires")
@@ -248,6 +246,14 @@ pub(super) fn before_parse(operation: &Operation<'_>, response: &mut HttpRespons
         }
     }
     customized
+}
+
+/// `_handle_200_error`: an error document with status 200 becomes a 500
+/// (for retries too, through `_update_status_code`).
+pub(super) fn handle_200_error(operation: &Operation<'_>, response: &mut HttpResponse) {
+    if should_handle_200_error(operation) && looks_like_special_case_error(response) {
+        response.status = 500;
+    }
 }
 
 /// The value of a header as urllib3's `HTTPHeaderDict.get` returns it

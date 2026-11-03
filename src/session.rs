@@ -436,6 +436,22 @@ impl Session {
         endpoint: &Endpoint,
         request: &HttpRequest,
     ) -> Result<SendOutcome> {
+        self.send_adjusted(model, operation, endpoint, request, &|_| {})
+            .await
+    }
+
+    /// `send` with the `before-parse` handlers that change each attempt's
+    /// response before it is classified for retries (`adjust`; s3's
+    /// `_handle_200_error` turns an error document with status 200 into a
+    /// 500).
+    pub async fn send_adjusted(
+        &self,
+        model: &ServiceModel,
+        operation: &Operation<'_>,
+        endpoint: &Endpoint,
+        request: &HttpRequest,
+        adjust: &(dyn Fn(&mut HttpResponse) + Sync),
+    ) -> Result<SendOutcome> {
         let classify = |resp: &HttpResponse| -> Option<String> {
             if resp.status < 300 {
                 return None;
@@ -445,8 +461,9 @@ impl Session {
                 .map(|e| e.code)
                 .filter(|c| !c.is_empty())
         };
-        self.send_with(model, operation, endpoint, request, &classify)
-            .await
+        Ok(self
+            .send_inner(model, operation, endpoint, request, &classify, adjust)
+            .await?)
     }
 
     /// `send` with an explicit classifier returning botocore's
@@ -462,7 +479,7 @@ impl Session {
         classify: &(dyn Fn(&HttpResponse) -> Option<String> + Sync),
     ) -> Result<SendOutcome> {
         Ok(self
-            .send_inner(model, operation, endpoint, request, classify)
+            .send_inner(model, operation, endpoint, request, classify, &|_| {})
             .await?)
     }
 
@@ -473,6 +490,7 @@ impl Session {
         endpoint: &Endpoint,
         request: &HttpRequest,
         classify: &(dyn Fn(&HttpResponse) -> Option<String> + Sync),
+        adjust: &(dyn Fn(&mut HttpResponse) + Sync),
     ) -> Result<SendOutcome, SessionError> {
         let settings = self.client_settings()?;
         let sid = service_id(model);
@@ -605,7 +623,10 @@ impl Session {
                 .await;
             let received = Utc::now();
             let (response, exception) = match result {
-                Ok(r) => (Some(r), None),
+                Ok(mut r) => {
+                    adjust(&mut r);
+                    (Some(r), None)
+                }
                 Err(e) => (None, Some(e)),
             };
             let error_code = response.as_ref().and_then(classify);

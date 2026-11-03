@@ -220,6 +220,18 @@ pub fn before_parse(
     }
 }
 
+/// The `before-parse` changes that apply to every attempt before retries
+/// are decided (`_handle_200_error` with `_update_status_code`).
+pub fn adjust_attempt_response(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    response: &mut HttpResponse,
+) {
+    if service_id(model) == "s3" {
+        s3::handle_200_error(operation, response);
+    }
+}
+
 /// `after-call.<service-id>.<Operation>` on the parsed response (success
 /// or error). `paginate` is the CLI's `parsed_globals.paginate`.
 pub fn after_call(

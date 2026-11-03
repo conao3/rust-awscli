@@ -1,0 +1,66 @@
+# Representative cases for CI: `make difftest` runs every line.
+# Format: service Operation seed format [input=args] [error=modeled|unmodeled] [pty=COLS] [-- extra args]
+
+# query
+sts GetCallerIdentity 0 json
+sts GetCallerIdentity 5 table pty=80
+sts AssumeRole 1 text input=args
+iam ListUsers 2 json
+iam ListUsers 3 table pty=120
+iam GetUser 4 yaml error=modeled
+sns ListTopics 1 text
+cloudformation DescribeStacks 2 json
+elbv2 DescribeLoadBalancers 3 table
+rds DescribeDBInstances 0 text error=unmodeled
+
+# ec2
+ec2 DescribeInstances 0 json
+ec2 DescribeInstances 1 table pty=200
+ec2 DescribeVpcs 2 text
+ec2 DescribeRegions 3 json input=args
+ec2 DescribeSecurityGroups 4 yaml
+ec2 CreateTags 5 json error=unmodeled
+
+# json
+dynamodb ListTables 0 json
+dynamodb Scan 1 json
+dynamodb GetItem 2 text
+dynamodb DescribeTable 3 table pty=120
+kms Encrypt 0 json input=args
+logs DescribeLogGroups 1 table
+secretsmanager GetSecretValue 2 json error=modeled
+ssm GetParameters 3 text
+cloudtrail LookupEvents 4 json
+sqs ReceiveMessage 5 json error=modeled
+ecs DescribeTasks 6 yaml
+
+# rest-json
+lambda ListFunctions 0 json
+lambda ListFunctions 1 table pty=80
+lambda GetFunction 2 text
+lambda Invoke 3 json
+apigateway GetRestApis 4 json
+eks DescribeCluster 5 table
+glacier ListVaults 6 json
+efs DescribeFileSystems 7 text error=modeled
+appsync ListGraphqlApis 8 json error=unmodeled
+
+# rest-xml
+s3 ListBuckets 0 json
+s3 ListBuckets 1 table pty=120
+s3 ListObjectsV2 2 json
+s3 ListObjectVersions 3 text
+s3 GetObject 4 json
+s3 PutObject 5 json
+s3 HeadObject 6 json error=unmodeled
+s3 GetBucketLocation 7 text
+s3 GetBucketAcl 8 json
+s3control ListAccessPoints 9 json
+route53 ListHostedZones 0 table
+route53 ListResourceRecordSets 1 json
+cloudfront ListDistributions 2 json error=modeled
+
+# smithy-rpc-v2-cbor
+eventbridgev2 ListEventBuses 0 json
+eventbridgev2 DescribeEventBus 1 table pty=80
+cloudwatchomni ListDomains 2 text error=modeled

@@ -847,6 +847,12 @@ pub fn all() -> Vec<Scenario> {
         .bucket("src"),
         sc("rb-force-no-bucket", "s3 rb s3://nope --force"),
         sc(
+            "cp-upload-expected-size-bad",
+            "s3 cp - s3://dst/s --expected-size 10MB",
+        )
+        .stdin("hello")
+        .bucket("dst"),
+        sc(
             "cp-copy-multipart-no-dest",
             "s3 cp s3://src/big s3://nope/ --no-progress",
         )

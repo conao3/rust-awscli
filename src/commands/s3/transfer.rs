@@ -1677,10 +1677,20 @@ impl<'a> Handler<'a> {
             extra.insert("ChecksumAlgorithm".into(), Value::str("CRC64NVME"));
         }
         let size = if is_stream {
-            self.p
-                .str("expected_size")
-                .and_then(crate::cli::pynum::py_int)
-                .and_then(|b| i64::try_from(b).ok())
+            // `ProvideSizeSubscriber(int(expected_size))`.
+            match self.p.str("expected_size") {
+                None => None,
+                Some(s) => Some(
+                    crate::cli::pynum::py_int(s)
+                        .and_then(|b| i64::try_from(b).ok())
+                        .ok_or_else(|| {
+                            TransferError::Message(format!(
+                                "invalid literal for int() with base 10: {}",
+                                crate::pyfmt::str_repr(s)
+                            ))
+                        })?,
+                ),
+            }
         } else {
             f.size
         };

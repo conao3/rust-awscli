@@ -699,6 +699,160 @@ pub fn all() -> Vec<Scenario> {
             .with(tree)
             .bucket("dst"),
     ];
+    v.extend([
+        sc("s3-help", "s3 help"),
+        sc("ls-help", "s3 ls help"),
+        sc("cp-local-local", "s3 cp a b").file("a", "x"),
+        sc("ls-dir-marker", "s3 ls s3://src --recursive")
+            .obj("src", "folder/", "")
+            .obj("src", "folder/f.txt", "f"),
+        sc("ls-buckets-page-size", "s3 ls --page-size 1")
+            .bucket("alpha")
+            .bucket("beta")
+            .bucket("gamma"),
+        sc("ls-virtual", "s3 ls s3://src/sub/")
+            .with(objects)
+            .config("s3 =\n    addressing_style = virtual\n"),
+        sc("cp-virtual", "s3 cp x.txt s3://dst/ --no-progress")
+            .file("x.txt", "v")
+            .bucket("dst")
+            .config("s3 =\n    addressing_style = virtual\n"),
+        sc(
+            "cp-download-prefix-no-recursive",
+            "s3 cp s3://src/sub/ out --no-progress",
+        )
+        .with(objects),
+        sc(
+            "cp-download-existing-dir",
+            "s3 cp s3://src/a.txt outdir --no-progress",
+        )
+        .with(objects)
+        .dir("outdir"),
+        sc(
+            "cp-download-new-parents",
+            "s3 cp s3://src/a.txt new/deep/x.txt --no-progress",
+        )
+        .with(objects),
+        sc("cp-download-stream-multipart", "s3 cp s3://src/big -")
+            .obj("src", "big", blob(11 * 1024 * 1024, 9))
+            .config(MULTIPART),
+        sc(
+            "sync-download-exclude",
+            "s3 sync s3://src out --no-progress --exclude sub/*",
+        )
+        .with(objects),
+        sc(
+            "mv-upload-recursive-exclude",
+            "s3 mv dir s3://dst/ --recursive --no-progress --exclude *.log",
+        )
+        .with(tree)
+        .bucket("dst"),
+        sc("mb-account-regional", "s3 mb s3://foo-an"),
+        sc("mb-express", "s3 mb s3://foo--usw2-az1--x-s3"),
+        sc(
+            "website-trailing",
+            "s3 website s3://dst/ --error-document e.html",
+        )
+        .bucket("dst"),
+        sc(
+            "cp-copy-content-type",
+            "s3 cp s3://src/a.txt s3://dst/ --no-progress --content-type text/x",
+        )
+        .obj_full(
+            "src",
+            "a.txt",
+            "alpha",
+            OBJECT_TIME,
+            &[
+                ("content-type", "text/plain"),
+                ("x-amz-meta-m", "1"),
+                ("cache-control", "max-age=1"),
+            ],
+        )
+        .bucket("dst"),
+        sc(
+            "cp-copy-metadata-directive-copy",
+            "s3 cp s3://src/a.txt s3://dst/ --no-progress --metadata-directive COPY",
+        )
+        .with(objects)
+        .bucket("dst"),
+        sc(
+            "cp-copy-props-all",
+            "s3 cp s3://src/a.txt s3://dst/ --no-progress --copy-props all",
+        )
+        .with(objects)
+        .bucket("dst"),
+        sc("rm-key-recursive-file", "s3 rm s3://src/a.txt --recursive").with(objects),
+        sc(
+            "sync-s3-trailing",
+            "s3 sync s3://src/sub/ out/ --no-progress",
+        )
+        .with(objects),
+        sc(
+            "cp-follow-symlink-dir",
+            "s3 cp dir s3://dst/ --recursive --no-progress",
+        )
+        .file("real/x.txt", "x")
+        .file("dir/a.txt", "a")
+        .symlink("dir/linked", "../real")
+        .bucket("dst"),
+        sc(
+            "cp-download-no-follow-symlinks",
+            "s3 cp s3://src out --recursive --no-progress --no-follow-symlinks",
+        )
+        .obj("src", "linked/x.txt", "x")
+        .obj("src", "a.txt", "a")
+        .dir("real")
+        .symlink("out/linked", "../real"),
+        sc(
+            "cp-upload-expected-size-small",
+            "s3 cp - s3://dst/s --expected-size 5",
+        )
+        .stdin("hello")
+        .bucket("dst"),
+        sc(
+            "cp-stream-no-overwrite",
+            "s3 cp s3://src/a.txt - --no-overwrite",
+        )
+        .with(objects),
+        sc(
+            "cp-upload-dotdot",
+            "s3 cp a/../x.txt s3://dst/ --no-progress",
+        )
+        .file("x.txt", "x")
+        .dir("a")
+        .bucket("dst"),
+    ]);
+    let mut many = sc("sync-many", "s3 sync dir s3://dst --no-progress").bucket("dst");
+    let mut many_q = sc("cp-many-small-queue", "s3 cp dir s3://dst --recursive")
+        .bucket("dst")
+        .config("s3 =\n    max_queue_size = 1\n    max_concurrent_requests = 3\n");
+    for i in 0..60 {
+        many = many.file(&format!("dir/f{i:02}.txt"), format!("file {i}\n"));
+        many_q = many_q.file(&format!("dir/f{i:02}.txt"), format!("file {i}\n"));
+    }
+    v.extend([
+        many,
+        many_q,
+        sc(
+            "cp-upload-multipart-no-bucket",
+            "s3 cp big s3://nope/ --no-progress",
+        )
+        .file("big", blob(6 * 1024 * 1024, 10))
+        .config(MULTIPART),
+        sc(
+            "cp-download-multipart-stream-missing",
+            "s3 cp s3://src/nope - ",
+        )
+        .bucket("src"),
+        sc("rb-force-no-bucket", "s3 rb s3://nope --force"),
+        sc(
+            "cp-copy-multipart-no-dest",
+            "s3 cp s3://src/big s3://nope/ --no-progress",
+        )
+        .obj("src", "big", blob(6 * 1024 * 1024, 11))
+        .config(MULTIPART),
+    ]);
     v.push(
         sc("mv-validate-env", "s3 mv s3://b/k s3://b/k")
             .env("AWS_CLI_S3_MV_VALIDATE_SAME_S3_PATHS", "true")

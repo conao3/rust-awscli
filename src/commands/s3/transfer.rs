@@ -1764,42 +1764,44 @@ impl<'a> Handler<'a> {
                 } else {
                     let chunksize = adjust_chunksize(self.cfg.multipart_chunksize, Some(size));
                     let num_parts = (size as f64 / chunksize as f64).ceil() as i64;
-                    let reader: PartReader<'s> = Box::new(move |n: i64| {
-                        let start = (n - 1) * chunksize;
-                        let len = chunksize.min(size - start).max(0) as usize;
-                        let file = std::fs::File::open(&path)
-                            .map_err(|e| TransferError::Message(os_error(&e, &path)))?;
-                        let mut buf = vec![0u8; len];
-                        file.read_exact_at(&mut buf, start as u64)
-                            .map_err(|e| TransferError::Message(os_error(&e, &path)))?;
-                        Ok(Some(buf))
-                    });
-                    self.multipart_upload(
-                        pool,
-                        tx,
-                        bucket,
-                        key,
-                        extra,
-                        Some(num_parts),
-                        reader,
-                        done,
-                    );
+                    let spec = upload_spec(tx, &bucket, &key, extra);
+                    pool.submit(Box::new(move |pool: &Pool<'s>| {
+                        let Some(mpu) = self.create_mpu(spec, done) else {
+                            return;
+                        };
+                        for part in 1..=num_parts {
+                            let path = path.clone();
+                            mpu.submit_part(
+                                pool,
+                                false,
+                                part,
+                                Box::new(move |mpu: &Mpu<'s, 'a>| {
+                                    let start = (part - 1) * chunksize;
+                                    let len = chunksize.min(size - start).max(0) as usize;
+                                    let file = std::fs::File::open(&path)
+                                        .map_err(|e| TransferError::Message(os_error(&e, &path)))?;
+                                    let mut buf = vec![0u8; len];
+                                    file.read_exact_at(&mut buf, start as u64)
+                                        .map_err(|e| TransferError::Message(os_error(&e, &path)))?;
+                                    mpu.upload_part(part, buf)
+                                }),
+                            );
+                        }
+                        mpu.seal(pool);
+                    }));
                 }
             }
             Source::Stdin => {
                 let mut stdin = std::io::stdin().lock();
-                let needs_multipart = match size {
-                    Some(s) => s >= threshold,
-                    None => false,
-                };
                 let mut initial = vec![];
-                let multipart = if size.is_some() {
-                    needs_multipart
-                } else {
-                    let _ = (&mut stdin)
-                        .take(threshold as u64)
-                        .read_to_end(&mut initial);
-                    initial.len() as i64 >= threshold
+                let multipart = match size {
+                    Some(s) => s >= threshold,
+                    None => {
+                        let _ = (&mut stdin)
+                            .take(threshold as u64)
+                            .read_to_end(&mut initial);
+                        initial.len() as i64 >= threshold
+                    }
                 };
                 if !multipart {
                     let mut body = initial;
@@ -1824,11 +1826,17 @@ impl<'a> Handler<'a> {
                         done(r);
                     }));
                 } else {
+                    // `UploadNonSeekableInputManager`: parts are read in
+                    // order from the stream, at most
+                    // `max_in_memory_upload_chunks` at a time.
                     let chunksize = adjust_chunksize(self.cfg.multipart_chunksize, size);
-                    // Read the whole stream into parts here (the main thread
-                    // is the only reader of stdin).
-                    let mut parts: Vec<Vec<u8>> = vec![];
+                    let spec = upload_spec(tx, &bucket, &key, extra);
+                    let Some(mpu) = self.create_mpu(spec, done) else {
+                        return Ok(true);
+                    };
+                    let slots = Arc::new(Slots::new(MAX_IN_MEMORY_CHUNKS));
                     let mut pending = initial;
+                    let mut part = 0;
                     loop {
                         while (pending.len() as i64) < chunksize {
                             let mut buf =
@@ -1846,229 +1854,62 @@ impl<'a> Handler<'a> {
                         } else {
                             vec![]
                         };
-                        let full = pending.len() as i64 == chunksize;
-                        parts.push(std::mem::replace(&mut pending, rest));
-                        if !full {
+                        let body = std::mem::replace(&mut pending, rest);
+                        let last = (body.len() as i64) < chunksize;
+                        part += 1;
+                        slots.acquire();
+                        let slots = slots.clone();
+                        let n = part;
+                        mpu.submit_part(
+                            pool,
+                            true,
+                            n,
+                            Box::new(move |mpu: &Mpu<'s, 'a>| {
+                                let r = mpu.upload_part(n, body);
+                                slots.release();
+                                r
+                            }),
+                        );
+                        if last {
                             break;
                         }
                     }
-                    let parts =
-                        Arc::new(Mutex::new(parts.into_iter().map(Some).collect::<Vec<_>>()));
-                    let count = parts.lock().unwrap().len() as i64;
-                    let reader: PartReader<'s> = Box::new(move |n: i64| {
-                        let mut p = parts.lock().unwrap();
-                        Ok(p.get_mut((n - 1) as usize).and_then(Option::take))
-                    });
-                    self.multipart_upload(pool, tx, bucket, key, extra, Some(count), reader, done);
+                    mpu.seal(pool);
                 }
             }
         }
         Ok(true)
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn multipart_upload<'s>(
-        &'s self,
-        pool: &Pool<'s>,
-        tx: Tx,
-        bucket: String,
-        key: String,
-        mut extra: Map,
-        num_parts: Option<i64>,
-        reader: PartReader<'s>,
-        done: Done<'s>,
-    ) {
-        for c in FULL_OBJECT_CHECKSUM_ARGS {
-            if extra.contains_key(*c) {
-                extra.insert("ChecksumType".into(), Value::str("FULL_OBJECT"));
-                extra.insert(
-                    "ChecksumAlgorithm".into(),
-                    Value::str(c.trim_start_matches("Checksum")),
-                );
+    /// `CreateMultipartUploadTask`: the upload, or `None` after reporting
+    /// the failure.
+    fn create_mpu<'s>(&'s self, spec: UploadSpec, done: Done<'s>) -> Option<Arc<Mpu<'s, 'a>>> {
+        let resp = match self.call(
+            "CreateMultipartUpload",
+            with(spec.base.clone(), &spec.create_extra),
+        ) {
+            Ok(r) => r,
+            Err(e) => {
+                done(Err(e));
+                return None;
             }
-        }
-        let mut create_block: Vec<&str> = FULL_OBJECT_CHECKSUM_ARGS.to_vec();
-        create_block.extend(["MpuObjectSize", "IfNoneMatch"]);
-        let create_extra = blocked(&extra, &create_block);
-        let part_extra = filtered(
-            &extra,
-            &[
-                "ChecksumAlgorithm",
-                "SSECustomerKey",
-                "SSECustomerAlgorithm",
-                "SSECustomerKeyMD5",
-                "RequestPayer",
-                "ExpectedBucketOwner",
-            ],
-        );
-        let mut complete_allow = vec![
-            "SSECustomerKey",
-            "SSECustomerAlgorithm",
-            "SSECustomerKeyMD5",
-            "RequestPayer",
-            "ExpectedBucketOwner",
-            "ChecksumType",
-            "MpuObjectSize",
-            "IfNoneMatch",
-        ];
-        complete_allow.extend(FULL_OBJECT_CHECKSUM_ARGS);
-        let complete_extra = filtered(&extra, &complete_allow);
-        let checksum_member = extra
-            .get("ChecksumAlgorithm")
+        };
+        let upload_id = resp
+            .get("UploadId")
             .and_then(Value::as_str)
-            .map(|a| format!("Checksum{}", a.to_uppercase()));
-        let n = num_parts.unwrap_or(0);
-        let state = Arc::new(Multipart {
-            remaining: AtomicUsize::new(n as usize),
-            parts: Mutex::new(vec![None; n as usize]),
+            .unwrap_or_default()
+            .to_string();
+        Some(Arc::new(Mpu {
+            h: self,
+            spec,
+            upload_id,
+            inflight: AtomicUsize::new(0),
+            sealed: AtomicBool::new(false),
+            finished: AtomicBool::new(false),
+            parts: Mutex::new(std::collections::BTreeMap::new()),
             failure: Mutex::new(None),
             done: Mutex::new(Some(done)),
-            upload_id: Mutex::new(String::new()),
-        });
-        let base = map(&[("Bucket", Value::str(&bucket)), ("Key", Value::str(&key))]);
-        let reader = Arc::new(reader);
-        pool.submit(Box::new(move |pool: &Pool<'s>| {
-            let resp = match self.call("CreateMultipartUpload", with(base.clone(), &create_extra)) {
-                Ok(r) => r,
-                Err(e) => {
-                    state.finish(Err(e));
-                    return;
-                }
-            };
-            let upload_id = resp
-                .get("UploadId")
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            *state.upload_id.lock().unwrap() = upload_id.clone();
-            if n == 0 {
-                self.complete(pool, &state, base, complete_extra, tx);
-                return;
-            }
-            for part in 1..=n {
-                let (
-                    state,
-                    base,
-                    part_extra,
-                    complete_extra,
-                    upload_id,
-                    tx,
-                    reader,
-                    checksum_member,
-                ) = (
-                    state.clone(),
-                    base.clone(),
-                    part_extra.clone(),
-                    complete_extra.clone(),
-                    upload_id.clone(),
-                    tx.clone(),
-                    reader.clone(),
-                    checksum_member.clone(),
-                );
-                pool.push(Box::new(move |pool: &Pool<'s>| {
-                    let r = (|| -> Result<Map, TransferError> {
-                        if state.failure.lock().unwrap().is_some() {
-                            return Err(TransferError::Message("cancelled".into()));
-                        }
-                        let body = reader(part)?.unwrap_or_default();
-                        let len = body.len() as i64;
-                        self.throttle(body.len());
-                        let params = with(
-                            with(
-                                base.clone(),
-                                &map(&[
-                                    ("UploadId", Value::str(&upload_id)),
-                                    ("PartNumber", Value::int(part)),
-                                    ("Body", Value::Bytes(body)),
-                                ]),
-                            ),
-                            &part_extra,
-                        );
-                        let resp = self.call("UploadPart", params)?;
-                        self.progress(&tx, len);
-                        let mut meta = map(&[
-                            ("ETag", resp.get("ETag").cloned().unwrap_or(Value::Null)),
-                            ("PartNumber", Value::int(part)),
-                        ]);
-                        if let Some(m) = &checksum_member
-                            && let Some(v) = resp.get(m)
-                        {
-                            meta.insert(m.clone(), v.clone());
-                        }
-                        Ok(meta)
-                    })();
-                    match r {
-                        Ok(meta) => state.parts.lock().unwrap()[(part - 1) as usize] = Some(meta),
-                        Err(e) => {
-                            let mut f = state.failure.lock().unwrap();
-                            if f.is_none() {
-                                *f = Some(e);
-                            }
-                        }
-                    }
-                    if state.remaining.fetch_sub(1, Ordering::SeqCst) == 1 {
-                        self.complete(pool, &state, base, complete_extra, tx);
-                    }
-                }));
-            }
-        }));
-    }
-
-    fn complete<'s>(
-        &'s self,
-        pool: &Pool<'s>,
-        state: &Arc<Multipart<'s>>,
-        base: Map,
-        complete_extra: Map,
-        tx: Tx,
-    ) {
-        let state = state.clone();
-        let failure = state.failure.lock().unwrap().take();
-        let upload_id = state.upload_id.lock().unwrap().clone();
-        if let Some(e) = failure {
-            // `add_failure_cleanup(abort_multipart_upload)`.
-            pool.push(Box::new(move |_| {
-                let _ = self.client.call(
-                    "AbortMultipartUpload",
-                    with(base, &map(&[("UploadId", Value::str(&upload_id))])),
-                );
-                state.finish(Err(e));
-            }));
-            return;
-        }
-        pool.push(Box::new(move |_| {
-            let parts: Vec<Value> = state
-                .parts
-                .lock()
-                .unwrap()
-                .iter()
-                .map(|p| Value::Map(p.clone().unwrap_or_default()))
-                .collect();
-            let params = with(
-                with(
-                    base.clone(),
-                    &map(&[
-                        ("UploadId", Value::str(&upload_id)),
-                        (
-                            "MultipartUpload",
-                            Value::Map(map(&[("Parts", Value::List(parts))])),
-                        ),
-                    ]),
-                ),
-                &complete_extra,
-            );
-            match self.call("CompleteMultipartUpload", params) {
-                Ok(_) => state.finish(Ok(())),
-                Err(e) => {
-                    let _ = self.client.call(
-                        "AbortMultipartUpload",
-                        with(base, &map(&[("UploadId", Value::str(&upload_id))])),
-                    );
-                    state.finish(Err(e));
-                }
-            }
-            let _ = &tx;
-        }));
+        }))
     }
 
     // ---- download -----------------------------------------------------
@@ -2560,44 +2401,38 @@ impl<'a> Handler<'a> {
                 "ExpectedBucketOwner",
             ],
         );
-        let complete_extra = filtered(
-            &extra,
-            &[
-                "SSECustomerKey",
-                "SSECustomerAlgorithm",
-                "SSECustomerKeyMD5",
-                "RequestPayer",
-                "ExpectedBucketOwner",
-                "IfNoneMatch",
-            ],
-        );
-        let checksum_member = extra
-            .get("ChecksumAlgorithm")
-            .and_then(Value::as_str)
-            .map(|a| format!("Checksum{}", a.to_uppercase()));
-        let state = Arc::new(Multipart {
-            remaining: AtomicUsize::new(num_parts as usize),
-            parts: Mutex::new(vec![None; num_parts as usize]),
-            failure: Mutex::new(None),
-            done: Mutex::new(Some(done)),
-            upload_id: Mutex::new(String::new()),
-        });
-        pool.submit(Box::new(move |pool: &Pool<'s>| {
-            let resp = match self.call("CreateMultipartUpload", with(base.clone(), &create_extra)) {
-                Ok(r) => r,
-                Err(e) => {
-                    state.finish(Err(e));
-                    return;
-                }
-            };
-            let upload_id = resp
-                .get("UploadId")
+        let spec = UploadSpec {
+            tx,
+            base,
+            create_extra,
+            part_extra: part_args,
+            complete_extra: filtered(
+                &extra,
+                &[
+                    "SSECustomerKey",
+                    "SSECustomerAlgorithm",
+                    "SSECustomerKeyMD5",
+                    "RequestPayer",
+                    "ExpectedBucketOwner",
+                    "IfNoneMatch",
+                ],
+            ),
+            checksum_member: extra
+                .get("ChecksumAlgorithm")
                 .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            *state.upload_id.lock().unwrap() = upload_id.clone();
+                .map(|a| format!("Checksum{}", a.to_uppercase())),
+        };
+        pool.submit(Box::new(move |pool: &Pool<'s>| {
+            let Some(mpu) = self.create_mpu(spec, done) else {
+                return;
+            };
             for part in 1..=num_parts {
-                let mut args = part_args.clone();
+                let mut args = map(&[
+                    ("CopySource", Value::str(&copy_source)),
+                    ("UploadId", Value::str(&mpu.upload_id)),
+                    ("PartNumber", Value::int(part)),
+                ]);
+                args = with(args, &mpu.spec.part_extra);
                 args.insert(
                     "CopySourceRange".into(),
                     Value::str(range_param(part_size, part - 1, num_parts, Some(size))),
@@ -2610,33 +2445,14 @@ impl<'a> Handler<'a> {
                 } else {
                     part_size
                 };
-                let (state, base, complete_extra, upload_id, tx, copy_source, checksum_member, sk, sb) = (
-                    state.clone(),
-                    base.clone(),
-                    complete_extra.clone(),
-                    upload_id.clone(),
-                    tx.clone(),
-                    copy_source.clone(),
-                    checksum_member.clone(),
-                    sk.clone(),
-                    sb.clone(),
-                );
-                pool.push(Box::new(move |pool: &Pool<'s>| {
-                    let r = (|| -> Result<Map, TransferError> {
-                        if state.failure.lock().unwrap().is_some() {
-                            return Err(TransferError::Message("cancelled".into()));
-                        }
-                        let params = with(
-                            with(
-                                with(map(&[("CopySource", Value::str(&copy_source))]), &base),
-                                &map(&[
-                                    ("UploadId", Value::str(&upload_id)),
-                                    ("PartNumber", Value::int(part)),
-                                ]),
-                            ),
-                            &args,
-                        );
-                        let resp = self.call("UploadPartCopy", params).map_err(|e| match e {
+                let (sk, sb) = (sk.clone(), sb.clone());
+                mpu.submit_part(
+                    pool,
+                    false,
+                    part,
+                    Box::new(move |mpu: &Mpu<'s, 'a>| {
+                        let params = with(mpu.spec.base.clone(), &args);
+                        let resp = mpu.h.call("UploadPartCopy", params).map_err(|e| match e {
                             TransferError::Call(c) if c.code() == Some("PreconditionFailed") => {
                                 TransferError::Message(format!(
                                     "Contents of stored object \"{sk}\" in bucket \"{sb}\" did not match expected ETag."
@@ -2644,37 +2460,17 @@ impl<'a> Handler<'a> {
                             }
                             other => other,
                         })?;
-                        self.progress(&tx, len);
+                        mpu.h.progress(&mpu.spec.tx, len);
                         let result = resp
                             .get("CopyPartResult")
                             .and_then(Value::as_map)
                             .cloned()
                             .unwrap_or_default();
-                        let mut meta = map(&[
-                            ("ETag", result.get("ETag").cloned().unwrap_or(Value::Null)),
-                            ("PartNumber", Value::int(part)),
-                        ]);
-                        if let Some(m) = &checksum_member
-                            && let Some(v) = result.get(m)
-                        {
-                            meta.insert(m.clone(), v.clone());
-                        }
-                        Ok(meta)
-                    })();
-                    match r {
-                        Ok(meta) => state.parts.lock().unwrap()[(part - 1) as usize] = Some(meta),
-                        Err(e) => {
-                            let mut f = state.failure.lock().unwrap();
-                            if f.is_none() {
-                                *f = Some(e);
-                            }
-                        }
-                    }
-                    if state.remaining.fetch_sub(1, Ordering::SeqCst) == 1 {
-                        self.complete(pool, &state, base, complete_extra, tx);
-                    }
-                }));
+                        Ok(mpu.part_meta(part, &result))
+                    }),
+                );
             }
+            mpu.seal(pool);
         }));
         Ok(true)
     }
@@ -2848,21 +2644,248 @@ impl<'a> Handler<'a> {
     }
 }
 
-type PartReader<'s> = Box<dyn Fn(i64) -> Result<Option<Vec<u8>>, TransferError> + Send + Sync + 's>;
+/// `max_in_memory_upload_chunks` of the CLI's transfer manager.
+const MAX_IN_MEMORY_CHUNKS: usize = 6;
 
-struct Multipart<'s> {
-    remaining: AtomicUsize,
-    parts: Mutex<Vec<Option<Map>>>,
-    failure: Mutex<Option<TransferError>>,
-    done: Mutex<Option<Done<'s>>>,
-    upload_id: Mutex<String>,
+/// A counting semaphore.
+struct Slots {
+    free: Mutex<usize>,
+    cv: std::sync::Condvar,
 }
 
-impl Multipart<'_> {
-    fn finish(&self, r: Result<(), TransferError>) {
-        if let Some(d) = self.done.lock().unwrap().take() {
-            d(r);
+impl Slots {
+    fn new(n: usize) -> Slots {
+        Slots {
+            free: Mutex::new(n),
+            cv: std::sync::Condvar::new(),
         }
+    }
+
+    fn acquire(&self) {
+        let mut f = self.free.lock().unwrap();
+        while *f == 0 {
+            f = self.cv.wait(f).unwrap();
+        }
+        *f -= 1;
+    }
+
+    fn release(&self) {
+        *self.free.lock().unwrap() += 1;
+        self.cv.notify_one();
+    }
+}
+
+/// The requests of one multipart upload (`UploadSubmissionTask` /
+/// `CopySubmissionTask._submit_multipart_request`).
+struct UploadSpec {
+    tx: Tx,
+    base: Map,
+    create_extra: Map,
+    part_extra: Map,
+    complete_extra: Map,
+    /// `Checksum{ALGORITHM}`, copied from part responses into the parts.
+    checksum_member: Option<String>,
+}
+
+/// The upload arguments of `UploadSubmissionTask._submit_multipart_request`.
+fn upload_spec(tx: Tx, bucket: &str, key: &str, mut extra: Map) -> UploadSpec {
+    for c in FULL_OBJECT_CHECKSUM_ARGS {
+        if extra.contains_key(*c) {
+            extra.insert("ChecksumType".into(), Value::str("FULL_OBJECT"));
+            extra.insert(
+                "ChecksumAlgorithm".into(),
+                Value::str(c.trim_start_matches("Checksum")),
+            );
+        }
+    }
+    let mut create_block: Vec<&str> = FULL_OBJECT_CHECKSUM_ARGS.to_vec();
+    create_block.extend(["MpuObjectSize", "IfNoneMatch"]);
+    let mut complete_allow = vec![
+        "SSECustomerKey",
+        "SSECustomerAlgorithm",
+        "SSECustomerKeyMD5",
+        "RequestPayer",
+        "ExpectedBucketOwner",
+        "ChecksumType",
+        "MpuObjectSize",
+        "IfNoneMatch",
+    ];
+    complete_allow.extend(FULL_OBJECT_CHECKSUM_ARGS);
+    UploadSpec {
+        tx,
+        base: map(&[("Bucket", Value::str(bucket)), ("Key", Value::str(key))]),
+        create_extra: blocked(&extra, &create_block),
+        part_extra: filtered(
+            &extra,
+            &[
+                "ChecksumAlgorithm",
+                "SSECustomerKey",
+                "SSECustomerAlgorithm",
+                "SSECustomerKeyMD5",
+                "RequestPayer",
+                "ExpectedBucketOwner",
+            ],
+        ),
+        complete_extra: filtered(&extra, &complete_allow),
+        checksum_member: extra
+            .get("ChecksumAlgorithm")
+            .and_then(Value::as_str)
+            .map(|a| format!("Checksum{}", a.to_uppercase())),
+    }
+}
+
+type PartFn<'s, 'a> = Box<dyn FnOnce(&Mpu<'s, 'a>) -> Result<Map, TransferError> + Send + 's>;
+
+/// A multipart upload in flight: parts are added (possibly while others
+/// run), then the upload is sealed; the last part to finish after the
+/// seal completes it, or aborts it when a part failed.
+struct Mpu<'s, 'a> {
+    h: &'s Handler<'a>,
+    spec: UploadSpec,
+    upload_id: String,
+    inflight: AtomicUsize,
+    sealed: AtomicBool,
+    finished: AtomicBool,
+    parts: Mutex<std::collections::BTreeMap<i64, Map>>,
+    failure: Mutex<Option<TransferError>>,
+    done: Mutex<Option<Done<'s>>>,
+}
+
+impl<'s, 'a> Mpu<'s, 'a> {
+    fn part_meta(&self, part: i64, resp: &Map) -> Map {
+        let mut meta = map(&[
+            ("ETag", resp.get("ETag").cloned().unwrap_or(Value::Null)),
+            ("PartNumber", Value::int(part)),
+        ]);
+        if let Some(m) = &self.spec.checksum_member
+            && let Some(v) = resp.get(m)
+        {
+            meta.insert(m.clone(), v.clone());
+        }
+        meta
+    }
+
+    /// `UploadPartTask`.
+    fn upload_part(&self, part: i64, body: Vec<u8>) -> Result<Map, TransferError> {
+        let len = body.len() as i64;
+        self.h.throttle(body.len());
+        let params = with(
+            with(
+                self.spec.base.clone(),
+                &map(&[
+                    ("UploadId", Value::str(&self.upload_id)),
+                    ("PartNumber", Value::int(part)),
+                    ("Body", Value::Bytes(body)),
+                ]),
+            ),
+            &self.spec.part_extra,
+        );
+        let resp = self.h.call("UploadPart", params)?;
+        self.h.progress(&self.spec.tx, len);
+        Ok(self.part_meta(part, &resp))
+    }
+
+    fn submit_part(
+        self: &Arc<Self>,
+        pool: &Pool<'s>,
+        from_submitter: bool,
+        part: i64,
+        f: PartFn<'s, 'a>,
+    ) {
+        self.inflight.fetch_add(1, Ordering::SeqCst);
+        let me = self.clone();
+        let job: super::engine::Job<'s> = Box::new(move |pool: &Pool<'s>| {
+            let r = if me.failure.lock().unwrap().is_some() {
+                Err(TransferError::Message("cancelled".into()))
+            } else {
+                f(&me)
+            };
+            match r {
+                Ok(meta) => {
+                    me.parts.lock().unwrap().insert(part, meta);
+                }
+                Err(e) => {
+                    let mut failure = me.failure.lock().unwrap();
+                    if failure.is_none() {
+                        *failure = Some(e);
+                    }
+                }
+            }
+            if me.inflight.fetch_sub(1, Ordering::SeqCst) == 1 && me.sealed.load(Ordering::SeqCst) {
+                me.finish(pool);
+            }
+        });
+        if from_submitter {
+            pool.submit(job);
+        } else {
+            pool.push(job);
+        }
+    }
+
+    fn seal(self: &Arc<Self>, pool: &Pool<'s>) {
+        self.sealed.store(true, Ordering::SeqCst);
+        if self.inflight.load(Ordering::SeqCst) == 0 {
+            self.finish(pool);
+        }
+    }
+
+    /// `CompleteMultipartUploadTask`, or the failure cleanup
+    /// (`abort_multipart_upload`).
+    fn finish(self: &Arc<Self>, pool: &Pool<'s>) {
+        if self.finished.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        let me = self.clone();
+        pool.push(Box::new(move |_| {
+            let abort = || {
+                let _ = me.h.client.call(
+                    "AbortMultipartUpload",
+                    with(
+                        me.spec.base.clone(),
+                        &map(&[("UploadId", Value::str(&me.upload_id))]),
+                    ),
+                );
+            };
+            let failure = me.failure.lock().unwrap().take();
+            let r = match failure {
+                Some(e) => {
+                    abort();
+                    Err(e)
+                }
+                None => {
+                    let parts: Vec<Value> = me
+                        .parts
+                        .lock()
+                        .unwrap()
+                        .values()
+                        .map(|p| Value::Map(p.clone()))
+                        .collect();
+                    let params = with(
+                        with(
+                            me.spec.base.clone(),
+                            &map(&[
+                                ("UploadId", Value::str(&me.upload_id)),
+                                (
+                                    "MultipartUpload",
+                                    Value::Map(map(&[("Parts", Value::List(parts))])),
+                                ),
+                            ]),
+                        ),
+                        &me.spec.complete_extra,
+                    );
+                    match me.h.call("CompleteMultipartUpload", params) {
+                        Ok(_) => Ok(()),
+                        Err(e) => {
+                            abort();
+                            Err(e)
+                        }
+                    }
+                }
+            };
+            if let Some(d) = me.done.lock().unwrap().take() {
+                d(r);
+            }
+        }));
     }
 }
 

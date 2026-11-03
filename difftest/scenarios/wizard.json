@@ -1,0 +1,9 @@
+[
+ {"name": "dynamodb wizard", "argv": ["dynamodb", "wizard"]},
+ {"name": "dynamodb wizard typo", "argv": ["dynamodb", "wizard", "new-tab"]},
+ {"name": "dynamodb wizard unknown", "argv": ["dynamodb", "wizard", "--x"]},
+ {"name": "dynamodb wizard new-table no tty", "argv": ["dynamodb", "wizard", "new-table"]},
+ {"name": "events wizard new-rule unknown", "argv": ["events", "wizard", "new-rule", "--x"]},
+ {"name": "events wizard foo", "argv": ["events", "wizard", "foo"]},
+ {"name": "events wizard new-rule no tty", "argv": ["events", "wizard", "new-rule"]}
+]

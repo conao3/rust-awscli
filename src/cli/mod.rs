@@ -151,6 +151,7 @@ pub fn parse_command(
     driver::dispatch(rest, &ctx).map_err(|f| render::render(f, Some(globals), Some(config)))
 }
 
+#[allow(unused_imports)]
 pub(crate) use arguments::{Arg, ArgKind, ArgTable, CustomSpec, custom_action};
 pub(crate) use operation::{
     OperationHooks, format_unknown_options_error, option_suggestion_candidates,

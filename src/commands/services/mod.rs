@@ -3,7 +3,9 @@
 //! `awscli/handlers_registry.py`) and model operations whose arguments a
 //! customization reshapes (`crate::cli` routes both here).
 
+#[allow(dead_code)]
 pub(crate) mod basic;
+#[allow(dead_code)]
 pub(crate) mod exec;
 
 mod agent_toolkit;

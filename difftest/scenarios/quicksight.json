@@ -1,0 +1,101 @@
+[
+ {
+  "name": "quicksight start-asset-bundle-import-job bytes",
+  "argv": [
+   "quicksight",
+   "start-asset-bundle-import-job",
+   "--aws-account-id",
+   "123456789012",
+   "--asset-bundle-import-job-id",
+   "j",
+   "--asset-bundle-import-source-bytes",
+   "fileb://b.zip",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"Arn\": \"a\", \"AssetBundleImportJobId\": \"j\", \"RequestId\": \"r\", \"Status\": 200}"
+   }
+  ],
+  "files": {
+   "b.zip": "PK-data"
+  }
+ },
+ {
+  "name": "quicksight start-asset-bundle-import-job s3",
+  "argv": [
+   "quicksight",
+   "start-asset-bundle-import-job",
+   "--aws-account-id",
+   "123456789012",
+   "--asset-bundle-import-job-id",
+   "j",
+   "--asset-bundle-import-source",
+   "S3Uri=s3://b/k",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"Arn\": \"a\", \"AssetBundleImportJobId\": \"j\", \"RequestId\": \"r\", \"Status\": 200}"
+   }
+  ]
+ },
+ {
+  "name": "quicksight start-asset-bundle-import-job both",
+  "argv": [
+   "quicksight",
+   "start-asset-bundle-import-job",
+   "--aws-account-id",
+   "123456789012",
+   "--asset-bundle-import-job-id",
+   "j",
+   "--asset-bundle-import-source",
+   "S3Uri=s3://b/k",
+   "--asset-bundle-import-source-bytes",
+   "aGk=",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"Arn\": \"a\", \"AssetBundleImportJobId\": \"j\", \"RequestId\": \"r\", \"Status\": 200}"
+   }
+  ]
+ },
+ {
+  "name": "quicksight start-asset-bundle-import-job none",
+  "argv": [
+   "quicksight",
+   "start-asset-bundle-import-job",
+   "--aws-account-id",
+   "123456789012",
+   "--asset-bundle-import-job-id",
+   "j",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"Arn\": \"a\", \"AssetBundleImportJobId\": \"j\", \"RequestId\": \"r\", \"Status\": 200}"
+   }
+  ]
+ }
+]

@@ -1,0 +1,108 @@
+[
+ {
+  "name": "configservice put-configuration-recorder recording-group",
+  "argv": [
+   "configservice",
+   "put-configuration-recorder",
+   "--configuration-recorder",
+   "name=default,roleARN=arn:aws:iam::1:role/r",
+   "--recording-group",
+   "allSupported=true,includeGlobalResourceTypes=false",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "configservice put-configuration-recorder json",
+  "argv": [
+   "configservice",
+   "put-configuration-recorder",
+   "--configuration-recorder",
+   "{\"name\":\"default\",\"roleARN\":\"r\"}",
+   "--recording-group",
+   "{\"allSupported\":false,\"resourceTypes\":[\"AWS::EC2::Instance\"]}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "configservice put-configuration-recorder only recorder",
+  "argv": [
+   "configservice",
+   "put-configuration-recorder",
+   "--configuration-recorder",
+   "name=default,roleARN=r",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "configservice put-configuration-recorder missing recorder",
+  "argv": [
+   "configservice",
+   "put-configuration-recorder",
+   "--recording-group",
+   "allSupported=true",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "configservice put-configuration-recorder bad group",
+  "argv": [
+   "configservice",
+   "put-configuration-recorder",
+   "--configuration-recorder",
+   "name=default",
+   "--recording-group",
+   "allSupported",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ }
+]

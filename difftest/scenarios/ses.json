@@ -1,0 +1,244 @@
+[
+ {
+  "name": "ses send-email simple",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--to",
+   "b@x",
+   "c@x",
+   "--cc",
+   "d@x",
+   "--bcc",
+   "e@x",
+   "--subject",
+   "Hi",
+   "--text",
+   "body",
+   "--html",
+   "<p>b</p>",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email subject only",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--to",
+   "b@x",
+   "--subject",
+   "Hi",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email destination and to",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--destination",
+   "ToAddresses=b@x",
+   "--to",
+   "c@x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email message and text",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--to",
+   "c@x",
+   "--message",
+   "Subject={Data=s},Body={Text={Data=t}}",
+   "--text",
+   "t",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email to and destination",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--to",
+   "c@x",
+   "--destination",
+   "ToAddresses=b@x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email full model args",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--destination",
+   "ToAddresses=b@x",
+   "--message",
+   "Subject={Data=s},Body={Text={Data=t}}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email missing from",
+  "argv": [
+   "ses",
+   "send-email",
+   "--to",
+   "c@x",
+   "--text",
+   "t",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email source rejected",
+  "argv": [
+   "ses",
+   "send-email",
+   "--source",
+   "a@x",
+   "--to",
+   "c@x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email no message",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--to",
+   "c@x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ },
+ {
+  "name": "ses send-email to no value",
+  "argv": [
+   "ses",
+   "send-email",
+   "--from",
+   "a@x",
+   "--to",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<SendEmailResponse xmlns=\"http://ses.amazonaws.com/doc/2010-12-01/\"><SendEmailResult><MessageId>m-1</MessageId></SendEmailResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></SendEmailResponse>"
+   }
+  ]
+ }
+]

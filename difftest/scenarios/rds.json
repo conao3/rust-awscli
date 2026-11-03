@@ -1,0 +1,109 @@
+[
+ {
+  "name": "rds add-option-to-option-group",
+  "argv": [
+   "rds",
+   "add-option-to-option-group",
+   "--option-group-name",
+   "g",
+   "--options",
+   "OptionName=MEMCACHED,Port=11211",
+   "--apply-immediately",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ModifyOptionGroupResponse xmlns=\"http://rds.amazonaws.com/doc/2014-10-31/\"><ModifyOptionGroupResult><OptionGroup><OptionGroupName>g</OptionGroupName></OptionGroup></ModifyOptionGroupResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ModifyOptionGroupResponse>"
+   }
+  ]
+ },
+ {
+  "name": "rds remove-option-from-option-group",
+  "argv": [
+   "rds",
+   "remove-option-from-option-group",
+   "--option-group-name",
+   "g",
+   "--options",
+   "MEMCACHED",
+   "OEM",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ModifyOptionGroupResponse xmlns=\"http://rds.amazonaws.com/doc/2014-10-31/\"><ModifyOptionGroupResult><OptionGroup><OptionGroupName>g</OptionGroupName></OptionGroup></ModifyOptionGroupResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ModifyOptionGroupResponse>"
+   }
+  ]
+ },
+ {
+  "name": "rds add-option options-to-include rejected",
+  "argv": [
+   "rds",
+   "add-option-to-option-group",
+   "--option-group-name",
+   "g",
+   "--options-to-include",
+   "OptionName=x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ModifyOptionGroupResponse xmlns=\"http://rds.amazonaws.com/doc/2014-10-31/\"><ModifyOptionGroupResult><OptionGroup><OptionGroupName>g</OptionGroupName></OptionGroup></ModifyOptionGroupResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ModifyOptionGroupResponse>"
+   }
+  ]
+ },
+ {
+  "name": "rds remove-option options-to-remove rejected",
+  "argv": [
+   "rds",
+   "remove-option-from-option-group",
+   "--option-group-name",
+   "g",
+   "--options-to-remove",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ModifyOptionGroupResponse xmlns=\"http://rds.amazonaws.com/doc/2014-10-31/\"><ModifyOptionGroupResult><OptionGroup><OptionGroupName>g</OptionGroupName></OptionGroup></ModifyOptionGroupResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ModifyOptionGroupResponse>"
+   }
+  ]
+ },
+ {
+  "name": "rds add-option skeleton",
+  "argv": [
+   "rds",
+   "add-option-to-option-group",
+   "--generate-cli-skeleton"
+  ]
+ },
+ {
+  "name": "rds modify-option-group removed",
+  "argv": [
+   "rds",
+   "modify-option-group",
+   "--option-group-name",
+   "g"
+  ]
+ }
+]

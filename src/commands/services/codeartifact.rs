@@ -424,6 +424,7 @@ impl Login<'_> {
             let mut f = std::fs::OpenOptions::new()
                 .write(true)
                 .create(true)
+                .truncate(false)
                 .mode(0o600)
                 .open(p)
                 .map_err(|e| self.os_error(&e, path))?;
@@ -525,12 +526,12 @@ impl Login<'_> {
 
     /// `SwiftLogin.login` (not macOS: the token goes to `~/.netrc`).
     fn swift(&self, dry_run: bool) -> Result<(), CliError> {
-        if let Some(ns) = &self.namespace {
-            if !swift_scope_valid(ns) {
-                return Err(self.general(
-                    "Invalid scope name, scope must contain URL-safe characters, no leading dots or underscores and no more than 39 characters",
-                ));
-            }
+        if let Some(ns) = &self.namespace
+            && !swift_scope_valid(ns)
+        {
+            return Err(self.general(
+                "Invalid scope name, scope must contain URL-safe characters, no leading dots or underscores and no more than 39 characters",
+            ));
         }
         let mut set = vec![
             "swift".to_string(),
@@ -583,6 +584,7 @@ impl Login<'_> {
             let mut f = std::fs::OpenOptions::new()
                 .write(true)
                 .create(true)
+                .truncate(false)
                 .mode(0o600)
                 .open(p)
                 .map_err(|e| self.os_error(&e, path))?;

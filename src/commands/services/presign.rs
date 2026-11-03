@@ -208,6 +208,39 @@ pub(crate) fn generate_db_auth_token(ctx: &Context, args: &[String]) -> Result<E
     Ok(ExitCode::Success)
 }
 
+/// The endpoint URL a client created without `endpoint_url` resolves for
+/// `operation` (the configured endpoint URL, else the endpoint rule
+/// set), or `endpoint_url` when given.
+pub(crate) fn resolve_endpoint(
+    ctx: &Context,
+    service: &str,
+    operation: &str,
+    endpoint_url: Option<String>,
+) -> Result<String, CliError> {
+    use crate::endpoint::{self, BuiltinInputs, Builtins};
+    let mut model = crate::model::ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
+    model.apply_endpoint_ruleset_customizations();
+    let op = model
+        .operation(operation)
+        .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown operation {operation}")))?;
+    let config = ctx.session.config();
+    let inputs = BuiltinInputs {
+        region_name: region(ctx)?,
+        endpoint_prefix: model.endpoint_prefix().to_string(),
+        use_fips_endpoint: config.get_bool("use_fips_endpoint").ok().flatten(),
+        use_dualstack_endpoint: config.get_bool("use_dualstack_endpoint").ok().flatten(),
+        endpoint_url: endpoint_url
+            .or_else(|| config.configured_endpoint_url(&model.name).ok().flatten()),
+        account_id_endpoint_mode: config.get("account_id_endpoint_mode").ok().flatten(),
+        ..Default::default()
+    };
+    let builtins = Builtins::compute(&inputs);
+    let ep =
+        endpoint::construct_endpoint(&model, &op, &crate::value::Value::map(), &builtins, true)
+            .map_err(|e| ctx.general_error(&anyhow::Error::new(e)))?;
+    Ok(ep.url)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -254,37 +287,4 @@ mod tests {
             include_str!("testdata/rds_token_session.txt").trim_end()
         );
     }
-}
-
-/// The endpoint URL a client created without `endpoint_url` resolves for
-/// `operation` (the configured endpoint URL, else the endpoint rule
-/// set), or `endpoint_url` when given.
-pub(crate) fn resolve_endpoint(
-    ctx: &Context,
-    service: &str,
-    operation: &str,
-    endpoint_url: Option<String>,
-) -> Result<String, CliError> {
-    use crate::endpoint::{self, BuiltinInputs, Builtins};
-    let mut model = crate::model::ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
-    model.apply_endpoint_ruleset_customizations();
-    let op = model
-        .operation(operation)
-        .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown operation {operation}")))?;
-    let config = ctx.session.config();
-    let inputs = BuiltinInputs {
-        region_name: region(ctx)?,
-        endpoint_prefix: model.endpoint_prefix().to_string(),
-        use_fips_endpoint: config.get_bool("use_fips_endpoint").ok().flatten(),
-        use_dualstack_endpoint: config.get_bool("use_dualstack_endpoint").ok().flatten(),
-        endpoint_url: endpoint_url
-            .or_else(|| config.configured_endpoint_url(&model.name).ok().flatten()),
-        account_id_endpoint_mode: config.get("account_id_endpoint_mode").ok().flatten(),
-        ..Default::default()
-    };
-    let builtins = Builtins::compute(&inputs);
-    let ep =
-        endpoint::construct_endpoint(&model, &op, &crate::value::Value::map(), &builtins, true)
-            .map_err(|e| ctx.general_error(&anyhow::Error::new(e)))?;
-    Ok(ep.url)
 }

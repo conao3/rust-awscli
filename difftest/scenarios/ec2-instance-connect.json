@@ -1,0 +1,346 @@
+[
+ {
+  "name": "eic ssh direct public (PATH=/tmp/fakeplugin:$PATH)",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123",
+   "--os-user",
+   "ubuntu",
+   "--ssh-port",
+   "2222",
+   "--local-forwarding",
+   "3306:db:3306"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId><privateIpAddress>10.0.0.5</privateIpAddress><ipAddress>3.3.3.3</ipAddress></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ]
+ },
+ {
+  "name": "eic ssh direct ipv6 (PATH=/tmp/fakeplugin:$PATH)",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123",
+   "--connection-type",
+   "direct"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId><ipv6Address>::1</ipv6Address></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ]
+ },
+ {
+  "name": "eic ssh instance-ip (PATH=/tmp/fakeplugin:$PATH)",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123",
+   "--instance-ip",
+   "9.9.9.9",
+   "--connection-type",
+   "direct"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId><privateIpAddress>10.0.0.5</privateIpAddress></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ]
+ },
+ {
+  "name": "eic ssh bad id",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "x-1"
+  ]
+ },
+ {
+  "name": "eic ssh direct with eice options",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--connection-type",
+   "direct",
+   "--eice-options",
+   "endpointId=eice-1"
+  ]
+ },
+ {
+  "name": "eic ssh dns without id",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--eice-options",
+   "dnsName=a.b"
+  ]
+ },
+ {
+  "name": "eic ssh bad duration",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--eice-options",
+   "maxTunnelDuration=0"
+  ]
+ },
+ {
+  "name": "eic ssh bad endpoint",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--eice-options",
+   "endpointId=x"
+  ]
+ },
+ {
+  "name": "eic ssh bad dns",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--eice-options",
+   "endpointId=eice-1,dnsName=a_b"
+  ]
+ },
+ {
+  "name": "eic ssh ip auto",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--instance-ip",
+   "1.1.1.1"
+  ]
+ },
+ {
+  "name": "eic ssh bad connection type",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-1",
+   "--connection-type",
+   "x"
+  ]
+ },
+ {
+  "name": "eic ssh missing id",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem"
+  ]
+ },
+ {
+  "name": "eic ssh no ip",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ]
+ },
+ {
+  "name": "eic ssh no eice",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123",
+   "--connection-type",
+   "eice"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId><privateIpAddress>10.0.0.5</privateIpAddress></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstanceConnectEndpointsResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><instanceConnectEndpointSet/></DescribeInstanceConnectEndpointsResponse>"
+   }
+  ]
+ },
+ {
+  "name": "eic ssh eice by id missing",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123",
+   "--eice-options",
+   "endpointId=eice-9"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId><privateIpAddress>10.0.0.5</privateIpAddress></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstanceConnectEndpointsResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><instanceConnectEndpointSet/></DescribeInstanceConnectEndpointsResponse>"
+   }
+  ]
+ },
+ {
+  "name": "eic open-tunnel nothing",
+  "argv": [
+   "ec2-instance-connect",
+   "open-tunnel",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "eic open-tunnel dns without id",
+  "argv": [
+   "ec2-instance-connect",
+   "open-tunnel",
+   "--endpoint-url",
+   "{endpoint}",
+   "--instance-id",
+   "i-1",
+   "--instance-connect-endpoint-dns-name",
+   "a"
+  ]
+ },
+ {
+  "name": "eic open-tunnel ip without id",
+  "argv": [
+   "ec2-instance-connect",
+   "open-tunnel",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-ip-address",
+   "1.1.1.1"
+  ]
+ },
+ {
+  "name": "eic open-tunnel bad duration",
+  "argv": [
+   "ec2-instance-connect",
+   "open-tunnel",
+   "--endpoint-url",
+   "{endpoint}",
+   "--instance-id",
+   "i-1",
+   "--max-tunnel-duration",
+   "4000"
+  ]
+ },
+ {
+  "name": "eic open-tunnel bad port",
+  "argv": [
+   "ec2-instance-connect",
+   "open-tunnel",
+   "--endpoint-url",
+   "{endpoint}",
+   "--instance-id",
+   "i-1",
+   "--remote-port",
+   "x"
+  ]
+ }
+]

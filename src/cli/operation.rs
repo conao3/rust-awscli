@@ -14,7 +14,7 @@ use num_bigint::BigInt;
 use super::argparse::{NsVal, Parsed};
 use super::argprocess::{ArgContext, load_cli_arg, param_error, unpack_argument};
 use super::arguments::{
-    Arg, ArgKind, ArgTable, CommandPath, build_argument_table, operation_parser,
+    Arg, ArgKind, ArgTable, CommandPath, build_argument_table_with, operation_parser,
     paginator_input_tokens, xform_name,
 };
 use super::difflib::get_close_matches;
@@ -26,6 +26,44 @@ use super::{Ctx, Fail, OperationInvocation, skeleton, validate};
 use crate::model::{Operation, Shape};
 use crate::paginate::PaginationConfig;
 use crate::value::{Map, Value};
+
+/// The handlers a service customization registers for one operation
+/// (`building-argument-table.<service>.<operation>`,
+/// `operation-args-parsed`, the customization's `add_to_params`, and the
+/// `calling-command` / `before-parameter-build` handlers).
+pub(crate) trait OperationHooks {
+    /// Change the argument table (add `CustomArgument`s, remove or rename
+    /// model arguments).
+    fn table<'m>(&mut self, _op: &Operation<'m>, _table: &mut ArgTable<'m>) {}
+    /// `operation-args-parsed.<service>.<operation>` (before the generic
+    /// handlers): the parsed namespace and `parsed_globals.paginate`.
+    fn args_parsed(
+        &mut self,
+        _ns: &IndexMap<String, NsVal>,
+        _paginate: &mut bool,
+    ) -> Result<(), Fail> {
+        Ok(())
+    }
+    /// `add_to_params` of an [`ArgKind::Custom`] argument, with the value
+    /// after `load-cli-arg` (`None` when not given).
+    fn add_to_params(
+        &mut self,
+        _name: &str,
+        _value: Option<Value>,
+        _params: &mut Map,
+    ) -> Result<(), Fail> {
+        Ok(())
+    }
+    /// The `calling-command` / `before-parameter-build` handlers: the
+    /// parameters before the client-side handlers and validation.
+    fn before_call(&mut self, _params: &mut Map) -> Result<(), Fail> {
+        Ok(())
+    }
+}
+
+struct NoHooks;
+
+impl OperationHooks for NoHooks {}
 
 pub(crate) enum Invocation {
     /// Text for stdout (help, `--generate-cli-skeleton`).
@@ -120,8 +158,20 @@ pub(crate) fn run(
     args: &[String],
     ctx: &Ctx<'_>,
 ) -> Result<Invocation, Fail> {
+    run_with(op, path, args, ctx, &mut NoHooks)
+}
+
+/// [`run`] with a service customization's handlers.
+pub(crate) fn run_with<'m>(
+    op: &Operation<'m>,
+    path: CommandPath<'_>,
+    args: &[String],
+    ctx: &Ctx<'_>,
+    hooks: &mut dyn OperationHooks,
+) -> Result<Invocation, Fail> {
     let waiter = path.parent == "wait";
-    let (mut table, mut extras) = build_argument_table(op, path);
+    let (mut table, mut extras) =
+        build_argument_table_with(op, path, &mut |table| hooks.table(op, table));
     override_required_args(&mut table, args);
 
     if args.len() == 1 && args[0] == "help" {
@@ -156,6 +206,7 @@ pub(crate) fn run(
         _marker: std::marker::PhantomData,
     };
 
+    hooks.args_parsed(&ns, &mut state.paginate)?;
     for (positive, negative) in &extras.bool_pairs {
         let p = positive.trim_start_matches('-').replace('-', "_");
         let n = negative.trim_start_matches('-').replace('-', "_");
@@ -241,6 +292,11 @@ pub(crate) fn run(
             },
             None => None,
         };
+        if let ArgKind::Custom(_) = arg.kind {
+            let value = value.filter(|v| !matches!(v, Value::Null));
+            hooks.add_to_params(&arg.name, value, &mut state.params)?;
+            continue;
+        }
         add_to_params(arg, raw, value, &mut state, service_name, &op_cli)?;
     }
 
@@ -267,7 +323,9 @@ pub(crate) fn run(
                 {
                     return Err(Fail::ParamValidation(report));
                 }
-                let mut params = Value::Map(std::mem::take(&mut state.params));
+                let mut params = std::mem::take(&mut state.params);
+                hooks.before_call(&mut params)?;
+                let mut params = Value::Map(params);
                 client_params(op, &mut params, ctx)?;
                 validate_input(op, &params, None)?;
                 return Ok(Invocation::Call(Box::new(OperationInvocation {
@@ -310,6 +368,7 @@ pub(crate) fn run(
     if paginate && let Some(Value::Map(pc)) = params.shift_remove("PaginationConfig") {
         pagination = pagination_config(&pc)?;
     }
+    hooks.before_call(&mut params)?;
     let mut params = Value::Map(params);
     client_params(op, &mut params, ctx)?;
     let limit = match (paginate, pagination.page_size) {
@@ -445,7 +504,7 @@ fn add_to_params(
                 m.insert(serialized.to_string(), v);
             }
         }
-        ArgKind::CliInput { .. } | ArgKind::Skeleton => {}
+        ArgKind::CliInput { .. } | ArgKind::Skeleton | ArgKind::Custom(_) => {}
         ArgKind::Outfile => {
             if let Some(Value::Str(s)) = value {
                 state.outfile = Some(s);

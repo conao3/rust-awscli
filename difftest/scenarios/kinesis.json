@@ -1,0 +1,12 @@
+[
+  {"name": "kinesis list-streams paginated",
+   "argv": ["kinesis", "list-streams", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"},
+     "body": "{\"StreamNames\": [\"a\"], \"HasMoreStreams\": false}"}]},
+  {"name": "kinesis list-streams exclusive start",
+   "argv": ["kinesis", "list-streams", "--exclusive-start-stream-name", "a", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"},
+     "body": "{\"StreamNames\": [\"b\"], \"HasMoreStreams\": false}"}]},
+  {"name": "kinesis list-streams exclusive start with max-items",
+   "argv": ["kinesis", "list-streams", "--exclusive-start-stream-name", "a", "--max-items", "3", "--endpoint-url", "{endpoint}"]}
+]

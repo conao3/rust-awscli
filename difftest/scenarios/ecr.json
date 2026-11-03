@@ -1,0 +1,16 @@
+[
+  {"name": "ecr get-login-password",
+   "argv": ["ecr", "get-login-password", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"},
+     "body": "{\"authorizationData\": [{\"authorizationToken\": \"QVdTOnNlY3JldC1wYXNzd29yZA==\", \"proxyEndpoint\": \"https://1.dkr.ecr.us-east-1.amazonaws.com\"}]}"}]},
+  {"name": "ecr-public get-login-password",
+   "argv": ["ecr-public", "get-login-password", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"},
+     "body": "{\"authorizationData\": {\"authorizationToken\": \"QVdTOnB1YmxpYy1wYXNz\"}}"}]},
+  {"name": "ecr get-login-password unknown option",
+   "argv": ["ecr", "get-login-password", "--regoin", "x"]},
+  {"name": "ecr get-login-password service error",
+   "argv": ["ecr", "get-login-password", "--endpoint-url", "{endpoint}"],
+   "responses": [{"status": 400, "headers": {"Content-Type": "application/x-amz-json-1.1"},
+     "body": "{\"__type\": \"InvalidParameterException\", \"message\": \"bad\"}"}]}
+]

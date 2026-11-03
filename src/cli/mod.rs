@@ -23,13 +23,13 @@ mod golden_tests;
 mod goldens;
 mod operation;
 pub(crate) mod paramfile;
-mod pyjson;
+pub(crate) mod pyjson;
 mod pynum;
 pub(crate) mod render;
 pub(crate) mod shorthand;
 mod skeleton;
 mod tables;
-mod validate;
+pub(crate) mod validate;
 mod yamlskel;
 
 use crate::config::ConfigLookup;
@@ -149,6 +149,34 @@ pub fn parse_command(
 ) -> Result<Command, CliError> {
     let ctx = Ctx { globals, config };
     driver::dispatch(rest, &ctx).map_err(|f| render::render(f, Some(globals), Some(config)))
+}
+
+#[allow(unused_imports)]
+pub(crate) use arguments::{Arg, ArgKind, ArgTable, CustomSpec, custom_action};
+pub(crate) use operation::{
+    OperationHooks, format_unknown_options_error, option_suggestion_candidates,
+};
+
+/// Parse the operation command `cli_service name` (a model operation of
+/// the service table, after its renames) with a service customization's
+/// handlers, the way [`parse_command`] parses one without them.
+pub(crate) fn parse_operation_with(
+    cli_service: &str,
+    name: &str,
+    args: &[String],
+    globals: &GlobalArgs,
+    config: &dyn ConfigLookup,
+    hooks: &mut dyn OperationHooks,
+) -> Result<Command, CliError> {
+    let ctx = Ctx { globals, config };
+    driver::customized_operation(cli_service, name, args, &ctx, hooks)
+        .map_err(|f| render::render(f, Some(globals), Some(config)))
+}
+
+/// Render a parse failure of a custom command the way [`parse_command`]
+/// renders one.
+pub(crate) fn render_fail(fail: Fail, globals: &GlobalArgs, config: &dyn ConfigLookup) -> CliError {
+    render::render(fail, Some(globals), Some(config))
 }
 
 /// What a parse step can fail with, by the reference's exception handler.

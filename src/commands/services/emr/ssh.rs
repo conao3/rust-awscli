@@ -1,8 +1,6 @@
 //! `emr ssh`, `socks`, `get`, `put` (`awscli/customizations/emr/ssh.py`,
 //! `sshutils.py`).
 
-use std::io::Write as _;
-
 use super::super::basic::{self, Args};
 use super::super::exec::Client;
 use super::util::{self, general_error};
@@ -298,7 +296,7 @@ fn exit_with(rc: i32) -> Result<ExitCode, CliError> {
         254 => ExitCode::Service,
         255 => ExitCode::General,
         other => {
-            let _ = std::io::stdout().flush();
+            basic::flush();
             std::process::exit(other.rem_euclid(256));
         }
     })

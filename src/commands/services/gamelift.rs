@@ -173,7 +173,9 @@ fn upload_build(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
             100.0
         );
         basic::print(&line);
+        basic::flush();
         basic::print(&line);
+        basic::flush();
     }
     basic::print(&format!(
         "Successfully uploaded {build_root} to AWS GameLift\nBuild ID: {build_id}\n"

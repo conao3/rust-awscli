@@ -378,7 +378,10 @@ fn ssh(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     let _ = std::fs::remove_dir_all(&tmp);
     match result? {
         Ok(code) => Ok(code),
-        Err(code) => std::process::exit(code),
+        Err(code) => {
+            basic::flush();
+            std::process::exit(code)
+        }
     }
 }
 
@@ -736,6 +739,7 @@ impl Tunnel<'_> {
     /// Proxy stdin / stdout over one websocket.
     fn stdio(&self) -> Result<ExitCode, CliError> {
         let tls = self.connect()?;
+        basic::flush();
         pump(tls, Box::new(std::io::stdin()), Box::new(std::io::stdout()));
         Ok(ExitCode::Success)
     }

@@ -46,9 +46,7 @@ fn read_line() -> Option<String> {
 }
 
 fn write_stdout(text: &str) {
-    let mut out = std::io::stdout().lock();
-    let _ = out.write_all(text.as_bytes());
-    let _ = out.flush();
+    crate::output::stdout::write_flushed(text.as_bytes());
 }
 
 /// `compat_input(prompt)`.

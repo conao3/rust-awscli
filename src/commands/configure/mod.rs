@@ -40,9 +40,7 @@ pub(crate) const NOT_SET: &str = "<not set>";
 
 /// Write to stdout (`uni_print` / `sys.stdout.write`).
 pub(crate) fn out(text: &str) {
-    let mut stdout = std::io::stdout().lock();
-    let _ = stdout.write_all(text.as_bytes());
-    let _ = stdout.flush();
+    crate::output::stdout::write_flushed(text.as_bytes());
 }
 
 /// Write to stderr.

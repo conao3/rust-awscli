@@ -304,6 +304,7 @@ fn run_main(ctx: &Context, a: &Args) -> Result<ExitCode, CliError> {
     basic::print(&format!(
         "Successfully registered new ECS task definition {task_def_arn}\n"
     ));
+    basic::flush();
 
     update_task_def_arn(ctx, &mut appspec, &task_def_arn)?;
     let content = json_dumps_default(&appspec);
@@ -326,10 +327,12 @@ fn run_main(ctx: &Context, a: &Args) -> Result<ExitCode, CliError> {
     basic::print(&format!(
         "Waiting for {deployment_id} to succeed (will wait up to {wait_min} minutes)...\n"
     ));
+    basic::flush();
     wait_for_deployment(ctx, &cd.model, &deployment_id, wait_min)?;
     basic::print(&format!(
         "Successfully deployed {task_def_arn} to service '{service_name}'\n"
     ));
+    basic::flush();
     Ok(ExitCode::Success)
 }
 

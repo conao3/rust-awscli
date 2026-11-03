@@ -53,9 +53,7 @@ impl S3Fail {
 
 /// `uni_print(text)` to stdout, flushed.
 pub(crate) fn out(bytes: &[u8]) {
-    let mut o = std::io::stdout().lock();
-    let _ = o.write_all(bytes);
-    let _ = o.flush();
+    crate::output::stdout::write_flushed(bytes);
 }
 
 /// `uni_print(text, sys.stderr)`.

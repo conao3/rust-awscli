@@ -29,7 +29,9 @@ use crate::waiter;
 /// Run the CLI with `args` (without the program name) and return the exit
 /// code.
 pub fn run(args: Vec<String>) -> i32 {
-    match run_inner(args) {
+    let result = run_inner(args);
+    crate::output::stdout::flush();
+    match result {
         Ok(code) => code as i32,
         Err(e) => {
             let mut stderr = std::io::stderr().lock();
@@ -623,9 +625,7 @@ pub(crate) fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> 
             }
         }
     }
-    let mut stdout = std::io::stdout().lock();
-    let _ = stdout.write_all(bytes);
-    let _ = stdout.flush();
+    crate::output::stdout::write_flushed(bytes);
     Ok(())
 }
 

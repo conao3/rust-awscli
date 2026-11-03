@@ -11,6 +11,7 @@ use crate::pyfmt;
 use crate::value::{Map, Value};
 
 pub mod errors;
+pub mod stdout;
 pub mod table;
 pub mod text;
 mod width_table;

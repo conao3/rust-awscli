@@ -1,0 +1,12 @@
+[
+ {"name": "agent-toolkit get-skill-file",
+  "argv": ["agent-toolkit", "get-skill-file", "--skill-name", "s3-basics", "--file-path", "references/a b.md", "--endpoint-url", "{endpoint}"],
+  "responses": [{"headers": {"Content-Type": "text/markdown"}, "body": "# Title\nhello é\n"}]},
+ {"name": "agent-toolkit get-skill-file version region",
+  "argv": ["agent-toolkit", "get-skill-file", "--skill-name", "s", "--file-path", "SKILL.md", "--skill-version", "v2", "--region", "eu-west-1", "--endpoint-url", "{endpoint}"],
+  "responses": [{"body": "x"}]},
+ {"name": "agent-toolkit get-skill-file error",
+  "argv": ["agent-toolkit", "get-skill-file", "--skill-name", "s", "--file-path", "SKILL.md", "--endpoint-url", "{endpoint}"],
+  "responses": [{"status": 404, "headers": {"Content-Type": "application/json", "x-amzn-ErrorType": "ResourceNotFoundException"}, "body": "{\"message\": \"nf\"}"}]},
+ {"name": "agent-toolkit get-skill-file missing", "argv": ["agent-toolkit", "get-skill-file", "--skill-name", "s"]}
+]

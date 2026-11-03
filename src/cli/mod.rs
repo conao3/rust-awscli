@@ -6,6 +6,31 @@
 //! `awscli/paramfile.py`, the generic customizations, and
 //! `botocore/validate.py`).
 
+mod argparse;
+mod argprocess;
+mod arguments;
+mod commands;
+mod difflib;
+mod driver;
+#[cfg(test)]
+mod fingerprint_tests;
+#[cfg(test)]
+mod fingerprints;
+mod globals;
+#[cfg(test)]
+mod golden_tests;
+#[cfg(test)]
+mod goldens;
+mod operation;
+mod paramfile;
+mod pyjson;
+mod pynum;
+mod render;
+mod shorthand;
+mod skeleton;
+mod tables;
+mod validate;
+
 use crate::config::ConfigLookup;
 use crate::error::CliError;
 use crate::paginate::PaginationConfig;
@@ -53,6 +78,11 @@ pub struct OperationInvocation {
     /// The `outfile` positional argument of operations with streaming
     /// output.
     pub outfile: Option<String>,
+    /// `--generate-cli-skeleton output`: the generated sample response to
+    /// display instead of calling the service (the reference stubs the
+    /// client with it, so the parameters are still validated and the
+    /// response goes through the normal output path).
+    pub stub_response: Option<Value>,
 }
 
 #[derive(Debug, Clone)]
@@ -77,17 +107,87 @@ pub enum Command {
 /// Split the global options out of `args` (`args[0]` is the first argument
 /// after the program name). Errors carry the exact stderr text and exit
 /// code of the AWS CLI.
+///
+/// The second element is the command name followed by the arguments the
+/// main parser did not consume (`parsed_args.command` + `remaining` of
+/// `CLIDriver.main`). With `--version` (which exits as soon as argparse
+/// reaches it) the globals have `version` set and the rest is empty.
+/// Errors are rendered in the `enhanced` error format; use
+/// [`parse_globals_with_config`] to honor `cli_error_format` from the
+/// environment and config file.
 pub fn parse_globals(args: &[String]) -> Result<(GlobalArgs, Vec<String>), CliError> {
-    let _ = args;
-    todo!("cli::parse_globals")
+    globals::parse(args, None)
+}
+
+/// [`parse_globals`], resolving the error format of parse errors from
+/// `error_config` (`cli_error_format`) the way the error handler falls back
+/// to the session configuration.
+pub fn parse_globals_with_config(
+    args: &[String],
+    error_config: &dyn ConfigLookup,
+) -> Result<(GlobalArgs, Vec<String>), CliError> {
+    globals::parse(args, Some(error_config))
 }
 
 /// Parse the remaining arguments into a command.
+///
+/// `rest` is the second element returned by [`parse_globals`].
 pub fn parse_command(
     rest: &[String],
     globals: &GlobalArgs,
     config: &dyn ConfigLookup,
 ) -> Result<Command, CliError> {
-    let _ = (rest, globals, config);
-    todo!("cli::parse_command")
+    let ctx = Ctx { globals, config };
+    driver::dispatch(rest, &ctx).map_err(|f| render::render(f, Some(globals), Some(config)))
+}
+
+/// What a parse step can fail with, by the reference's exception handler.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum Fail {
+    /// `ParamValidationErrorsHandler` (`ParamError`, `ParamSyntaxError`,
+    /// `ArgParseException`, both `ParamValidationError`s): `str(exception)`.
+    ParamValidation(String),
+    /// `UnknownArgumentErrorHandler`.
+    Unknown(String),
+    /// `GeneralExceptionHandler` for a `ValueError` / `TypeError`.
+    Python(String),
+    /// `GeneralExceptionHandler` for any other exception.
+    General(String),
+    /// A command this implementation does not provide yet.
+    NotImplemented,
+}
+
+/// The parsed globals and configuration a command is parsed with.
+pub(crate) struct Ctx<'a> {
+    pub globals: &'a GlobalArgs,
+    pub config: &'a dyn ConfigLookup,
+}
+
+thread_local! {
+    static CAPTURED_WARNINGS: std::cell::RefCell<Option<Vec<String>>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Write a warning to stderr the way `uni_print(..., sys.stderr)` does
+/// (captured instead in tests).
+pub(crate) fn warn(text: &str) {
+    let captured = CAPTURED_WARNINGS.with(|c| {
+        if let Some(v) = c.borrow_mut().as_mut() {
+            v.push(text.to_string());
+            true
+        } else {
+            false
+        }
+    });
+    if !captured {
+        eprint!("{text}");
+    }
+}
+
+#[cfg(test)]
+pub(crate) fn capture_warnings<T>(f: impl FnOnce() -> T) -> (T, Vec<String>) {
+    CAPTURED_WARNINGS.with(|c| *c.borrow_mut() = Some(Vec::new()));
+    let r = f();
+    let w = CAPTURED_WARNINGS.with(|c| c.borrow_mut().take().unwrap_or_default());
+    (r, w)
 }

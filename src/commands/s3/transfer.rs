@@ -1200,9 +1200,35 @@ impl Iterator for Comparator<'_> {
 // The command (`S3TransferCommand._run_main`, `CommandArchitecture`).
 
 pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fail> {
-    let client = Client::new(ctx).map_err(S3Fail::Other)?;
     let page_size = args.int("page_size");
     let mut p = build_params(ctx, cmd, args)?;
+    // `S3TransferCommand._get_source_and_transfer_clients`
+    // (`ClientFactory.create_client`): a `--source-region` copy reads the
+    // source with a client of that region and without `--endpoint-url`.
+    let source_region = p
+        .s("source_region")
+        .filter(|_| p.paths_type() == "s3s3")
+        .map(str::to_string);
+    if let Some(r) = &source_region {
+        crate::session::validate_region_name(r).map_err(|e| S3Fail::Other(e.into()))?;
+    }
+    let src_client = Client::with_config(
+        ctx,
+        crate::driver::ClientConfig {
+            region: source_region.clone().map(Some),
+            without_endpoint_url: source_region.is_some(),
+            id: 1,
+        },
+    )
+    .map_err(S3Fail::Other)?;
+    let client = Client::with_config(
+        ctx,
+        crate::driver::ClientConfig {
+            id: 2,
+            ..Default::default()
+        },
+    )
+    .map_err(S3Fail::Other)?;
     p.set("page_size", page_size.map_or(Value::Null, Value::int));
     let cfg = runtime_config(ctx, &p)?;
     let cmd = p.cmd.clone();
@@ -1247,7 +1273,7 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
     let mut rgen_head = Map::new();
     mapper::request_payer_only(&mut rgen_head, &p.a);
     let fgen = Generator {
-        client: &client,
+        client: &src_client,
         operation_name: operation_name.to_string(),
         follow_symlinks: p.t("follow_symlinks"),
         page_size,
@@ -1372,6 +1398,7 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
     }
     let handler = Handler {
         client: &client,
+        src_client: &src_client,
         cfg: cfg.clone(),
         p: handler_params,
         results: results.clone(),
@@ -1400,6 +1427,8 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
 
 struct Handler<'a> {
     client: &'a Client<'a>,
+    /// `fileinfo.source_client`.
+    src_client: &'a Client<'a>,
     cfg: TransferConfig,
     p: Args,
     results: Sender<TResult>,
@@ -1617,10 +1646,19 @@ impl<'a> Handler<'a> {
     }
 
     fn call(&self, op: &str, params: Map) -> Result<Map, TransferError> {
+        self.call_with(self.client, op, params)
+    }
+
+    /// A call of the source client.
+    fn src_call(&self, op: &str, params: Map) -> Result<Map, TransferError> {
+        self.call_with(self.src_client, op, params)
+    }
+
+    fn call_with(&self, client: &Client<'_>, op: &str, params: Map) -> Result<Map, TransferError> {
         if self.cancelled.load(Ordering::SeqCst) {
             return Err(TransferError::Message("cancelled".into()));
         }
-        self.client.call(op, params).map_err(TransferError::Call)
+        client.call(op, params).map_err(TransferError::Call)
     }
 
     fn throttle(&self, n: usize) {
@@ -2086,7 +2124,7 @@ impl<'a> Handler<'a> {
                     if let Some(rp) = request_payer {
                         params.insert("RequestPayer".into(), rp);
                     }
-                    self.call("DeleteObject", params)?;
+                    self.src_call("DeleteObject", params)?;
                 }
                 Ok(())
             });
@@ -2311,7 +2349,7 @@ impl<'a> Handler<'a> {
                     if let Some(rp) = &request_payer {
                         params.insert("RequestPayer".into(), rp.clone());
                     }
-                    self.call("DeleteObject", params)?;
+                    self.src_call("DeleteObject", params)?;
                 }
                 Ok(())
             });
@@ -2351,7 +2389,7 @@ impl<'a> Handler<'a> {
                         head.insert(to.into(), v.clone());
                     }
                 }
-                let resp = self.call("HeadObject", head)?;
+                let resp = self.src_call("HeadObject", head)?;
                 size = resp.get("ContentLength").and_then(Value::as_i64);
                 etag = resp.get("ETag").and_then(Value::as_str).map(str::to_string);
             }
@@ -2522,7 +2560,7 @@ impl<'a> Handler<'a> {
                         let mut params =
                             map(&[("Bucket", Value::str(sb)), ("Key", Value::str(sk))]);
                         mapper::head_object_with_copy_source_sse(&mut params, &self.p);
-                        self.call("HeadObject", params)?
+                        self.src_call("HeadObject", params)?
                     }
                 };
                 for p in PROPS {
@@ -2541,7 +2579,7 @@ impl<'a> Handler<'a> {
             }
             let mut params = map(&[("Bucket", Value::str(sb)), ("Key", Value::str(sk))]);
             mapper::request_payer_only(&mut params, &self.p);
-            let resp = self.call("GetObjectTagging", params)?;
+            let resp = self.src_call("GetObjectTagging", params)?;
             let tags = resp
                 .get("TagSet")
                 .and_then(Value::as_list)

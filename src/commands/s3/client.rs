@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use crate::driver::{CallResult, Caller, Context};
+use crate::driver::{CallResult, Caller, ClientConfig, Context};
 use crate::model::ServiceModel;
 use crate::output::errors::ClientErrorInfo;
 use crate::value::{Map, Value};
@@ -42,6 +42,7 @@ impl fmt::Display for CallError {
 pub(crate) struct Client<'a> {
     pub ctx: &'a Context,
     pub model: &'static ServiceModel,
+    pub config: ClientConfig,
 }
 
 /// The S3 model with the endpoint rule set customizations applied,
@@ -58,9 +59,18 @@ pub(crate) fn s3_model() -> anyhow::Result<&'static ServiceModel> {
 
 impl<'a> Client<'a> {
     pub(crate) fn new(ctx: &'a Context) -> anyhow::Result<Client<'a>> {
+        Client::with_config(ctx, ClientConfig::default())
+    }
+
+    /// `session.create_client('s3', region_name=..., endpoint_url=...)`.
+    pub(crate) fn with_config(
+        ctx: &'a Context,
+        config: ClientConfig,
+    ) -> anyhow::Result<Client<'a>> {
         Ok(Client {
             ctx,
             model: s3_model()?,
+            config,
         })
     }
 
@@ -71,7 +81,8 @@ impl<'a> Client<'a> {
             .filter(|(_, v)| !matches!(v, Value::Null))
             .collect();
         let params = Value::Map(params);
-        let caller = Caller::new(self.ctx, self.model, operation).map_err(CallError::Other)?;
+        let caller = Caller::with_config(self.ctx, self.model, operation, self.config.clone())
+            .map_err(CallError::Other)?;
         let raised =
             |e: anyhow::Error| match e.downcast_ref::<crate::handlers::ParamValidationError>() {
                 Some(p) => CallError::Validation(p.to_string()),

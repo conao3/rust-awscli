@@ -81,6 +81,11 @@ fn apply_masks(masks: &[regex::Regex], out: &mut RunOut, reqs: &mut [crate::serv
             }
         }
         r.target = String::from_utf8_lossy(&mask(r.target.as_bytes())).into_owned();
+        for (k, v) in &mut r.headers {
+            if !k.eq_ignore_ascii_case("content-length") {
+                *v = mask(v);
+            }
+        }
     }
 }
 

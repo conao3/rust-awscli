@@ -275,12 +275,30 @@ pub(crate) enum CallResult {
     ServiceError(Box<ClientErrorInfo>),
 }
 
+/// How a customization creates its client (`session.create_client(...,
+/// region_name=..., endpoint_url=...)`) when it differs from the command's.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct ClientConfig {
+    /// `region_name` instead of `--region`.
+    pub region: Option<Option<String>>,
+    /// `endpoint_url=None` although `--endpoint-url` was given (the
+    /// configured endpoint URL still applies).
+    pub without_endpoint_url: bool,
+    /// Which client object of the command this is: each has its own
+    /// S3 region redirect cache.
+    pub id: u32,
+}
+
 pub(crate) struct Caller<'a> {
     ctx: &'a Context,
     model: &'a ServiceModel,
     operation: Operation<'a>,
     builtins: Builtins,
     parse_options: ParseOptions,
+    client: ClientConfig,
+    /// The client's region.
+    region: Option<String>,
+    endpoint_url: Option<String>,
 }
 
 impl<'a> Caller<'a> {
@@ -289,21 +307,36 @@ impl<'a> Caller<'a> {
         model: &'a ServiceModel,
         operation_name: &str,
     ) -> Result<Caller<'a>> {
+        Caller::with_config(ctx, model, operation_name, ClientConfig::default())
+    }
+
+    /// [`Caller::new`] for a client created with `client`.
+    pub(crate) fn with_config(
+        ctx: &'a Context,
+        model: &'a ServiceModel,
+        operation_name: &str,
+        client: ClientConfig,
+    ) -> Result<Caller<'a>> {
         let operation = model
             .operation(operation_name)
             .ok_or_else(|| anyhow::anyhow!("unknown operation {operation_name}"))?;
         let settings = ctx.session.client_settings()?;
         let config = ctx.session.config();
-        let region = match settings.region.clone() {
+        let client_region = match &client.region {
+            Some(r) => r.clone(),
+            None => settings.region.clone(),
+        };
+        if let Some(r) = &client_region {
+            crate::session::validate_region_name(r)?;
+        }
+        let endpoint_url = match client.without_endpoint_url {
+            true => None,
+            false => ctx.globals.endpoint_url.clone(),
+        }
+        .or_else(|| config.configured_endpoint_url(&model.name).ok().flatten());
+        let region = match client_region.clone() {
             Some(r) => Some(r),
-            None => {
-                let endpoint_url = ctx
-                    .globals
-                    .endpoint_url
-                    .clone()
-                    .or_else(|| config.configured_endpoint_url(&model.name).ok().flatten());
-                default_region(model, endpoint_url.is_some())?
-            }
+            None => default_region(model, endpoint_url.is_some())?,
         };
         let account_id = None;
         let s3_get = |key: &str| config.get(&format!("s3.{key}")).ok().flatten();
@@ -329,11 +362,7 @@ impl<'a> Caller<'a> {
             },
             use_fips_endpoint: config.get_bool("use_fips_endpoint").ok().flatten(),
             use_dualstack_endpoint: config.get_bool("use_dualstack_endpoint").ok().flatten(),
-            endpoint_url: ctx
-                .globals
-                .endpoint_url
-                .clone()
-                .or_else(|| config.configured_endpoint_url(&model.name).ok().flatten()),
+            endpoint_url: endpoint_url.clone(),
             account_id,
             account_id_endpoint_mode: config.get("account_id_endpoint_mode").ok().flatten(),
             s3_disable_express_session_auth: config
@@ -357,7 +386,111 @@ impl<'a> Caller<'a> {
             operation,
             builtins,
             parse_options: ParseOptions { timestamp_format },
+            client,
+            region: client_region,
+            endpoint_url,
         })
+    }
+
+    /// `S3RegionRedirectorv2.redirect_from_cache`: the region learned for
+    /// the bucket replaces `AWS::Region`.
+    fn builtins_for(&self, params: &Value) -> Builtins {
+        let mut builtins = self.builtins.clone();
+        if self.model.name == "s3"
+            && let Some(bucket) = params.get("Bucket").and_then(Value::as_str)
+            && let Some(region) = self.ctx.session.s3_redirect_region(self.client.id, bucket)
+        {
+            builtins.region = Some(region);
+        }
+        builtins
+    }
+
+    /// `S3RegionRedirectorv2.redirect_from_error`: the endpoint of the
+    /// bucket's region when `response` says the bucket is in another one.
+    fn redirect(
+        &self,
+        params: &Value,
+        response: &protocol::HttpResponse,
+    ) -> Result<Option<endpoint::Endpoint>> {
+        if self.model.name != "s3" || response.status < 300 {
+            return Ok(None);
+        }
+        let Some(bucket) = params.get("Bucket").and_then(Value::as_str) else {
+            return Ok(None);
+        };
+        // `ArnParser.is_arn`.
+        if bucket.starts_with("arn:") && bucket.splitn(6, ':').count() >= 6 {
+            return Ok(None);
+        }
+        let error =
+            protocol::parse_error(self.model, &self.operation, response, &self.parse_options)?;
+        let parsed = &error.parsed;
+        let code = parsed
+            .get("Error")
+            .and_then(|e| e.get("Code"))
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let header = |name: &str| {
+            response
+                .headers
+                .iter()
+                .find(|(k, _)| k.eq_ignore_ascii_case(name))
+                .map(|(_, v)| v.clone())
+        };
+        let op = self.operation.name;
+        let is_redirect = (matches!(code, "301" | "400") && op == "HeadObject")
+            || (code == "AuthorizationHeaderMalformed"
+                && parsed.get("Error").and_then(|e| e.get("Region")).is_some())
+            || code == "PermanentRedirect"
+            || (matches!(code, "301" | "400")
+                && op == "HeadBucket"
+                && header("x-amz-bucket-region").is_some())
+            || matches!(response.status, 301 | 302 | 307)
+            || (code == "IllegalLocationConstraintException" && op != "CreateBucket");
+        if !is_redirect {
+            return Ok(None);
+        }
+        // `get_bucket_region`.
+        let region = match header("x-amz-bucket-region") {
+            Some(r) => Some(r),
+            None => match parsed
+                .get("Error")
+                .and_then(|e| e.get("Region"))
+                .and_then(Value::as_str)
+                .filter(|r| !r.is_empty())
+            {
+                Some(r) => Some(r.to_string()),
+                None => {
+                    let mut head = crate::value::Map::new();
+                    head.insert("Bucket".to_string(), Value::str(bucket));
+                    let caller = Caller::with_config(
+                        self.ctx,
+                        self.model,
+                        "HeadBucket",
+                        self.client.clone(),
+                    )?;
+                    let headers = match caller.call(&Value::Map(head))? {
+                        CallResult::Ok(v) => v,
+                        CallResult::ServiceError(info) => info.parsed,
+                    };
+                    headers
+                        .get("ResponseMetadata")
+                        .and_then(|m| m.get("HTTPHeaders"))
+                        .and_then(|h| h.get("x-amz-bucket-region"))
+                        .and_then(Value::as_str)
+                        .map(str::to_string)
+                }
+            },
+        };
+        let Some(region) = region else {
+            return Ok(None);
+        };
+        crate::session::validate_region_name(&region)?;
+        self.ctx
+            .session
+            .set_s3_redirect_region(self.client.id, bucket, &region);
+        let (_, _, endpoint) = self.prepare(params)?;
+        Ok(Some(endpoint))
     }
 
     /// `BaseClient._make_api_call` up to `_convert_to_request_dict`:
@@ -376,12 +509,11 @@ impl<'a> Caller<'a> {
             &ctx.session,
         )?;
 
-        let mut builtins = self.builtins.clone();
+        let mut builtins = self.builtins_for(&params);
         if self.model.name == "s3" {
             endpoint::customize_s3_builtins(&mut builtins, self.operation.name, &params);
         }
-        let use_ssl = !ctx
-            .globals
+        let use_ssl = !self
             .endpoint_url
             .as_deref()
             .is_some_and(|u| u.starts_with("http://"));
@@ -404,6 +536,7 @@ impl<'a> Caller<'a> {
     /// `BaseClient._make_api_call`.
     pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
+        let original_params = params.clone();
         let (params, call_ctx, mut endpoint) = self.prepare(params)?;
 
         let mut request = protocol::serialize(self.model, &self.operation, &params)?;
@@ -416,7 +549,7 @@ impl<'a> Caller<'a> {
         let checksum =
             handlers::resolve_request_checksum(&self.operation, &params, &request, &ctx.session)?;
         let url = ctx.session.request_url(&endpoint, &request)?;
-        let region = ctx.session.client_settings()?.region;
+        let region = self.region.clone();
         let signing_name = endpoint
             .properties
             .get("authSchemes")
@@ -459,10 +592,25 @@ impl<'a> Caller<'a> {
         let adjust = |response: &mut protocol::HttpResponse| {
             handlers::adjust_attempt_response(self.model, &self.operation, response)
         };
+        let redirect = |response: &protocol::HttpResponse| {
+            self.redirect(&original_params, response).map_err(|e| {
+                match e.downcast::<SessionError>() {
+                    Ok(se) => se,
+                    Err(e) => SessionError::new(crate::session::ErrorKind::General, e.to_string()),
+                }
+            })
+        };
         let outcome = block_on(
             &ctx.runtime,
-            ctx.session
-                .send_adjusted(self.model, &self.operation, &endpoint, &request, &adjust),
+            ctx.session.send_call(
+                self.model,
+                &self.operation,
+                &endpoint,
+                &request,
+                &adjust,
+                self.client.region.as_ref(),
+                &redirect,
+            ),
         )?;
         let mut response = outcome.response;
         let customized = handlers::before_parse(self.model, &self.operation, &mut response);

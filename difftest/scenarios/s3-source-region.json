@@ -1,0 +1,280 @@
+[
+ {
+  "name": "s3 source-region cp",
+  "argv": [
+   "s3",
+   "cp",
+   "s3://src/a",
+   "s3://dst/a",
+   "--source-region",
+   "us-west-2",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/plain",
+     "Content-Length": "3",
+     "ETag": "\"x\"",
+     "Last-Modified": "Tue, 14 Nov 2023 22:13:20 GMT"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"x\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ },
+ {
+  "name": "s3 source-region cp without source region",
+  "argv": [
+   "s3",
+   "cp",
+   "s3://src/a",
+   "s3://dst/a",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/plain",
+     "Content-Length": "3",
+     "ETag": "\"x\"",
+     "Last-Modified": "Tue, 14 Nov 2023 22:13:20 GMT"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"x\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ },
+ {
+  "name": "s3 source-region mv",
+  "argv": [
+   "s3",
+   "mv",
+   "s3://src/a",
+   "s3://dst/a",
+   "--source-region",
+   "eu-west-1",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/plain",
+     "Content-Length": "3",
+     "ETag": "\"x\"",
+     "Last-Modified": "Tue, 14 Nov 2023 22:13:20 GMT"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"x\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   },
+   {
+    "status": 204,
+    "headers": {},
+    "body": ""
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ },
+ {
+  "name": "s3 source-region sync",
+  "argv": [
+   "s3",
+   "sync",
+   "s3://src/",
+   "s3://dst/",
+   "--source-region",
+   "ap-northeast-1",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>src</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>dst</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>old</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;y&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"x\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ },
+ {
+  "name": "s3 source-region upload ignores",
+  "argv": [
+   "s3",
+   "cp",
+   "f.txt",
+   "s3://dst/f.txt",
+   "--source-region",
+   "us-west-2",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n",
+   "f.txt": "abc"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"x\""
+    },
+    "body": ""
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ },
+ {
+  "name": "s3 source-region bad region",
+  "argv": [
+   "s3",
+   "cp",
+   "s3://src/a",
+   "s3://dst/a",
+   "--source-region",
+   "bad_region!",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/plain",
+     "Content-Length": "3",
+     "ETag": "\"x\"",
+     "Last-Modified": "Tue, 14 Nov 2023 22:13:20 GMT"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"x\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ },
+ {
+  "name": "s3 source-region redirect source",
+  "argv": [
+   "s3",
+   "cp",
+   "s3://src/a",
+   "s3://dst/a",
+   "--source-region",
+   "us-west-2",
+   "--endpoint-url",
+   "{endpoint}",
+   "--no-progress"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}/cfg\n"
+  },
+  "responses": [
+   {
+    "status": 301,
+    "headers": {
+     "x-amz-bucket-region": "eu-central-1"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/plain",
+     "Content-Length": "3",
+     "ETag": "\"x\"",
+     "Last-Modified": "Tue, 14 Nov 2023 22:13:20 GMT"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"x\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ]
+ }
+]

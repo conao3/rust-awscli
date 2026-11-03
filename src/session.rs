@@ -58,6 +58,9 @@ pub struct Session {
     session_id: String,
     command: Mutex<Option<String>>,
     features: Mutex<Vec<Feature>>,
+    /// `S3RegionRedirectorv2._cache` of each S3 client (keyed by the
+    /// client's id): bucket to region.
+    s3_redirect_cache: Mutex<HashMap<(u32, String), String>>,
 }
 
 /// The result of sending a request: the final response and how many
@@ -211,11 +214,28 @@ impl Session {
             session_id: useragent::new_session_id(),
             command: Mutex::new(None),
             features: Mutex::new(Vec::new()),
+            s3_redirect_cache: Mutex::new(HashMap::new()),
         })
     }
 
     pub fn config(&self) -> &Config {
         &self.config
+    }
+
+    /// The region the S3 client `client` learned for `bucket`.
+    pub fn s3_redirect_region(&self, client: u32, bucket: &str) -> Option<String> {
+        self.s3_redirect_cache
+            .lock()
+            .unwrap()
+            .get(&(client, bucket.to_string()))
+            .cloned()
+    }
+
+    pub fn set_s3_redirect_region(&self, client: u32, bucket: &str, region: &str) {
+        self.s3_redirect_cache
+            .lock()
+            .unwrap()
+            .insert((client, bucket.to_string()), region.to_string());
     }
 
     /// The resolved region, if any.
@@ -468,7 +488,47 @@ impl Session {
                 .filter(|c| !c.is_empty())
         };
         Ok(self
-            .send_inner(model, operation, endpoint, request, &classify, adjust)
+            .send_inner(
+                model,
+                operation,
+                endpoint,
+                request,
+                &classify,
+                adjust,
+                None,
+                &|_| Ok(None),
+            )
+            .await?)
+    }
+
+    /// [`Session::send_adjusted`] for a client of `region` (when given)
+    /// with the `needs-retry` handler that redirects S3 requests
+    /// (`redirect` returns the endpoint to send the request to once more,
+    /// `S3RegionRedirectorv2.redirect_from_error`).
+    #[allow(clippy::too_many_arguments)]
+    pub async fn send_call(
+        &self,
+        model: &ServiceModel,
+        operation: &Operation<'_>,
+        endpoint: &Endpoint,
+        request: &HttpRequest,
+        adjust: &(dyn Fn(&mut HttpResponse) + Sync),
+        region: Option<&Option<String>>,
+        redirect: &(dyn Fn(&HttpResponse) -> Result<Option<Endpoint>, SessionError> + Sync),
+    ) -> Result<SendOutcome> {
+        let classify = |resp: &HttpResponse| -> Option<String> {
+            if resp.status < 300 {
+                return None;
+            }
+            crate::protocol::parse_error(model, operation, resp, &Default::default())
+                .ok()
+                .map(|e| e.code)
+                .filter(|c| !c.is_empty())
+        };
+        Ok(self
+            .send_inner(
+                model, operation, endpoint, request, &classify, adjust, region, redirect,
+            )
             .await?)
     }
 
@@ -485,10 +545,20 @@ impl Session {
         classify: &(dyn Fn(&HttpResponse) -> Option<String> + Sync),
     ) -> Result<SendOutcome> {
         Ok(self
-            .send_inner(model, operation, endpoint, request, classify, &|_| {})
+            .send_inner(
+                model,
+                operation,
+                endpoint,
+                request,
+                classify,
+                &|_| {},
+                None,
+                &|_| Ok(None),
+            )
             .await?)
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn send_inner(
         &self,
         model: &ServiceModel,
@@ -497,8 +567,13 @@ impl Session {
         request: &HttpRequest,
         classify: &(dyn Fn(&HttpResponse) -> Option<String> + Sync),
         adjust: &(dyn Fn(&mut HttpResponse) + Sync),
+        region: Option<&Option<String>>,
+        redirect: &(dyn Fn(&HttpResponse) -> Result<Option<Endpoint>, SessionError> + Sync),
     ) -> Result<SendOutcome, SessionError> {
-        let settings = self.client_settings()?;
+        let mut settings = self.client_settings()?;
+        if let Some(region) = region {
+            settings.region = region.clone();
+        }
         let sid = service_id(model);
         let new_retries = retry::new_retries_enabled(self.config.env_map());
         let policy = RetryPolicy {
@@ -521,152 +596,171 @@ impl Session {
             .and_then(|m| m.get("signature_version"))
             .filter(|v| !v.is_empty())
             .cloned();
-        let auth_inputs = AuthInputs {
-            service_name: &model.name,
-            endpoint_prefix: model.endpoint_prefix(),
-            signing_name: model.signing_name(),
-            service_id: &sid,
-            operation_name: operation.name,
-            service_auth: str_list(model.metadata().get("auth")),
-            service_signature_version: model.metadata_str("signatureVersion").map(str::to_string),
-            operation_auth: str_list(operation.get("auth")),
-            operation_authtype: operation
-                .get("authtype")
-                .and_then(|v| v.as_str())
-                .map(str::to_string),
-            unsigned_payload: operation
-                .get("unsignedPayload")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            auth_schemes: endpoint.properties.get("authSchemes"),
-            no_sign_request: self.config.globals().no_sign_request,
-            configured_signature_version: scoped_signature_version,
-            auth_scheme_preference: self.config.get("auth_scheme_preference")?,
-            sigv4a_signing_region_set: self.config.get("sigv4a_signing_region_set")?,
-            region: settings.region.clone(),
-        };
-        let mut choice = sign::choose_signer(&auth_inputs)?;
-        // `_set_auth_scheme_preference_signer` prefers a bearer token from
-        // the environment for the services that allow it.
-        if !matches!(
-            choice.version,
-            SignatureVersion::Unsigned | SignatureVersion::Bearer
-        ) && credentials::env_bearer_token(&self.config, &choice.signing_name).is_some()
-            && auth_inputs
-                .service_auth
-                .as_ref()
-                .is_some_and(|a| a.iter().any(|x| x == "smithy.api#httpBearerAuth"))
-            && auth_inputs.operation_auth.is_none()
-        {
-            choice.version = SignatureVersion::Bearer;
-        }
-        let s3_payload_signing = self.config.get_bool("s3.payload_signing_enabled")?;
-
-        let url = self.request_url(endpoint, request)?;
-        let mut base_headers = request.headers.clone();
-        for (k, v) in &endpoint.headers {
-            if let Some(first) = v.first() {
-                headers::set(&mut base_headers, k, first);
-            }
-        }
-        let extra_features: &[Feature] = if matches!(choice.version, SignatureVersion::V4a { .. }) {
-            &[Feature::Sigv4aSigning]
-        } else {
-            &[]
-        };
-        headers::set(
-            &mut base_headers,
-            "User-Agent",
-            &self.user_agent(&settings, extra_features),
-        );
-
-        let ctx = PayloadContext {
-            payload_signing_enabled: choice.payload_signing_enabled,
-            has_streaming_input: has_streaming_input(operation),
-            s3_payload_signing_enabled: s3_payload_signing,
-            checksum_in_trailer: headers::contains(&base_headers, "x-amz-trailer"),
-            checksum_header: checksum_header(&base_headers),
-        };
-
         let invocation_id = uuid::Uuid::new_v4().to_string();
         let mut ttl: Option<String> = None;
         let mut max_known = false;
         let mut quota_capacity: Option<u32> = None;
         let mut attempt: u32 = 1;
-        loop {
-            let mut req = SignableRequest {
-                method: request.method.clone(),
-                url: url.clone(),
-                headers: base_headers.clone(),
-                body: request.body.clone(),
+        let mut endpoint = endpoint.clone();
+        let mut redirected = false;
+        'endpoint: loop {
+            let auth_inputs = AuthInputs {
+                service_name: &model.name,
+                endpoint_prefix: model.endpoint_prefix(),
+                signing_name: model.signing_name(),
+                service_id: &sid,
+                operation_name: operation.name,
+                service_auth: str_list(model.metadata().get("auth")),
+                service_signature_version: model
+                    .metadata_str("signatureVersion")
+                    .map(str::to_string),
+                operation_auth: str_list(operation.get("auth")),
+                operation_authtype: operation
+                    .get("authtype")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string),
+                unsigned_payload: operation
+                    .get("unsignedPayload")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false),
+                auth_schemes: endpoint.properties.get("authSchemes"),
+                no_sign_request: self.config.globals().no_sign_request,
+                configured_signature_version: scoped_signature_version.clone(),
+                auth_scheme_preference: self.config.get("auth_scheme_preference")?,
+                sigv4a_signing_region_set: self.config.get("sigv4a_signing_region_set")?,
+                region: settings.region.clone(),
             };
-            self.sign(&mut req, &choice, &ctx, settings.region.as_deref())
-                .await?;
-            // `add_retry_headers`.
-            headers::set(&mut req.headers, "amz-sdk-invocation-id", &invocation_id);
-            let mut parts = Vec::new();
-            if let Some(t) = &ttl {
-                parts.push(format!("ttl={t}"));
-            }
-            parts.push(format!("attempt={attempt}"));
-            if max_known {
-                parts.push(format!("max={}", policy.max_attempts));
-            }
-            headers::set(&mut req.headers, "amz-sdk-request", &parts.join("; "));
-            // `AWSRequestPreparer._prepare_headers`.
-            if !headers::contains(&req.headers, "Transfer-Encoding")
-                && !headers::contains(&req.headers, "Content-Length")
-                && !matches!(req.method.as_str(), "GET" | "HEAD" | "OPTIONS")
+            let mut choice = sign::choose_signer(&auth_inputs)?;
+            // `_set_auth_scheme_preference_signer` prefers a bearer token from
+            // the environment for the services that allow it.
+            if !matches!(
+                choice.version,
+                SignatureVersion::Unsigned | SignatureVersion::Bearer
+            ) && credentials::env_bearer_token(&self.config, &choice.signing_name).is_some()
+                && auth_inputs
+                    .service_auth
+                    .as_ref()
+                    .is_some_and(|a| a.iter().any(|x| x == "smithy.api#httpBearerAuth"))
+                && auth_inputs.operation_auth.is_none()
             {
-                req.headers
-                    .push(("Content-Length".to_string(), req.body.len().to_string()));
+                choice.version = SignatureVersion::Bearer;
             }
-            if let Some(wait) = state.before_send() {
-                tokio::time::sleep(wait).await;
-            }
-            let result = http
-                .send(&req.method, &req.url, &req.headers, &req.body)
-                .await;
-            let received = Utc::now();
-            let (response, exception) = match result {
-                Ok(mut r) => {
-                    adjust(&mut r);
-                    (Some(r), None)
+            let s3_payload_signing = self.config.get_bool("s3.payload_signing_enabled")?;
+
+            let url = self.request_url(&endpoint, request)?;
+            let mut base_headers = request.headers.clone();
+            for (k, v) in &endpoint.headers {
+                if let Some(first) = v.first() {
+                    headers::set(&mut base_headers, k, first);
                 }
-                Err(e) => (None, Some(e)),
+            }
+            let extra_features: &[Feature] =
+                if matches!(choice.version, SignatureVersion::V4a { .. }) {
+                    &[Feature::Sigv4aSigning]
+                } else {
+                    &[]
+                };
+            headers::set(
+                &mut base_headers,
+                "User-Agent",
+                &self.user_agent(&settings, extra_features),
+            );
+
+            let ctx = PayloadContext {
+                payload_signing_enabled: choice.payload_signing_enabled,
+                has_streaming_input: has_streaming_input(operation),
+                s3_payload_signing_enabled: s3_payload_signing,
+                checksum_in_trailer: headers::contains(&base_headers, "x-amz-trailer"),
+                checksum_header: checksum_header(&base_headers),
             };
-            let error_code = response.as_ref().and_then(classify);
-            let outcome = AttemptOutcome {
-                attempt,
-                response: response.as_ref(),
-                error_code: error_code.as_deref(),
-                exception: exception.as_ref(),
-            };
-            let decision = state.needs_retry(&policy, &outcome, &mut quota_capacity);
-            max_known = true;
-            match decision.delay {
-                Some(delay) => {
-                    tokio::time::sleep(delay).await;
-                    attempt += 1;
-                    if let Some(r) = &response
-                        && let Some(date) = r.header("Date")
-                    {
-                        ttl = calculate_ttl(received, date, settings.read_timeout).or(ttl);
+
+            loop {
+                let mut req = SignableRequest {
+                    method: request.method.clone(),
+                    url: url.clone(),
+                    headers: base_headers.clone(),
+                    body: request.body.clone(),
+                };
+                self.sign(&mut req, &choice, &ctx, settings.region.as_deref())
+                    .await?;
+                // `add_retry_headers`.
+                headers::set(&mut req.headers, "amz-sdk-invocation-id", &invocation_id);
+                let mut parts = Vec::new();
+                if let Some(t) = &ttl {
+                    parts.push(format!("ttl={t}"));
+                }
+                parts.push(format!("attempt={attempt}"));
+                if max_known {
+                    parts.push(format!("max={}", policy.max_attempts));
+                }
+                headers::set(&mut req.headers, "amz-sdk-request", &parts.join("; "));
+                // `AWSRequestPreparer._prepare_headers`.
+                if !headers::contains(&req.headers, "Transfer-Encoding")
+                    && !headers::contains(&req.headers, "Content-Length")
+                    && !matches!(req.method.as_str(), "GET" | "HEAD" | "OPTIONS")
+                {
+                    req.headers
+                        .push(("Content-Length".to_string(), req.body.len().to_string()));
+                }
+                if let Some(wait) = state.before_send() {
+                    tokio::time::sleep(wait).await;
+                }
+                let result = http
+                    .send(&req.method, &req.url, &req.headers, &req.body)
+                    .await;
+                let received = Utc::now();
+                let (response, exception) = match result {
+                    Ok(mut r) => {
+                        adjust(&mut r);
+                        (Some(r), None)
                     }
-                }
-                None => {
-                    return match (response, exception) {
-                        (Some(response), _) => {
-                            state.release(response.status, quota_capacity);
-                            Ok(SendOutcome {
-                                response,
-                                attempts: attempt,
-                                max_attempts_reached: decision.max_attempts_reached,
-                            })
+                    Err(e) => (None, Some(e)),
+                };
+                let error_code = response.as_ref().and_then(classify);
+                let outcome = AttemptOutcome {
+                    attempt,
+                    response: response.as_ref(),
+                    error_code: error_code.as_deref(),
+                    exception: exception.as_ref(),
+                };
+                let decision = state.needs_retry(&policy, &outcome, &mut quota_capacity);
+                max_known = true;
+                match decision.delay {
+                    Some(delay) => {
+                        tokio::time::sleep(delay).await;
+                        attempt += 1;
+                        if let Some(r) = &response
+                            && let Some(date) = r.header("Date")
+                        {
+                            ttl = calculate_ttl(received, date, settings.read_timeout).or(ttl);
                         }
-                        (None, Some(e)) => Err(e),
-                        (None, None) => unreachable!(),
-                    };
+                    }
+                    None => {
+                        if !redirected
+                            && let Some(r) = &response
+                            && let Some(new_endpoint) = redirect(r)?
+                        {
+                            redirected = true;
+                            endpoint = new_endpoint;
+                            attempt += 1;
+                            if let Some(date) = r.header("Date") {
+                                ttl = calculate_ttl(received, date, settings.read_timeout).or(ttl);
+                            }
+                            continue 'endpoint;
+                        }
+                        return match (response, exception) {
+                            (Some(response), _) => {
+                                state.release(response.status, quota_capacity);
+                                Ok(SendOutcome {
+                                    response,
+                                    attempts: attempt,
+                                    max_attempts_reached: decision.max_attempts_reached,
+                                })
+                            }
+                            (None, Some(e)) => Err(e),
+                            (None, None) => unreachable!(),
+                        };
+                    }
                 }
             }
         }

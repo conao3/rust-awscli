@@ -566,10 +566,12 @@ impl Generator<'_> {
     }
 
     fn doc(&mut self, depth: usize) -> Json {
-        let kind = if depth >= 2 {
-            self.rng.below(5)
-        } else {
-            self.rng.below(7)
+        // A top-level null would read as an absent member (and an empty
+        // union).
+        let kind = match depth {
+            0 => 1 + self.rng.below(6),
+            1 => self.rng.below(7),
+            _ => self.rng.below(5),
         };
         match kind {
             0 => Json::Null,

@@ -235,8 +235,14 @@ fn judge_reference(r: &RunOut, p: &Prepared, no_requests: bool, detail: String) 
 
 /// A short, value-independent summary of an error message, used to group
 /// failures.
+fn ansi_re() -> &'static regex::Regex {
+    static RE: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+    RE.get_or_init(|| regex::Regex::new("\x1b\\[[0-9;]*[A-Za-z]").unwrap())
+}
+
 pub fn classify(stderr: &[u8]) -> String {
-    let text = String::from_utf8_lossy(stderr);
+    let raw = String::from_utf8_lossy(stderr);
+    let text = ansi_re().replace_all(&raw, "");
     let line = text
         .lines()
         .rev()

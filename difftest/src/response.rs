@@ -601,7 +601,8 @@ impl Ser<'_> {
         };
         let id = self.request_id_headers(&mut resp);
         let mut members = members.clone();
-        for k in ["message", "Message"] {
+        // Members named like the envelope fields would collide with them.
+        for k in ["message", "Message", "code", "Code", "Type", "__type"] {
             members.remove(k);
         }
         let qualified = match self.rng.below(3) {

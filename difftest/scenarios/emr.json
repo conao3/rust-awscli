@@ -1,0 +1,2018 @@
+[
+ {
+  "name": "emr terminate-clusters",
+  "argv": [
+   "emr",
+   "terminate-clusters",
+   "--cluster-ids",
+   "j-1",
+   "j-2",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr terminate-clusters missing",
+  "argv": [
+   "emr",
+   "terminate-clusters",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "emr describe-cluster groups",
+  "argv": [
+   "emr",
+   "describe-cluster",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"ReleaseLabel\": \"emr-6.0.0\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"InstanceGroups\": [{\"Id\": \"ig-1\", \"InstanceGroupType\": \"MASTER\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"BootstrapActions\": [{\"Name\": \"b\", \"ScriptPath\": \"s3://x\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "emr describe-cluster fleets table",
+  "argv": [
+   "emr",
+   "describe-cluster",
+   "--cluster-id",
+   "j-1",
+   "--output",
+   "table",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"InstanceCollectionType\": \"INSTANCE_FLEET\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"InstanceFleets\": [{\"Id\": \"if-1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr describe-cluster text",
+  "argv": [
+   "emr",
+   "describe-cluster",
+   "--cluster-id",
+   "j-1",
+   "--output",
+   "text",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"InstanceGroups\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"BootstrapActions\": []}"
+   }
+  ]
+ },
+ {
+  "name": "emr describe-cluster service error",
+  "argv": [
+   "emr",
+   "describe-cluster",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"InvalidRequestException\", \"message\": \"no cluster\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr modify-cluster-attributes",
+  "argv": [
+   "emr",
+   "modify-cluster-attributes",
+   "--cluster-id",
+   "j-1",
+   "--visible-to-all-users",
+   "--no-termination-protected",
+   "--auto-terminate",
+   "--unhealthy-node-replacement",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr modify-cluster-attributes none",
+  "argv": [
+   "emr",
+   "modify-cluster-attributes",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "emr modify-cluster-attributes both",
+  "argv": [
+   "emr",
+   "modify-cluster-attributes",
+   "--cluster-id",
+   "j-1",
+   "--auto-terminate",
+   "--no-auto-terminate",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "emr add-steps release",
+  "argv": [
+   "emr",
+   "add-steps",
+   "--cluster-id",
+   "j-1",
+   "--steps",
+   "Type=Spark,Name=s,Args=[--class,x,s3://a.jar]",
+   "Type=CUSTOM_JAR,Jar=s3://j.jar,Args=[a],MainClass=M,Properties=k=v,ActionOnFailure=CONTINUE",
+   "Type=Hive,Args=[-f,s3://q]",
+   "Type=Pig,Args=[-f,x]",
+   "Type=Streaming,Args=[-mapper,m]",
+   "--execution-role-arn",
+   "arn:aws:iam::123456789012:role/r",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"ReleaseLabel\": \"emr-6.0.0\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\", \"s-2\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-steps ami",
+  "argv": [
+   "emr",
+   "add-steps",
+   "--cluster-id",
+   "j-1",
+   "--steps",
+   "Type=Hive,Args=[-f,s3://q]",
+   "Type=Pig,Args=[-f,x]",
+   "Type=Streaming,Args=[-mapper,m]",
+   "Type=Impala,Args=[a]",
+   "Type=Spark,Args=[x]",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-steps unknown type",
+  "argv": [
+   "emr",
+   "add-steps",
+   "--cluster-id",
+   "j-1",
+   "--steps",
+   "Type=Foo,Args=[a]",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-steps missing jar",
+  "argv": [
+   "emr",
+   "add-steps",
+   "--cluster-id",
+   "j-1",
+   "--steps",
+   "Name=x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-steps empty args",
+  "argv": [
+   "emr",
+   "add-steps",
+   "--cluster-id",
+   "j-1",
+   "--steps",
+   "Type=Hive,Args=[]",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-instance-groups",
+  "argv": [
+   "emr",
+   "add-instance-groups",
+   "--cluster-id",
+   "j-1",
+   "--instance-groups",
+   "InstanceGroupType=TASK,InstanceType=m5.xlarge,InstanceCount=2,BidPrice=0.1",
+   "InstanceGroupType=task,InstanceType=m5.xlarge,InstanceCount=1,Name=n,BidPrice=OnDemandPrice",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-1\", \"InstanceGroupIds\": [\"ig-1\"], \"ClusterArn\": \"arn:c\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-instance-groups missing type",
+  "argv": [
+   "emr",
+   "add-instance-groups",
+   "--cluster-id",
+   "j-1",
+   "--instance-groups",
+   "InstanceType=m5.xlarge,InstanceCount=2",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "emr install-applications",
+  "argv": [
+   "emr",
+   "install-applications",
+   "--cluster-id",
+   "j-1",
+   "--applications",
+   "Name=Hive,Args=[--hive-site=s3://h]",
+   "Name=Pig",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr install-applications release",
+  "argv": [
+   "emr",
+   "install-applications",
+   "--cluster-id",
+   "j-1",
+   "--applications",
+   "Name=Hive",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"ReleaseLabel\": \"emr-5.0.0\"}}"
+   }
+  ]
+ },
+ {
+  "name": "emr install-applications unsupported",
+  "argv": [
+   "emr",
+   "install-applications",
+   "--cluster-id",
+   "j-1",
+   "--applications",
+   "Name=HBase",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr install-applications unknown",
+  "argv": [
+   "emr",
+   "install-applications",
+   "--cluster-id",
+   "j-1",
+   "--applications",
+   "Name=Foo",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr restore-from-hbase-backup --dir s3://b --backup-version v1",
+  "argv": [
+   "emr",
+   "restore-from-hbase-backup",
+   "--cluster-id",
+   "j-1",
+   "--dir",
+   "s3://b",
+   "--backup-version",
+   "v1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-hbase-backup --dir s3://b --consistent",
+  "argv": [
+   "emr",
+   "create-hbase-backup",
+   "--cluster-id",
+   "j-1",
+   "--dir",
+   "s3://b",
+   "--consistent",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr schedule-hbase-backup --type FULL --dir s3://b --interval 3 --unit Hours --consistent",
+  "argv": [
+   "emr",
+   "schedule-hbase-backup",
+   "--cluster-id",
+   "j-1",
+   "--type",
+   "FULL",
+   "--dir",
+   "s3://b",
+   "--interval",
+   "3",
+   "--unit",
+   "Hours",
+   "--consistent",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr schedule-hbase-backup --type incremental --dir s3://b --interval 3 --unit days --start-time 2014-04-21T05:26:10Z",
+  "argv": [
+   "emr",
+   "schedule-hbase-backup",
+   "--cluster-id",
+   "j-1",
+   "--type",
+   "incremental",
+   "--dir",
+   "s3://b",
+   "--interval",
+   "3",
+   "--unit",
+   "days",
+   "--start-time",
+   "2014-04-21T05:26:10Z",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr disable-hbase-backups --full --incremental",
+  "argv": [
+   "emr",
+   "disable-hbase-backups",
+   "--cluster-id",
+   "j-1",
+   "--full",
+   "--incremental",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\"]}"
+   }
+  ]
+ },
+ {
+  "name": "emr schedule-hbase-backup bad type",
+  "argv": [
+   "emr",
+   "schedule-hbase-backup",
+   "--cluster-id",
+   "j-1",
+   "--type",
+   "x",
+   "--dir",
+   "d",
+   "--interval",
+   "1",
+   "--unit",
+   "days",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr schedule-hbase-backup bad unit",
+  "argv": [
+   "emr",
+   "schedule-hbase-backup",
+   "--cluster-id",
+   "j-1",
+   "--type",
+   "full",
+   "--dir",
+   "d",
+   "--interval",
+   "1",
+   "--unit",
+   "weeks",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr disable-hbase-backups none",
+  "argv": [
+   "emr",
+   "disable-hbase-backups",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster release",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "emr-6.10.0",
+   "--instance-type",
+   "m5.xlarge",
+   "--instance-count",
+   "3",
+   "--applications",
+   "Name=Spark",
+   "Name=Hive",
+   "--tags",
+   "a=b",
+   "c",
+   "--ec2-attributes",
+   "KeyName=k,SubnetId=s,EmrManagedMasterSecurityGroup=sg",
+   "--use-default-roles",
+   "--log-uri",
+   "s3://logs",
+   "--enable-debugging",
+   "--steps",
+   "Type=Hive,Args=[-f,q]",
+   "Type=CUSTOM_JAR,Jar=j.jar",
+   "--name",
+   "my",
+   "--auto-terminate",
+   "--termination-protected",
+   "--security-configuration",
+   "sc",
+   "--ebs-root-volume-size",
+   "20",
+   "--step-concurrency-level",
+   "5",
+   "--emrfs",
+   "Consistent=true,RetryCount=3,SSE=true",
+   "--bootstrap-actions",
+   "Path=s3://ba,Args=[x]",
+   "Name=n,Path=s3://b2",
+   "--managed-scaling-policy",
+   "ComputeLimits={UnitType=Instances,MinimumCapacityUnits=1,MaximumCapacityUnits=3}",
+   "--extended-support",
+   "--no-session-enabled",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster ami",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--ami-version",
+   "3.11.0",
+   "--instance-groups",
+   "InstanceGroupType=MASTER,InstanceType=m3.xlarge,InstanceCount=1",
+   "InstanceGroupType=CORE,InstanceType=m3.xlarge,InstanceCount=2,BidPrice=0.2",
+   "--applications",
+   "Name=Hive,Args=[--hive-site=s3://h]",
+   "Name=Pig",
+   "Name=HBase",
+   "Name=Ganglia",
+   "Name=Impala,Args=[a,b]",
+   "Name=MapR,Args=[--edition,m5]",
+   "--restore-from-hbase-backup",
+   "Dir=s3://hb,BackupVersion=v",
+   "--emrfs",
+   "Encryption=ClientSide,ProviderType=Custom,CustomProviderLocation=s3://p,CustomProviderClass=C,Args=[a=b,c]",
+   "--service-role",
+   "sr",
+   "--ec2-attributes",
+   "InstanceProfile=ip,AvailabilityZone=us-east-1a",
+   "--no-visible-to-all-users",
+   "--enable-debugging",
+   "--log-uri",
+   "s3://l",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster fleets json",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "emr-6.0.0",
+   "--instance-fleets",
+   "[{\"InstanceFleetType\":\"MASTER\",\"TargetOnDemandCapacity\":1,\"InstanceTypeConfigs\":[{\"InstanceType\":\"m5.xlarge\"}],\"LaunchSpecifications\":{\"OnDemandSpecification\":{\"AllocationStrategy\":\"lowest-price\"}}}]",
+   "--configurations",
+   "file://conf.json",
+   "--emrfs",
+   "Encryption=ClientSide,ProviderType=KMS,KMSKeyId=k",
+   "--output",
+   "yaml",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ],
+  "files": {
+   "conf.json": "[{\"Classification\":\"spark\",\"Properties\":{\"a\":\"b\"}}]"
+  }
+ },
+ {
+  "name": "emr create-cluster error no release",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--instance-type",
+   "m5.xlarge",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error both release ami",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "x",
+   "--ami-version",
+   "3.0",
+   "--instance-type",
+   "m",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error bad ami",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--ami-version",
+   "abc",
+   "--instance-type",
+   "m",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error no instances",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "emr-6.0.0",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error groups and type",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--instance-groups",
+   "InstanceGroupType=MASTER,InstanceType=m,InstanceCount=1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error default roles and service role",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--use-default-roles",
+   "--service-role",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error default roles and instance profile",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--use-default-roles",
+   "--ec2-attributes",
+   "InstanceProfile=x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error debugging no log",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--enable-debugging",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error auto terminate both",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--auto-terminate",
+   "--no-auto-terminate",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error subnet and az",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--ec2-attributes",
+   "SubnetId=s,AvailabilityZone=a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error missing apps",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--steps",
+   "Type=Hive,Args=[a]",
+   "Type=PIG,Args=[b]",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error bad configurations",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--configurations",
+   "notjson",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error bad instance count",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--instance-count",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error emrfs both",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--emrfs",
+   "SSE=true,Encryption=ServerSide",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error emrfs bad encryption",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--emrfs",
+   "Encryption=foo",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error emrfs kms missing",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--emrfs",
+   "Encryption=ClientSide,ProviderType=KMS",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error emrfs retry without consistent",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--emrfs",
+   "RetryCount=3",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error autoscaling without role",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-groups",
+   "InstanceGroupType=MASTER,InstanceType=m,InstanceCount=1,AutoScalingPolicy={Constraints={MinCapacity=1,MaxCapacity=2},Rules=[]}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error monitoring logs",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--monitoring-configuration",
+   "S3LoggingConfiguration={LogTypeUploadPolicy={system-logs=emr-managed}}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr create-cluster error unknown option",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--relese",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr list-clusters active",
+  "argv": [
+   "emr",
+   "list-clusters",
+   "--active",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Clusters\": [{\"Id\": \"j-1\", \"Name\": \"a\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "emr list-clusters states created",
+  "argv": [
+   "emr",
+   "list-clusters",
+   "--cluster-states",
+   "RUNNING",
+   "WAITING",
+   "--created-after",
+   "2020-01-01T00:00:00Z",
+   "--created-before",
+   "2021-01-01",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Clusters\": []}"
+   }
+  ]
+ },
+ {
+  "name": "emr list-clusters two filters",
+  "argv": [
+   "emr",
+   "list-clusters",
+   "--active",
+   "--failed",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "emr list-clusters terminated pages",
+  "argv": [
+   "emr",
+   "list-clusters",
+   "--terminated",
+   "--max-items",
+   "1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Clusters\": [{\"Id\": \"j-1\"}, {\"Id\": \"j-2\"}], \"Marker\": \"m\"}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-tags",
+  "argv": [
+   "emr",
+   "add-tags",
+   "--resource-id",
+   "j-1",
+   "--tags",
+   "a=b",
+   "c",
+   "d=e=f",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr add-tags missing tags",
+  "argv": [
+   "emr",
+   "add-tags",
+   "--resource-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "emr create-default-roles all exist",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><InstanceProfileName>x</InstanceProfileName></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ],
+  "outputs": [
+   "home/.aws/config"
+  ]
+ },
+ {
+  "name": "emr create-default-roles create ec2",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v2</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Statement%22%3A%5B%5D%7D</Document><VersionId>v2</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateInstanceProfileResult><InstanceProfile><InstanceProfileName>x</InstanceProfileName></InstanceProfile></CreateInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateInstanceProfileResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AddRoleToInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AddRoleToInstanceProfileResult></AddRoleToInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AddRoleToInstanceProfileResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ],
+  "outputs": [
+   "home/.aws/config"
+  ]
+ },
+ {
+  "name": "emr create-default-roles iam error",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>AccessDenied</Code><Message>no</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "emr create-default-roles create error",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "emr create-default-roles principal error",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><InstanceProfileName>x</InstanceProfileName></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "emr create-default-roles create all",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--region",
+   "eu-west-1",
+   "--output",
+   "text"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v2</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Statement%22%3A%5B%5D%7D</Document><VersionId>v2</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><InstanceProfileName>x</InstanceProfileName></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v1</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%7D</Document><VersionId>v1</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v1</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%7D</Document><VersionId>v1</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n[profile other]\nregion = x\n"
+  },
+  "outputs": [
+   "home/.aws/config"
+  ]
+ },
+ {
+  "name": "emr create-default-roles configured",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><InstanceProfileName>x</InstanceProfileName></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n    service_role = X\n"
+  },
+  "outputs": [
+   "home/.aws/config"
+  ]
+ },
+ {
+  "name": "emr create-cluster from config",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n    service_role = SR\n    instance_profile = IP\n    key_name = KN\n    log_uri = s3://cfg\n    enable_debugging = True\n"
+  }
+ },
+ {
+  "name": "emr create-cluster bad bool config",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--release-label",
+   "e",
+   "--instance-type",
+   "m",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"JobFlowId\": \"j-NEW\", \"ClusterArn\": \"arn:aws:elasticmapreduce:us-east-1:1:cluster/j-NEW\"}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n    enable_debugging = maybe\n"
+  }
+ },
+ {
+  "name": "emr ssh",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--command",
+   "ls",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ]
+ },
+ {
+  "name": "emr ssh options",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--ssh-options",
+   "StrictHostKeyChecking=no",
+   "ConnectTimeout=1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ]
+ },
+ {
+  "name": "emr ssh terminated",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Status\": {\"State\": \"TERMINATED\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr ssh key from config",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n    key_pair_file = cfg.pem\n"
+  }
+ },
+ {
+  "name": "emr socks",
+  "argv": [
+   "emr",
+   "socks",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ]
+ },
+ {
+  "name": "emr put",
+  "argv": [
+   "emr",
+   "put",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--src",
+   "dir/f.txt",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ]
+ },
+ {
+  "name": "emr get",
+  "argv": [
+   "emr",
+   "get",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--src",
+   "/tmp/x/f.txt",
+   "--dest",
+   "out",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ]
+ },
+ {
+  "name": "emr ssh missing key",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ }
+]

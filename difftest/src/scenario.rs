@@ -43,6 +43,37 @@ pub struct Scenario {
     pub responses: Vec<RespDef>,
     #[serde(default)]
     pub outputs: Vec<String>,
+    /// Regular expressions for volatile values (random request tokens,
+    /// times) replaced with `<masked>` in the outputs and the requests.
+    #[serde(default)]
+    pub masks: Vec<String>,
+}
+
+fn apply_masks(masks: &[regex::Regex], out: &mut RunOut, reqs: &mut [crate::server::Recorded]) {
+    let mask = |b: &[u8]| -> Vec<u8> {
+        let mut text = String::from_utf8_lossy(b).into_owned();
+        for re in masks {
+            text = re.replace_all(&text, "<masked>").into_owned();
+        }
+        text.into_bytes()
+    };
+    if masks.is_empty() {
+        return;
+    }
+    out.stdout = mask(&out.stdout);
+    out.stderr = mask(&out.stderr);
+    for r in reqs {
+        if std::str::from_utf8(&r.body).is_ok() {
+            r.body = mask(&r.body);
+            let len = r.body.len().to_string();
+            for (k, v) in &mut r.headers {
+                if k.eq_ignore_ascii_case("content-length") {
+                    *v = len.clone().into_bytes();
+                }
+            }
+        }
+        r.target = String::from_utf8_lossy(&mask(r.target.as_bytes())).into_owned();
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -159,8 +190,15 @@ pub async fn exec(
             .collect::<Result<_>>()?
     };
     let stub = Stub::start(responses).await?;
-    let (ra, qa, oa, argv) = run_side(reference, s, &stub, work, env).await?;
-    let (rb, qb, ob, _) = run_side(candidate, s, &stub, work, env).await?;
+    let (mut ra, mut qa, oa, argv) = run_side(reference, s, &stub, work, env).await?;
+    let (mut rb, mut qb, ob, _) = run_side(candidate, s, &stub, work, env).await?;
+    let masks = s
+        .masks
+        .iter()
+        .map(|m| regex::Regex::new(m))
+        .collect::<Result<Vec<_>, _>>()?;
+    apply_masks(&masks, &mut ra, &mut qa);
+    apply_masks(&masks, &mut rb, &mut qb);
     let mut detail = format!("scenario: {}\nargv: aws {}\n", s.name, argv.join(" "));
     let _ = writeln!(detail, "== reference exit: {:?}", ra.code);
     let _ = writeln!(

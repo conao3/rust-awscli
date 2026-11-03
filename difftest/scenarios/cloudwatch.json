@@ -1,0 +1,16 @@
+[
+  {"name": "cloudwatch put-metric-data scalars",
+   "argv": ["cloudwatch", "put-metric-data", "--namespace", "N", "--metric-name", "M", "--value", "1.5", "--unit", "Count", "--dimensions", "A=1,B=2", "--timestamp", "2020-01-01T00:00:00Z", "--storage-resolution", "1", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/cbor", "smithy-protocol": "rpc-v2-cbor"}, "body": "base64:oA=="}]},
+  {"name": "cloudwatch put-metric-data stats",
+   "argv": ["cloudwatch", "put-metric-data", "--namespace", "N", "--metric-name", "M", "--statistic-values", "Sum=11,Minimum=2,Maximum=5,SampleCount=3", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/cbor", "smithy-protocol": "rpc-v2-cbor"}, "body": "base64:oA=="}]},
+  {"name": "cloudwatch put-metric-data mutex",
+   "argv": ["cloudwatch", "put-metric-data", "--namespace", "N", "--metric-name", "M", "--metric-data", "MetricName=x,Value=1"]},
+  {"name": "cloudwatch put-metric-data bad value",
+   "argv": ["cloudwatch", "put-metric-data", "--namespace", "N", "--metric-name", "M", "--value", "abc"]},
+  {"name": "cloudwatch put-metric-data bad dims",
+   "argv": ["cloudwatch", "put-metric-data", "--namespace", "N", "--metric-name", "M", "--dimensions", "A"]},
+  {"name": "cloudwatch put-metric-data nothing",
+   "argv": ["cloudwatch", "put-metric-data", "--namespace", "N"]}
+]

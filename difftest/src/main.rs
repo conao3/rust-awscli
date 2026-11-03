@@ -111,11 +111,11 @@ struct Common {
     #[arg(long, default_value_t = 60)]
     timeout: u64,
     /// Host in `--endpoint-url`. Host prefixes from the model and from
-    /// endpoint rules (`{AccountId}.`, S3 virtual hosting) need a name
-    /// whose subdomains resolve to the stub, such as `localhost`; with an
-    /// IP address, operations with a modeled host prefix still use
-    /// `localhost`.
-    #[arg(long, default_value = "localhost")]
+    /// endpoint rules (`query-`, `{AccountId}.`, S3 virtual hosting) need
+    /// a name whose prefixed forms resolve to the stub: every name under
+    /// `.localhost` resolves to loopback. With an IP address, operations
+    /// with a modeled host prefix still use `difftest.localhost`.
+    #[arg(long, default_value = "difftest.localhost")]
     endpoint_host: String,
     /// `service operation reason` lines; `*` matches every operation.
     #[arg(long)]

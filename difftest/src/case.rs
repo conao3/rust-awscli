@@ -143,8 +143,8 @@ pub struct Prepared {
     pub expect_exit: i32,
     /// A file the CLI writes (streaming output) that is compared too.
     pub outfile: Option<String>,
-    /// Host to put in `--endpoint-url` (`localhost` when the operation
-    /// has a host prefix, so `prefix.localhost` still resolves).
+    /// Whether the operation has a modeled host prefix, which needs an
+    /// endpoint host under `.localhost`.
     pub needs_wildcard_host: bool,
     /// The input value, for reports.
     pub input_json: String,
@@ -299,7 +299,9 @@ pub fn prepare(case: &Case, table: &Table) -> Result<Prepared> {
     for a in &entry.args {
         match a.class() {
             "StreamingOutputArgument" => {
-                argv.push(format!("{DIR_MARK}/outfile.bin"));
+                // Right after the operation name, so a preceding list
+                // argument (`nargs='+'`) cannot swallow it.
+                argv.insert(2, format!("{DIR_MARK}/outfile.bin"));
                 outfile = Some("outfile.bin".to_string());
             }
             "QueryOutFileArgument" if a.required() => {
@@ -537,7 +539,15 @@ fn gen_output(op: &Operation<'_>, proto: Proto, rng: &mut Rng) -> Option<G> {
 fn gen_pages(model: &ServiceModel, op: &Operation<'_>, proto: Proto, root: &Rng) -> Vec<Resp> {
     let mut rng = root.fork("pages");
     let paginator = model.paginator(op.name);
-    let pages = if paginator.is_some() {
+    // A token shape with `max: 0` (always empty) cannot carry a page.
+    let token_can_page = paginator.is_some_and(|p| {
+        let first = token_list(p.get("output_token")).into_iter().next();
+        let shape = op.output().zip(first.as_deref().and_then(simple_path));
+        !shape
+            .and_then(|(s, path)| shape_at(&s, &path))
+            .is_some_and(|t| t.get("max").and_then(Json::as_u64) == Some(0))
+    });
+    let pages = if token_can_page {
         1 + rng.below(3) as usize
     } else {
         1

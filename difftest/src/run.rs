@@ -86,6 +86,7 @@ pub async fn run(
         .env("no_proxy", "*")
         .stdin(Stdio::null())
         .stderr(Stdio::piped())
+        .process_group(0)
         .kill_on_drop(true);
 
     let mut pty_reader = None;
@@ -131,6 +132,7 @@ pub async fn run(
         buf
     });
 
+    let pgid = child.id().map(|id| nix::unistd::Pid::from_raw(id as i32));
     let mut result = RunOut::default();
     match tokio::time::timeout(env.timeout, child.wait()).await {
         Ok(status) => result.code = status?.code(),
@@ -139,8 +141,20 @@ pub async fn run(
             let _ = child.kill().await;
         }
     }
-    result.stdout = stdout_task.await.unwrap_or_default();
-    result.stderr = stderr_task.await.unwrap_or_default();
+    // Helpers the CLI started (session-manager-plugin) would keep the
+    // output pipes open.
+    if let Some(pgid) = pgid {
+        let _ = nix::sys::signal::killpg(pgid, nix::sys::signal::Signal::SIGKILL);
+    }
+    let drain = Duration::from_secs(5);
+    result.stdout = match tokio::time::timeout(drain, stdout_task).await {
+        Ok(r) => r.unwrap_or_default(),
+        Err(_) => vec![],
+    };
+    result.stderr = match tokio::time::timeout(drain, stderr_task).await {
+        Ok(r) => r.unwrap_or_default(),
+        Err(_) => vec![],
+    };
     if let Some(f) = outfile {
         result.outfile = std::fs::read(dir.join(f)).ok();
     }
@@ -159,6 +173,13 @@ fn open_pty(cols: u16) -> Result<(OwnedFd, OwnedFd)> {
         ws_ypixel: 0,
     };
     let pair = openpty(Some(&ws), None).context("openpty")?;
+    // Children spawned concurrently for other cases must not inherit the
+    // pair, or this case's reader would not see EOF when its child exits.
+    for fd in [&pair.master, &pair.slave] {
+        use nix::fcntl::{FcntlArg, FdFlag, fcntl};
+        use std::os::fd::AsRawFd;
+        fcntl(fd.as_raw_fd(), FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC)).context("fcntl")?;
+    }
     let mut t = tcgetattr(&pair.slave).context("tcgetattr")?;
     t.output_flags.remove(OutputFlags::OPOST);
     tcsetattr(&pair.slave, SetArg::TCSANOW, &t).context("tcsetattr")?;

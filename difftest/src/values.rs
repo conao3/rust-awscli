@@ -116,6 +116,8 @@ pub fn reserved_header(name: &str) -> bool {
     RESERVED_HEADERS.contains(&lower.as_str()) || lower.starts_with("x-amz-checksum-")
 }
 
+const HARD_DEPTH: usize = 40;
+
 pub struct Generator<'r> {
     pub rng: &'r mut Rng,
     pub dir: Dir,
@@ -193,14 +195,25 @@ impl Generator<'_> {
             .into_iter()
             .filter(|(name, m)| !skip.contains(name) && self.eligible(m))
             .collect();
-        if depth > self.max_depth + 4 {
+        // Past `max_depth` only required members and one union member are
+        // generated; the hard cap only guards against required cycles.
+        if depth > HARD_DEPTH {
             return G::Struct(vec![]);
         }
         if shape.is_union() {
             if members.is_empty() {
                 return G::Struct(vec![]);
             }
-            let (name, m) = &members[self.rng.below(members.len() as u64) as usize];
+            let scalars: Vec<_> = members
+                .iter()
+                .filter(|(_, m)| !matches!(m.type_name(), "structure" | "list" | "map"))
+                .collect();
+            let (name, m) = if depth >= self.max_depth && !scalars.is_empty() {
+                *scalars[self.rng.below(scalars.len() as u64) as usize]
+            } else {
+                members[self.rng.below(members.len() as u64) as usize]
+            };
+            let (name, m) = (&name, &m);
             let v = self.member(name, m, depth + 1);
             return G::Struct(vec![(name.to_string(), v)]);
         }
@@ -353,7 +366,9 @@ impl Generator<'_> {
             "boolean" => G::Bool(self.rng.chance(1, 2)),
             "blob" => {
                 let (min, max) = bounds(s);
-                let lo = min.unwrap_or(0).max(0) as usize;
+                // The CLI decodes an empty base64 input blob to None.
+                let floor = usize::from(self.dir == Dir::Input);
+                let lo = (min.unwrap_or(0).max(0) as usize).max(floor);
                 let hi = max.map(|m| m as usize).unwrap_or(24).max(lo);
                 let n = self.rng.range(lo as i64, hi.min(lo + 24) as i64) as usize;
                 if self.rng.chance(1, 3) {

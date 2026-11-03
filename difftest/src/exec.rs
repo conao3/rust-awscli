@@ -70,7 +70,7 @@ async fn run_prepared(case: &Case, p: &Prepared, cfg: &Config) -> anyhow::Result
     }
     let stub = Stub::start(p.responses.clone()).await?;
     let host = if p.needs_wildcard_host {
-        "localhost"
+        "difftest.localhost"
     } else {
         cfg.endpoint_host.as_str()
     };
@@ -108,7 +108,16 @@ async fn run_prepared(case: &Case, p: &Prepared, cfg: &Config) -> anyhow::Result
         "== reference stderr\n{}",
         compare::visible(&reference.stderr)
     );
-    let outcome = if cfg.reference_only {
+    let outcome = if ref_requests.is_empty() && reference.code == Some(254) {
+        // A service error without a request to the stub came from
+        // somewhere else: the endpoint resolved past --endpoint-url.
+        let _ = writeln!(detail, "{}", responses_text(p));
+        Outcome::Fail {
+            cause: "service error without a request to the stub (endpoint ignores --endpoint-url)"
+                .into(),
+            detail,
+        }
+    } else if cfg.reference_only {
         let _ = writeln!(
             detail,
             "== requests\n{}",
@@ -207,7 +216,8 @@ fn judge_reference(r: &RunOut, p: &Prepared, no_requests: bool, detail: String) 
             detail,
         };
     }
-    if r.code == Some(p.expect_exit) && (p.expect_exit != 0 || r.stderr.is_empty()) {
+    if r.code == Some(p.expect_exit) && (p.expect_exit != 0 || r.stderr.is_empty()) && !no_requests
+    {
         return Outcome::Pass { detail };
     }
     let mut cause = classify(&r.stderr);

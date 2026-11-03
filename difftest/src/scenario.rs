@@ -47,6 +47,14 @@ pub struct Scenario {
     /// times) replaced with `<masked>` in the outputs and the requests.
     #[serde(default)]
     pub masks: Vec<String>,
+    /// Regular expressions whose matches in request targets and bodies
+    /// are masked (values that depend on the time of the run).
+    #[serde(default)]
+    pub mask: Vec<String>,
+    /// Request headers left out of the comparison (lower case), for
+    /// known gaps outside the command under test.
+    #[serde(default)]
+    pub ignore_headers: Vec<String>,
 }
 
 fn apply_masks(masks: &[regex::Regex], out: &mut RunOut, reqs: &mut [crate::server::Recorded]) {
@@ -199,6 +207,19 @@ pub async fn exec(
         .collect::<Result<Vec<_>, _>>()?;
     apply_masks(&masks, &mut ra, &mut qa);
     apply_masks(&masks, &mut rb, &mut qb);
+    for r in qa.iter_mut().chain(qb.iter_mut()) {
+        r.headers
+            .retain(|(k, _)| !s.ignore_headers.contains(&k.to_ascii_lowercase()));
+    }
+    for pattern in &s.mask {
+        let re = regex::bytes::Regex::new(pattern)?;
+        for r in qa.iter_mut().chain(qb.iter_mut()) {
+            r.body = re.replace_all(&r.body, &b"<masked>"[..]).into_owned();
+            r.target =
+                String::from_utf8_lossy(&re.replace_all(r.target.as_bytes(), &b"<masked>"[..]))
+                    .into_owned();
+        }
+    }
     let mut detail = format!("scenario: {}\nargv: aws {}\n", s.name, argv.join(" "));
     let _ = writeln!(detail, "== reference exit: {:?}", ra.code);
     let _ = writeln!(

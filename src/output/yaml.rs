@@ -33,6 +33,19 @@ const TAG_FLOAT: &str = "tag:yaml.org,2002:float";
 const TAG_BOOL: &str = "tag:yaml.org,2002:bool";
 const TAG_NULL: &str = "tag:yaml.org,2002:null";
 const TAG_BINARY: &str = "tag:yaml.org,2002:binary";
+const TAG_TIMESTAMP: &str = "tag:yaml.org,2002:timestamp";
+
+/// The YAML 1.1 boolean resolver `yamlhelper._add_yaml_1_1_boolean_resolvers`
+/// registers (after the YAML 1.2 ones).
+fn yaml11_bool(value: &str) -> bool {
+    static RE: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(
+            r"\A(?:yes|Yes|YES|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF)\n?\z",
+        )
+        .expect("regex")
+    });
+    value.starts_with(|c| "yYnNtTfFoO".contains(c)) && RE.is_match(value)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ScalarStyle {
@@ -66,28 +79,61 @@ enum Event {
     MappingEnd,
 }
 
+/// How a document is represented: the CLI's `YAMLDumper` sorts mapping
+/// keys; other dumpers (`awscli/customizations/cloudformation/yamlhelper.py`
+/// `yaml_dump`) keep the key order, add the YAML 1.1 boolean resolver, and
+/// represent dates.
+#[derive(Debug, Clone, Copy)]
+pub struct DumpOptions {
+    pub sort_keys: bool,
+    /// `_add_yaml_1_1_boolean_resolvers`.
+    pub yaml11_bools: bool,
+    /// Strings starting with this prefix are `date` / `datetime` values:
+    /// the rest is emitted with the timestamp tag.
+    pub timestamp_prefix: Option<&'static str>,
+    /// Emit like `ruamel.yaml`'s pure-Python `Emitter` instead of the
+    /// libyaml one: double quotes for scalars with `'` or a line break,
+    /// words longer than the line on a line of their own, and line
+    /// wrapping at the width itself.
+    pub pure_python: bool,
+}
+
+const CLI_OPTIONS: DumpOptions = DumpOptions {
+    sort_keys: true,
+    yaml11_bools: false,
+    timestamp_prefix: None,
+    pure_python: false,
+};
+
 /// `YAML.dump` of one document.
 pub fn yaml_dump(value: &Value) -> String {
+    yaml_dump_with(value, &CLI_OPTIONS)
+}
+
+/// [`yaml_dump`] with other representer and resolver options.
+pub fn yaml_dump_with(value: &Value, options: &DumpOptions) -> String {
     let mut events = vec![Event::StreamStart, Event::DocumentStart];
-    represent(value, &mut events);
+    represent(value, options, &mut events);
     events.push(Event::DocumentEnd);
     events.push(Event::StreamEnd);
     let mut emitter = Emitter::new();
+    emitter.pure_python = options.pure_python;
     emitter.emit_all(&events);
     String::from_utf8(emitter.buffer).expect("emitter output is UTF-8")
 }
 
 /// `SafeRepresenter.represent_*` plus `CEmitter._serialize_node`.
-fn represent(value: &Value, events: &mut Vec<Event>) {
+fn represent(value: &Value, o: &DumpOptions, events: &mut Vec<Event>) {
     match value {
-        Value::Null => scalar(TAG_NULL, "null".to_string(), None, events),
+        Value::Null => scalar(TAG_NULL, "null".to_string(), None, o, events),
         Value::Bool(b) => scalar(
             TAG_BOOL,
             if *b { "true" } else { "false" }.to_string(),
             None,
+            o,
             events,
         ),
-        Value::Int(i) => scalar(TAG_INT, i.to_string(), None, events),
+        Value::Int(i) => scalar(TAG_INT, i.to_string(), None, o, events),
         Value::Float(f) => {
             let v = if f.is_nan() {
                 ".nan".to_string()
@@ -96,37 +142,53 @@ fn represent(value: &Value, events: &mut Vec<Event>) {
             } else {
                 float_repr(*f).to_lowercase()
             };
-            scalar(TAG_FLOAT, v, None, events)
+            scalar(TAG_FLOAT, v, None, o, events)
         }
-        Value::Str(s) => scalar(TAG_STR, s.clone(), None, events),
+        Value::Str(s) => match o.timestamp_prefix.and_then(|p| s.strip_prefix(p)) {
+            Some(ts) => scalar(TAG_TIMESTAMP, ts.to_string(), None, o, events),
+            None => scalar(TAG_STR, s.clone(), None, o, events),
+        },
         Value::Bytes(b) => scalar(
             TAG_BINARY,
             encodebytes(b),
             Some(ScalarStyle::Literal),
+            o,
             events,
         ),
         Value::List(l) => {
             events.push(Event::SequenceStart { flow: false });
             for item in l {
-                represent(item, events);
+                represent(item, o, events);
             }
             events.push(Event::SequenceEnd);
         }
         Value::Map(m) => {
             events.push(Event::MappingStart { flow: false });
             let mut entries: Vec<(&String, &Value)> = m.iter().collect();
-            entries.sort_by(|a, b| a.0.cmp(b.0));
+            if o.sort_keys {
+                entries.sort_by(|a, b| a.0.cmp(b.0));
+            }
             for (k, v) in entries {
-                scalar(TAG_STR, k.clone(), None, events);
-                represent(v, events);
+                scalar(TAG_STR, k.clone(), None, o, events);
+                represent(v, o, events);
             }
             events.push(Event::MappingEnd);
         }
     }
 }
 
-fn scalar(tag: &'static str, value: String, style: Option<ScalarStyle>, events: &mut Vec<Event>) {
-    let plain_implicit = resolve_plain(&value) == tag;
+fn scalar(
+    tag: &'static str,
+    value: String,
+    style: Option<ScalarStyle>,
+    o: &DumpOptions,
+    events: &mut Vec<Event>,
+) {
+    let mut resolved = resolve_plain(&value);
+    if o.yaml11_bools && resolved == TAG_STR && yaml11_bool(&value) {
+        resolved = TAG_BOOL;
+    }
+    let plain_implicit = resolved == tag;
     let quoted_implicit = tag == TAG_STR;
     events.push(Event::Scalar {
         tag,
@@ -257,6 +319,7 @@ struct Emitter {
     tag_handle: Option<&'static str>,
     tag_suffix: Option<String>,
     scalar_data: ScalarAnalysis,
+    pure_python: bool,
 }
 
 /// Byte at `i`, or NUL past the end (libyaml strings are NUL-terminated).
@@ -342,6 +405,7 @@ impl Emitter {
             whitespace: true,
             indention: true,
             open_ended: false,
+            pure_python: false,
             tag_handle: None,
             tag_suffix: None,
             scalar_data: ScalarAnalysis::default(),
@@ -839,6 +903,12 @@ impl Emitter {
                 style = ScalarStyle::SingleQuoted;
             }
         }
+        if self.pure_python
+            && style == ScalarStyle::SingleQuoted
+            && d.value.iter().any(|&c| c == b'\'' || c == b'\n')
+        {
+            style = ScalarStyle::DoubleQuoted;
+        }
         if style == ScalarStyle::SingleQuoted && !d.single_quoted_allowed {
             style = ScalarStyle::DoubleQuoted;
         }
@@ -957,12 +1027,31 @@ impl Emitter {
         }
         let mut p = 0;
         while p < s.len() {
-            if is_space_at(s, p) {
-                if allow_breaks
-                    && !spaces
-                    && self.column > self.best_width
-                    && !is_space_at(s, p + 1)
+            if self.pure_python
+                && !is_space_at(s, p)
+                && !is_break_at(s, p)
+                && (p == 0 || is_space_at(s, p - 1) || is_break_at(s, p - 1))
+            {
+                let mut end = p;
+                while end < s.len() && !is_space_at(s, end) && !is_break_at(s, end) {
+                    end += 1;
+                }
+                let width = String::from_utf8_lossy(&s[p..end]).chars().count() as i32;
+                if width + self.column > self.best_width
+                    && self.indent >= 0
+                    && self.column > self.indent
+                    && !breaks
                 {
+                    self.write_indent();
+                }
+            }
+            if is_space_at(s, p) {
+                let wrap_at = if self.pure_python {
+                    self.column >= self.best_width
+                } else {
+                    self.column > self.best_width
+                };
+                if allow_breaks && !spaces && wrap_at && !is_space_at(s, p + 1) {
                     self.write_indent();
                     p += 1;
                 } else {
@@ -1041,7 +1130,97 @@ impl Emitter {
         self.indention = false;
     }
 
+    fn put_text(&mut self, text: &str) {
+        self.buffer.extend_from_slice(text.as_bytes());
+        self.column += text.chars().count() as i32;
+    }
+
+    /// `SafeLineBreakEmitter.write_double_quoted` (`awscli/utils.py`): a
+    /// backslash at every line break.
+    fn write_double_quoted_pure(&mut self, s: &[u8], split: bool) {
+        let text: Vec<char> = String::from_utf8_lossy(s).chars().collect();
+        let slice = |a: usize, b: usize| text[a..b].iter().collect::<String>();
+        self.write_indicator(b"\"", true, false, false);
+        let (mut start, mut end) = (0usize, 0usize);
+        while end <= text.len() {
+            let ch = text.get(end).copied();
+            let special = match ch {
+                None => true,
+                Some(c) => {
+                    "\"\\\u{85}\u{2028}\u{2029}\u{feff}".contains(c)
+                        || !(('\u{20}'..='\u{7e}').contains(&c)
+                            || (self.unicode
+                                && (('\u{a0}'..='\u{d7ff}').contains(&c)
+                                    || ('\u{e000}'..='\u{fffd}').contains(&c)
+                                    || ('\u{10000}'..='\u{10ffff}').contains(&c))))
+                }
+            };
+            if special {
+                if start < end {
+                    let data = slice(start, end);
+                    self.put_text(&data);
+                    start = end;
+                }
+                if let Some(c) = ch {
+                    let data = match c {
+                        '\0' => "\\0".to_string(),
+                        '\u{7}' => "\\a".to_string(),
+                        '\u{8}' => "\\b".to_string(),
+                        '\t' => "\\t".to_string(),
+                        '\n' => "\\n".to_string(),
+                        '\u{b}' => "\\v".to_string(),
+                        '\u{c}' => "\\f".to_string(),
+                        '\r' => "\\r".to_string(),
+                        '\u{1b}' => "\\e".to_string(),
+                        '"' => "\\\"".to_string(),
+                        '\\' => "\\\\".to_string(),
+                        '\u{85}' => "\\N".to_string(),
+                        '\u{a0}' => "\\_".to_string(),
+                        '\u{2028}' => "\\L".to_string(),
+                        '\u{2029}' => "\\P".to_string(),
+                        c if (c as u32) <= 0xff => format!("\\x{:02X}", c as u32),
+                        c if (c as u32) <= 0xffff => format!("\\u{:04X}", c as u32),
+                        c => format!("\\U{:08X}", c as u32),
+                    };
+                    self.put_text(&data);
+                    start = end + 1;
+                }
+            }
+            if 0 < end
+                && end + 1 < text.len()
+                && (ch == Some(' ') || start >= end)
+                && self.column + (end as i32 - start as i32) > self.best_width
+                && split
+            {
+                let data = format!(
+                    "{}\\",
+                    if start < end {
+                        slice(start, end)
+                    } else {
+                        String::new()
+                    }
+                );
+                if start < end {
+                    start = end;
+                }
+                self.put_text(&data);
+                self.write_indent();
+                self.whitespace = false;
+                self.indention = false;
+                if text.get(start) == Some(&' ') {
+                    self.put_text("\\");
+                }
+            }
+            end += 1;
+        }
+        self.write_indicator(b"\"", false, false, false);
+    }
+
     fn write_double_quoted_scalar(&mut self, s: &[u8], allow_breaks: bool) {
+        if self.pure_python {
+            self.write_double_quoted_pure(s, allow_breaks);
+            return;
+        }
         let mut spaces = false;
         self.write_indicator(b"\"", true, false, false);
         let mut p = 0;

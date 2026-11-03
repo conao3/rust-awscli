@@ -1,0 +1,383 @@
+[
+ {
+  "name": "logs tail detailed color on",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--format",
+   "detailed",
+   "--color",
+   "on"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}], \"searchedLogStreams\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail detailed color off",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--format",
+   "detailed",
+   "--color",
+   "off"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}], \"searchedLogStreams\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail short color on",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--format",
+   "short",
+   "--color",
+   "on"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}], \"searchedLogStreams\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail short color off",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--format",
+   "short",
+   "--color",
+   "off"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}], \"searchedLogStreams\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail json color on",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--format",
+   "json",
+   "--color",
+   "on"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}], \"searchedLogStreams\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail json color off",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--format",
+   "json",
+   "--color",
+   "off"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}], \"searchedLogStreams\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail pages",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}",
+   "--filter-pattern",
+   "ERROR",
+   "--log-stream-names",
+   "a",
+   "b",
+   "--log-stream-name-prefix",
+   "p"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}], \"nextToken\": \"tok1\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s2\", \"timestamp\": 1700000001000, \"message\": \"{\\\"level\\\": \\\"INFO\\\", \\\"msg\\\": \\\"caf\\u00e9\\\", \\\"n\\\": [1, 2.5, null]}\", \"ingestionTime\": 1700000001200, \"eventId\": \"2\"}, {\"logStreamName\": \"s2\", \"timestamp\": 1700000002999, \"message\": \"multi\\nline\\r\\n\\t\", \"ingestionTime\": 1700000003000, \"eventId\": \"3\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail same token twice",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s1\", \"timestamp\": 1700000000123, \"message\": \"hello world  \\n\", \"ingestionTime\": 1700000000200, \"eventId\": \"1\"}], \"nextToken\": \"tok1\"}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail epoch since",
+  "argv": [
+   "logs",
+   "tail",
+   "g",
+   "--since",
+   "1700000000",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail since with offset",
+  "argv": [
+   "logs",
+   "tail",
+   "g",
+   "--since",
+   "2023-11-14 22:00:00.25+09:00",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": []}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail bad since",
+  "argv": [
+   "logs",
+   "tail",
+   "g",
+   "--since",
+   "yesterday",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "logs tail missing group",
+  "argv": [
+   "logs",
+   "tail"
+  ]
+ },
+ {
+  "name": "logs tail bad format",
+  "argv": [
+   "logs",
+   "tail",
+   "g",
+   "--format",
+   "xml"
+  ]
+ },
+ {
+  "name": "logs tail unknown option",
+  "argv": [
+   "logs",
+   "tail",
+   "g",
+   "--folow"
+  ]
+ },
+ {
+  "name": "logs tail empty group",
+  "argv": [
+   "logs",
+   "tail",
+   "",
+   "--since",
+   "1700000000",
+   "--endpoint-url",
+   "{endpoint}"
+  ]
+ },
+ {
+  "name": "logs tail service error",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"ResourceNotFoundException\", \"message\": \"The specified log group does not exist.\"}"
+   }
+  ]
+ },
+ {
+  "name": "logs tail missing ingestionTime",
+  "argv": [
+   "logs",
+   "tail",
+   "/aws/lambda/fn",
+   "--since",
+   "2023-11-14T22:00:00Z",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"events\": [{\"logStreamName\": \"s\", \"timestamp\": 1, \"message\": \"m\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail missing",
+  "argv": [
+   "logs",
+   "start-live-tail"
+  ]
+ },
+ {
+  "name": "logs start-live-tail service error",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:a",
+   "arn:b",
+   "--log-event-filter-pattern",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"AccessDeniedException\", \"message\": \"no\"}"
+   }
+  ]
+ },
+ {
+  "name": "logs start-live-tail bad mode",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "a",
+   "--mode",
+   "x"
+  ]
+ }
+]

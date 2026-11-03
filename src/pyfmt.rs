@@ -205,6 +205,21 @@ pub fn json_dumps_pretty(v: &Value) -> String {
     out
 }
 
+/// `json.dumps(v, indent=4)` (`ensure_ascii=True`).
+pub fn json_dumps_indent_ascii(v: &Value) -> String {
+    let mut out = String::new();
+    write_json(
+        v,
+        &JsonStyle {
+            indent: Some(4),
+            ensure_ascii: true,
+        },
+        0,
+        &mut out,
+    );
+    out
+}
+
 /// `json.dumps(v)` with Python's defaults (separators `", "` and `": "`,
 /// `ensure_ascii=True`), as used for pagination tokens.
 pub fn json_dumps_default(v: &Value) -> String {

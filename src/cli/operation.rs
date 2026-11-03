@@ -256,7 +256,7 @@ pub(crate) fn run(
     {
         match kind.as_str() {
             "input" => printed = Some(skeleton::input_json(op.input().as_ref())),
-            "yaml-input" => return Err(Fail::NotImplemented),
+            "yaml-input" => printed = Some(super::yamlskel::input_yaml(op.input().as_ref())),
             _ => {
                 let fake = match op.output() {
                     Some(s) => skeleton::generate(&s, true),

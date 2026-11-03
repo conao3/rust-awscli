@@ -384,3 +384,27 @@ iam create-user --user-name u --permissions-boundary arn:aws:iam::1:policy/p --t
 dynamodb query --table-name t --key-conditions '{}' --limit 0 --no-paginate
 dynamodb query --table-name t --scan-index-forward --no-scan-index-forward
 s3control put-public-access-block --account-id 1 --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=maybe
+sts assume-role --generate-cli-skeleton yaml-input
+sts get-caller-identity --generate-cli-skeleton yaml-input
+dynamodb put-item --generate-cli-skeleton yaml-input
+ec2 run-instances --generate-cli-skeleton yaml-input
+ec2 describe-instances --generate-cli-skeleton yaml-input
+iam create-role --generate-cli-skeleton yaml-input
+lambda invoke --generate-cli-skeleton yaml-input
+cloudformation create-stack --generate-cli-skeleton yaml-input
+ecs register-task-definition --generate-cli-skeleton yaml-input
+s3api put-bucket-lifecycle-configuration --generate-cli-skeleton yaml-input
+sqs send-message --generate-cli-skeleton yaml-input
+bedrock-runtime converse --generate-cli-skeleton yaml-input
+glue create-table --generate-cli-skeleton yaml-input
+sagemaker create-training-job --generate-cli-skeleton yaml-input
+quicksight create-analysis --generate-cli-skeleton yaml-input
+apigateway put-integration --generate-cli-skeleton yaml-input
+route53 change-resource-record-sets --generate-cli-skeleton yaml-input
+kms encrypt --generate-cli-skeleton yaml-input
+ssm send-command --generate-cli-skeleton yaml-input
+apigatewayv2 export-api --generate-cli-skeleton yaml-input
+apigatewayv2 export-api --generate-cli-skeleton
+connect create-routing-profile --generate-cli-skeleton yaml-input
+dynamodb put-item --generate-cli-skeleton yaml-input --table-name t
+ec2 wait instance-running --generate-cli-skeleton yaml-input

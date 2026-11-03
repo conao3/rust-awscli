@@ -45,7 +45,7 @@ fn gen_skeleton(shape: &Shape<'_>, stack: &mut Vec<String>, name: &str, names: b
             if names {
                 Value::str(name)
             } else {
-                match shape.enum_values().first() {
+                match enum_values(shape).first() {
                     Some(e) => Value::str(*e),
                     None => Value::str(""),
                 }
@@ -88,4 +88,14 @@ fn ensure_ascii(s: &str) -> String {
         }
     }
     out
+}
+
+/// `StringShape.enum`, which botocore takes from the member reference
+/// when it carries one.
+pub(crate) fn enum_values<'a>(shape: &Shape<'a>) -> Vec<&'a str> {
+    shape
+        .get("enum")
+        .and_then(serde_json::Value::as_array)
+        .map(|v| v.iter().filter_map(serde_json::Value::as_str).collect())
+        .unwrap_or_default()
 }

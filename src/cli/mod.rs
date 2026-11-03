@@ -30,6 +30,7 @@ mod shorthand;
 mod skeleton;
 mod tables;
 mod validate;
+mod yamlskel;
 
 use crate::config::ConfigLookup;
 use crate::error::CliError;

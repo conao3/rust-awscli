@@ -1,6 +1,13 @@
-//! botocore handlers that run around every call, keyed by model traits
-//! (`botocore/handlers.py` `BUILTIN_HANDLERS`, `botocore/client.py`
-//! `_make_api_call`, `botocore/httpchecksum.py`, `botocore/compress.py`).
+//! botocore handlers that run around every call (`botocore/handlers.py`
+//! `BUILTIN_HANDLERS`, `botocore/client.py` `_make_api_call`,
+//! `botocore/httpchecksum.py`, `botocore/compress.py`) and the CLI's
+//! handlers that change requests and responses of model-driven
+//! operations.
+//!
+//! Each event runs the handlers in botocore's dispatch order: the most
+//! specific event name first (`<event>.<service-id>.<Operation>`, then
+//! `<event>.<service-id>`, then `<event>`), and in registration order for
+//! one name.
 
 use std::io::Write;
 
@@ -11,19 +18,108 @@ use sha1::Digest as _;
 
 use crate::config::ConfigLookup;
 use crate::model::{Operation, ServiceModel};
-use crate::protocol::HttpRequest;
-use crate::value::Value;
+use crate::protocol::{HttpRequest, HttpResponse};
+use crate::value::{Map, Value};
 
-/// `before-parameter-build` handlers: `generate_idempotent_uuid` and
+mod decode;
+mod glacier;
+pub mod presign;
+mod s3;
+mod services;
+
+#[cfg(test)]
+mod tests;
+
+pub use presign::PresignEnv;
+
+/// The `request_context` entries handlers share between the events of
+/// one call.
+#[derive(Debug, Clone, Default)]
+pub struct CallContext {
+    /// `context['encoding_type_auto_set']`.
+    pub encoding_type_auto_set: bool,
+}
+
+/// botocore `ParamValidationError` raised by a handler.
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+#[error("Parameter validation failed:\n{0}")]
+pub struct ParamValidationError(pub String);
+
+/// A Python exception a handler lets propagate; `Display` is
+/// `str(exception)`.
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+#[error("{0}")]
+pub struct PythonError(pub String);
+
+/// `KeyError(key)`.
+fn key_error(key: &str) -> anyhow::Error {
+    PythonError(format!("'{key}'")).into()
+}
+
+/// `ServiceId.hyphenize()`, the service part of event names.
+pub fn service_id(model: &ServiceModel) -> String {
+    crate::session::hyphenize(model.metadata_str("serviceId").unwrap_or(&model.name))
+}
+
+/// `urllib.parse.unquote`: `%XX` escapes decoded as UTF-8 with
+/// replacement; other characters kept.
+pub fn unquote(s: &str) -> String {
+    if !s.contains('%') {
+        return s.to_string();
+    }
+    let mut out = String::with_capacity(s.len());
+    let mut run: Vec<u8> = Vec::new();
+    let bytes = s.as_bytes();
+    let hex = |b: u8| (b as char).to_digit(16);
+    let mut i = 0;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if !b.is_ascii() {
+            out.push_str(&String::from_utf8_lossy(&run));
+            run.clear();
+            let c = s[i..].chars().next().expect("char boundary");
+            out.push(c);
+            i += c.len_utf8();
+            continue;
+        }
+        if b == b'%'
+            && i + 2 < bytes.len()
+            && let (Some(h), Some(l)) = (hex(bytes[i + 1]), hex(bytes[i + 2]))
+        {
+            run.push((h * 16 + l) as u8);
+            i += 3;
+            continue;
+        }
+        run.push(b);
+        i += 1;
+    }
+    out.push_str(&String::from_utf8_lossy(&run));
+    out
+}
+
+/// `before-parameter-build.<service-id>.<Operation>`: the service handlers
+/// (most specific first), then `generate_idempotent_uuid` and
 /// `_handle_request_validation_mode_member`.
 pub fn before_parameter_build(
+    model: &ServiceModel,
     operation: &Operation<'_>,
     params: &mut Value,
     config: &dyn ConfigLookup,
-) {
+) -> Result<CallContext> {
+    let mut context = CallContext::default();
     let Some(map) = params.as_map_mut() else {
-        return;
+        return Ok(context);
     };
+    match service_id(model).as_str() {
+        "s3" => s3::before_parameter_build(operation, map, &mut context)?,
+        "ec2" if operation.name == "RunInstances" => services::base64_encode_user_data(map),
+        "auto-scaling" if operation.name == "CreateLaunchConfiguration" => {
+            services::base64_encode_user_data(map)
+        }
+        "route-53" => services::fix_route53_ids(operation, map),
+        "glacier" => glacier::inject_account_id(map),
+        _ => {}
+    }
     if let Some(input) = operation.input() {
         for (name, member) in input.members() {
             if member.get_bool("idempotencyToken") && !map.contains_key(name) {
@@ -46,8 +142,105 @@ pub fn before_parameter_build(
     {
         map.insert(mode_member.to_string(), Value::str("ENABLED"));
     }
+    Ok(context)
 }
 
+/// `before-call.<service-id>.<Operation>`: the service handlers (most
+/// specific first), then `inject_api_version_header_if_needed`.
+pub fn before_call(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    params: &Value,
+    request: &mut HttpRequest,
+    presign: &PresignEnv<'_>,
+) -> Result<()> {
+    match (service_id(model).as_str(), operation.name) {
+        ("s3", _) => s3::before_call(operation, params, request),
+        ("glacier", _) => glacier::before_call(model, operation, request),
+        ("api-gateway", _) => add_accept_header(request),
+        ("ec2", "CopySnapshot") => presign::inject_presigned_url_ec2(request, presign)?,
+        (
+            "rds",
+            "CopyDBClusterSnapshot"
+            | "CreateDBCluster"
+            | "CopyDBSnapshot"
+            | "CreateDBInstanceReadReplica"
+            | "StartDBInstanceAutomatedBackupsReplication",
+        )
+        | ("neptune" | "docdb", "CopyDBClusterSnapshot" | "CreateDBCluster") => {
+            presign::inject_presigned_url_rds(request, presign)?
+        }
+        _ => {}
+    }
+    inject_api_version_header(model, operation, request);
+    Ok(())
+}
+
+/// `request-created.<service-id>.<Operation>` before the request is
+/// signed: `switch_host_machinelearning` and `change_get_to_post`. `url` is
+/// the request URL; returns the new URL when a handler changed it (the
+/// body and method are changed in place).
+pub fn request_created(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    request: &mut HttpRequest,
+    url: &str,
+) -> Option<String> {
+    match (service_id(model).as_str(), operation.name) {
+        ("machine-learning", "Predict") => {
+            services::switch_host_machinelearning(url, &request.body)
+        }
+        ("cloudsearch-domain", "Search") => {
+            let (url, body) = services::change_get_to_post(&request.method, url)?;
+            set_header(
+                &mut request.headers,
+                "Content-Type",
+                "application/x-www-form-urlencoded",
+            );
+            request.method = "POST".to_string();
+            request.body = body;
+            Some(url)
+        }
+        _ => None,
+    }
+}
+
+/// `before-parse.<service-id>.<Operation>`: may change the response
+/// before it is parsed; returns `customized_response_dict`, merged into
+/// the parsed response.
+pub fn before_parse(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    response: &mut HttpResponse,
+) -> Map {
+    if service_id(model) == "s3" {
+        s3::before_parse(operation, response)
+    } else {
+        Map::new()
+    }
+}
+
+/// `after-call.<service-id>.<Operation>` on the parsed response (success
+/// or error). `paginate` is the CLI's `parsed_globals.paginate`.
+pub fn after_call(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    parsed: &mut Value,
+    response: &HttpResponse,
+    context: &CallContext,
+    paginate: bool,
+) -> Result<()> {
+    match (service_id(model).as_str(), operation.name) {
+        ("iam", _) => decode::json_decode_policies(parsed, operation.output()),
+        ("ec2", "GetConsoleOutput") => decode::decode_console_output(parsed),
+        ("cloudformation", "GetTemplate") => decode::json_decode_template_body(parsed),
+        ("s3", _) => s3::after_call(operation, parsed, response, context)?,
+        ("data-pipeline", "GetPipelineDefinition") => decode::api_to_definition(parsed)?,
+        ("dynamodb", _) if paginate => decode::parse_last_evaluated_key_binary(parsed)?,
+        _ => {}
+    }
+    Ok(())
+}
 fn http_checksum<'a>(
     operation: &Operation<'a>,
 ) -> Option<&'a serde_json::Map<String, serde_json::Value>> {
@@ -251,12 +444,11 @@ pub fn set_header(headers: &mut Vec<(String, String)>, name: &str, value: &str) 
 }
 
 /// `add_accept_header` (`before-call.api-gateway`).
-pub fn add_accept_header(model: &ServiceModel, request: &mut HttpRequest) {
-    if model.metadata_str("serviceId") == Some("API Gateway")
-        && !request
-            .headers
-            .iter()
-            .any(|(k, _)| k.eq_ignore_ascii_case("Accept"))
+fn add_accept_header(request: &mut HttpRequest) {
+    if !request
+        .headers
+        .iter()
+        .any(|(k, _)| k.eq_ignore_ascii_case("Accept"))
     {
         request
             .headers

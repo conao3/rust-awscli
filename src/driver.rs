@@ -131,6 +131,9 @@ impl Context {
         if let Some(se) = e.downcast_ref::<SessionError>() {
             return self.session_error(se);
         }
+        if let Some(pe) = e.downcast_ref::<handlers::ParamValidationError>() {
+            return self.structured_error(ExitCode::Usage, "ParamValidation", &pe.to_string());
+        }
         if let Some(ee) = e.downcast_ref::<EndpointError>() {
             let code = if ee.exit_code() == 252 {
                 ExitCode::Usage
@@ -278,7 +281,12 @@ impl<'a> Caller<'a> {
     pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
         let mut params = params.clone();
-        handlers::before_parameter_build(&self.operation, &mut params, &ctx.session);
+        let call_ctx = handlers::before_parameter_build(
+            self.model,
+            &self.operation,
+            &mut params,
+            &ctx.session,
+        )?;
 
         let mut builtins = self.builtins.clone();
         if self.model.name == "s3" {
@@ -301,52 +309,104 @@ impl<'a> Caller<'a> {
         handlers::set_header(&mut request.headers, "User-Agent", "");
         let checksum =
             handlers::resolve_request_checksum(&self.operation, &params, &request, &ctx.session)?;
-        handlers::add_accept_header(self.model, &mut request);
-        handlers::inject_api_version_header(self.model, &self.operation, &mut request);
+        let url = ctx.session.request_url(&endpoint, &request)?;
+        let region = ctx.session.client_settings()?.region;
+        let signing_name = endpoint
+            .properties
+            .get("authSchemes")
+            .and_then(|s| s.as_array())
+            .and_then(|s| s.first())
+            .and_then(|s| s.get("signingName"))
+            .and_then(|s| s.as_str())
+            .unwrap_or_else(|| self.model.signing_name())
+            .to_string();
+        let credentials = || -> Result<Option<crate::session::sign::Credentials>> {
+            Ok(block_on(
+                &ctx.runtime,
+                ctx.session.credentials(region.as_deref()),
+            )?)
+        };
+        let presign = handlers::PresignEnv {
+            url: &url,
+            region: region.as_deref(),
+            signing_name: &signing_name,
+            credentials: &credentials,
+            unsigned: ctx.globals.no_sign_request,
+            now: chrono::Utc::now(),
+        };
+        handlers::before_call(self.model, &self.operation, &params, &mut request, &presign)?;
         handlers::maybe_compress_request(&self.operation, &mut request, &ctx.session)?;
         if let Some(checksum) = &checksum {
             handlers::apply_request_checksum(&mut request, checksum)?;
         }
         endpoint.headers.clear();
+        let url = ctx.session.request_url(&endpoint, &request)?;
+        if let Some(new_url) =
+            handlers::request_created(self.model, &self.operation, &mut request, &url)
+        {
+            endpoint.url = new_url;
+            request.url_path = String::new();
+            request.query.clear();
+            request.host_prefix = None;
+        }
 
         let outcome = block_on(
             &ctx.runtime,
             ctx.session
                 .send(self.model, &self.operation, &endpoint, &request),
         )?;
-        let response = &outcome.response;
-        if response.status >= 300 {
+        let mut response = outcome.response;
+        let customized = handlers::before_parse(self.model, &self.operation, &mut response);
+        let failed = response.status >= 300;
+        let (mut parsed, error_code) = if failed {
             let error =
-                protocol::parse_error(self.model, &self.operation, response, &self.parse_options)?;
-            let mut parsed = error.parsed.clone();
-            set_retry_attempts(&mut parsed, outcome.attempts);
-            let modeled_fields = modeled_error_fields(self.model, &error.code);
-            let code = if error.code.is_empty() {
-                "Unknown".to_string()
-            } else {
-                error.code.clone()
-            };
-            let message = parsed
-                .get("Error")
-                .and_then(|e| e.get("Message"))
-                .and_then(Value::as_str)
-                .map(str::to_string)
-                .unwrap_or_else(|| "Unknown".to_string());
-            return Ok(CallResult::ServiceError(Box::new(ClientErrorInfo {
-                operation_name: self.operation.name.to_string(),
-                code,
-                message,
-                max_retries_reached: outcome
-                    .max_attempts_reached
-                    .then(|| outcome.attempts.saturating_sub(1)),
-                parsed,
-                modeled_fields: Some(modeled_fields),
-            })));
+                protocol::parse_error(self.model, &self.operation, &response, &self.parse_options)?;
+            (error.parsed, error.code)
+        } else {
+            (
+                protocol::parse(self.model, &self.operation, &response, &self.parse_options)?,
+                String::new(),
+            )
+        };
+        if let Some(map) = parsed.as_map_mut() {
+            map.extend(customized);
         }
-        let mut parsed =
-            protocol::parse(self.model, &self.operation, response, &self.parse_options)?;
         set_retry_attempts(&mut parsed, outcome.attempts);
-        Ok(CallResult::Ok(parsed))
+        handlers::after_call(
+            self.model,
+            &self.operation,
+            &mut parsed,
+            &response,
+            &call_ctx,
+            !ctx.globals.no_paginate,
+        )?;
+        if !failed {
+            return Ok(CallResult::Ok(parsed));
+        }
+        let modeled_fields = modeled_error_fields(self.model, &error_code);
+        let code = parsed
+            .get("Error")
+            .and_then(|e| e.get("Code"))
+            .and_then(Value::as_str)
+            .filter(|c| !c.is_empty())
+            .unwrap_or("Unknown")
+            .to_string();
+        let message = parsed
+            .get("Error")
+            .and_then(|e| e.get("Message"))
+            .and_then(Value::as_str)
+            .map(str::to_string)
+            .unwrap_or_else(|| "Unknown".to_string());
+        Ok(CallResult::ServiceError(Box::new(ClientErrorInfo {
+            operation_name: self.operation.name.to_string(),
+            code,
+            message,
+            max_retries_reached: outcome
+                .max_attempts_reached
+                .then(|| outcome.attempts.saturating_sub(1)),
+            parsed,
+            modeled_fields: Some(modeled_fields),
+        })))
     }
 }
 

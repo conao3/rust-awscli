@@ -627,7 +627,7 @@ pub(crate) fn parse_xml(body: &[u8]) -> std::result::Result<Element, ResponsePar
     })
 }
 
-fn parse_xml_inner(body: &[u8]) -> std::result::Result<Element, String> {
+pub(crate) fn parse_xml_inner(body: &[u8]) -> std::result::Result<Element, String> {
     let fail = |msg: &str, text: &str, offset: usize| {
         let (line, column) = position(text, offset);
         format!("{msg}: line {line}, column {column}")

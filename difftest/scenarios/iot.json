@@ -1,0 +1,126 @@
+[
+ {
+  "name": "iot create-keys-and-certificate outfiles",
+  "argv": [
+   "iot",
+   "create-keys-and-certificate",
+   "--set-as-active",
+   "--certificate-pem-outfile",
+   "cert.pem",
+   "--public-key-outfile",
+   "pub.key",
+   "--private-key-outfile",
+   "priv.key",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"certificateArn\": \"arn:c\", \"certificateId\": \"cid\", \"certificatePem\": \"-----BEGIN CERTIFICATE-----\\nabc\\n-----END CERTIFICATE-----\\n\", \"keyPair\": {\"PublicKey\": \"PUB\\n\", \"PrivateKey\": \"PRIV\\n\"}}"
+   }
+  ],
+  "outputs": [
+   "cert.pem",
+   "pub.key",
+   "priv.key"
+  ]
+ },
+ {
+  "name": "iot create-keys-and-certificate one outfile",
+  "argv": [
+   "iot",
+   "create-keys-and-certificate",
+   "--private-key-outfile",
+   "priv.key",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"certificateArn\": \"arn:c\", \"certificateId\": \"cid\", \"certificatePem\": \"-----BEGIN CERTIFICATE-----\\nabc\\n-----END CERTIFICATE-----\\n\", \"keyPair\": {\"PublicKey\": \"PUB\\n\", \"PrivateKey\": \"PRIV\\n\"}}"
+   }
+  ],
+  "outputs": [
+   "priv.key",
+   "cert.pem"
+  ]
+ },
+ {
+  "name": "iot create-keys-and-certificate missing key",
+  "argv": [
+   "iot",
+   "create-keys-and-certificate",
+   "--public-key-outfile",
+   "pub.key",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"certificateArn\": \"a\"}"
+   }
+  ],
+  "outputs": [
+   "pub.key"
+  ]
+ },
+ {
+  "name": "iot create-certificate-from-csr",
+  "argv": [
+   "iot",
+   "create-certificate-from-csr",
+   "--certificate-signing-request",
+   "csr",
+   "--certificate-pem-outfile",
+   "cert.pem",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"certificateArn\": \"a\", \"certificatePem\": \"PEM\"}"
+   }
+  ],
+  "outputs": [
+   "cert.pem"
+  ]
+ },
+ {
+  "name": "iot create-certificate-from-csr unwritable",
+  "argv": [
+   "iot",
+   "create-certificate-from-csr",
+   "--certificate-signing-request",
+   "csr",
+   "--certificate-pem-outfile",
+   "/nonexistent/x/cert.pem",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"certificateArn\": \"a\"}"
+   }
+  ]
+ }
+]

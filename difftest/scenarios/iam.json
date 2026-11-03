@@ -1,0 +1,180 @@
+[
+ {
+  "name": "iam create-virtual-mfa-device qr",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--outfile",
+   "qr.png",
+   "--bootstrap-method",
+   "QRCodePNG",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateVirtualMFADeviceResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateVirtualMFADeviceResult><VirtualMFADevice><SerialNumber>arn:aws:iam::1:mfa/x</SerialNumber><Base32StringSeed>SkJTV0dZM0RNUlNHUzNUQg==</Base32StringSeed><QRCodePNG>aVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQUFF</QRCodePNG></VirtualMFADevice></CreateVirtualMFADeviceResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateVirtualMFADeviceResponse>"
+   }
+  ],
+  "outputs": [
+   "qr.png"
+  ]
+ },
+ {
+  "name": "iam create-virtual-mfa-device seed",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--outfile",
+   "seed.txt",
+   "--bootstrap-method",
+   "Base32StringSeed",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateVirtualMFADeviceResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateVirtualMFADeviceResult><VirtualMFADevice><SerialNumber>arn:aws:iam::1:mfa/x</SerialNumber><Base32StringSeed>SkJTV0dZM0RNUlNHUzNUQg==</Base32StringSeed><QRCodePNG>aVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQUFF</QRCodePNG></VirtualMFADevice></CreateVirtualMFADeviceResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateVirtualMFADeviceResponse>"
+   }
+  ],
+  "outputs": [
+   "seed.txt"
+  ]
+ },
+ {
+  "name": "iam create-virtual-mfa-device method missing in response",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--outfile",
+   "seed.txt",
+   "--bootstrap-method",
+   "Base32StringSeed",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateVirtualMFADeviceResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateVirtualMFADeviceResult><VirtualMFADevice><SerialNumber>arn:aws:iam::1:mfa/x</SerialNumber></VirtualMFADevice></CreateVirtualMFADeviceResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateVirtualMFADeviceResponse>"
+   }
+  ],
+  "outputs": [
+   "seed.txt"
+  ]
+ },
+ {
+  "name": "iam create-virtual-mfa-device bad method",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--outfile",
+   "seed.txt",
+   "--bootstrap-method",
+   "Foo",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateVirtualMFADeviceResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateVirtualMFADeviceResult><VirtualMFADevice><SerialNumber>arn:aws:iam::1:mfa/x</SerialNumber><Base32StringSeed>SkJTV0dZM0RNUlNHUzNUQg==</Base32StringSeed><QRCodePNG>aVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQUFF</QRCodePNG></VirtualMFADevice></CreateVirtualMFADeviceResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateVirtualMFADeviceResponse>"
+   }
+  ]
+ },
+ {
+  "name": "iam create-virtual-mfa-device missing outfile",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--bootstrap-method",
+   "QRCodePNG",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateVirtualMFADeviceResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateVirtualMFADeviceResult><VirtualMFADevice><SerialNumber>arn:aws:iam::1:mfa/x</SerialNumber><Base32StringSeed>SkJTV0dZM0RNUlNHUzNUQg==</Base32StringSeed><QRCodePNG>aVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQUFF</QRCodePNG></VirtualMFADevice></CreateVirtualMFADeviceResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateVirtualMFADeviceResponse>"
+   }
+  ]
+ },
+ {
+  "name": "iam create-virtual-mfa-device unwritable",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--outfile",
+   "/nonexistent/dir/qr.png",
+   "--bootstrap-method",
+   "QRCodePNG",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateVirtualMFADeviceResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateVirtualMFADeviceResult><VirtualMFADevice><SerialNumber>arn:aws:iam::1:mfa/x</SerialNumber><Base32StringSeed>SkJTV0dZM0RNUlNHUzNUQg==</Base32StringSeed><QRCodePNG>aVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQUFF</QRCodePNG></VirtualMFADevice></CreateVirtualMFADeviceResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateVirtualMFADeviceResponse>"
+   }
+  ]
+ },
+ {
+  "name": "iam create-virtual-mfa-device error",
+  "argv": [
+   "iam",
+   "create-virtual-mfa-device",
+   "--virtual-mfa-device-name",
+   "x",
+   "--outfile",
+   "qr.png",
+   "--bootstrap-method",
+   "QRCodePNG",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 409,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>EntityAlreadyExists</Code><Message>exists</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ],
+  "outputs": [
+   "qr.png"
+  ]
+ }
+]

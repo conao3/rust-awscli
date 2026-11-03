@@ -1,0 +1,1875 @@
+{
+ "terminate-clusters": [
+  {
+   "name": "cluster-ids",
+   "nargs": "+",
+   "required": true,
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   }
+  }
+ ],
+ "describe-cluster": [
+  {
+   "name": "cluster-id",
+   "required": true
+  }
+ ],
+ "modify-cluster-attributes": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "visible-to-all-users",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "no-visible-to-all-users",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "termination-protected",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "no-termination-protected",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "auto-terminate",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "no-auto-terminate",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "unhealthy-node-replacement",
+   "required": false,
+   "action": "store_true"
+  },
+  {
+   "name": "no-unhealthy-node-replacement",
+   "required": false,
+   "action": "store_true"
+  }
+ ],
+ "install-applications": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "applications",
+   "required": true,
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Name": {
+       "type": "string",
+       "description": "Application name.",
+       "enum": [
+        "MapR",
+        "HUE",
+        "HIVE",
+        "PIG",
+        "HBASE",
+        "IMPALA",
+        "GANGLIA",
+        "HADOOP",
+        "SPARK"
+       ],
+       "required": true
+      },
+      "Args": {
+       "type": "array",
+       "description": "A list of arguments to pass to the application.",
+       "items": {
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  }
+ ],
+ "create-cluster": [
+  {
+   "name": "release-label"
+  },
+  {
+   "name": "os-release-label"
+  },
+  {
+   "name": "ami-version"
+  },
+  {
+   "name": "instance-groups",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Name": {
+       "type": "string",
+       "description": "Friendly name given to the instance group."
+      },
+      "InstanceGroupType": {
+       "type": "string",
+       "description": "The type of the instance group in the cluster.",
+       "enum": [
+        "MASTER",
+        "CORE",
+        "TASK"
+       ],
+       "required": true
+      },
+      "BidPrice": {
+       "type": "string",
+       "description": "Bid price for each Amazon EC2 instance in the instance group when launching nodes as Spot Instances, expressed in USD."
+      },
+      "InstanceType": {
+       "type": "string",
+       "description": "The Amazon EC2 instance type for all instances in the instance group.",
+       "required": true
+      },
+      "InstanceCount": {
+       "type": "integer",
+       "description": "Target number of Amazon EC2 instances for the instance group",
+       "required": true
+      },
+      "CustomAmiId": {
+       "type": "string",
+       "description": "The AMI ID of a custom AMI to use when Amazon EMR provisions EC2 instances."
+      },
+      "EbsConfiguration": {
+       "type": "object",
+       "description": "EBS configuration that will be associated with the instance group.",
+       "properties": {
+        "EbsOptimized": {
+         "type": "boolean",
+         "description": "Boolean flag used to tag EBS-optimized instances."
+        },
+        "EbsBlockDeviceConfigs": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "VolumeSpecification": {
+            "type": "object",
+            "description": "The EBS volume specification that will be created and attached to every instance in this instance group.",
+            "properties": {
+             "VolumeType": {
+              "type": "string",
+              "description": "The EBS volume type that is attached to all the instances in the instance group. Valid types are: gp2, io1, and standard.",
+              "required": true
+             },
+             "SizeInGB": {
+              "type": "integer",
+              "description": "The EBS volume size, in GB, that is attached to all the instances in the instance group.",
+              "required": true
+             },
+             "Iops": {
+              "type": "integer",
+              "description": "The IOPS of the EBS volume that is attached to all the instances in the instance group."
+             },
+             "Throughput": {
+              "type": "integer",
+              "description": "The throughput of the EBS volume that is attached to all the instances in the instance group."
+             }
+            }
+           },
+           "VolumesPerInstance": {
+            "type": "integer",
+            "description": "The number of EBS volumes that will be created and attached to each instance in the instance group."
+           }
+          }
+         }
+        }
+       }
+      },
+      "AutoScalingPolicy": {
+       "type": "object",
+       "description": "Auto Scaling policy that will be associated with the instance group.",
+       "properties": {
+        "Constraints": {
+         "type": "object",
+         "description": "The Constraints that will be associated to an Auto Scaling policy.",
+         "properties": {
+          "MinCapacity": {
+           "type": "integer",
+           "description": "The minimum value for the instances to scale in to in response to scaling activities."
+          },
+          "MaxCapacity": {
+           "type": "integer",
+           "description": "The maximum value for the instances to scale out to in response to scaling activities"
+          }
+         }
+        },
+        "Rules": {
+         "type": "array",
+         "description": "The Rules associated to an Auto Scaling policy.",
+         "items": {
+          "type": "object",
+          "properties": {
+           "Name": {
+            "type": "string",
+            "description": "Name of the Auto Scaling rule."
+           },
+           "Description": {
+            "type": "string",
+            "description": "Description of the Auto Scaling rule."
+           },
+           "Action": {
+            "type": "object",
+            "description": "The Action associated to an Auto Scaling rule.",
+            "properties": {
+             "Market": {
+              "type": "string",
+              "description": "Market type of the Amazon EC2 instances used to create a cluster node by Auto Scaling action.",
+              "enum": [
+               "ON_DEMAND",
+               "SPOT"
+              ]
+             },
+             "SimpleScalingPolicyConfiguration": {
+              "type": "object",
+              "description": "The Simple scaling configuration that will be associatedto Auto Scaling action.",
+              "properties": {
+               "AdjustmentType": {
+                "type": "string",
+                "description": "Specifies how the ScalingAdjustment parameter is interpreted.",
+                "enum": [
+                 "CHANGE_IN_CAPACITY",
+                 "PERCENT_CHANGE_IN_CAPACITY",
+                 "EXACT_CAPACITY"
+                ]
+               },
+               "ScalingAdjustment": {
+                "type": "integer",
+                "description": "The amount by which to scale, based on the specified adjustment type."
+               },
+               "CoolDown": {
+                "type": "integer",
+                "description": "The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start."
+               }
+              }
+             }
+            }
+           },
+           "Trigger": {
+            "type": "object",
+            "description": "The Trigger associated to an Auto Scaling rule.",
+            "properties": {
+             "CloudWatchAlarmDefinition": {
+              "type": "object",
+              "description": "The Alarm to be registered with CloudWatch, to trigger scaling activities.",
+              "properties": {
+               "ComparisonOperator": {
+                "type": "string",
+                "description": "The arithmetic operation to use when comparing the specified Statistic and Threshold."
+               },
+               "EvaluationPeriods": {
+                "type": "integer",
+                "description": "The number of periods over which data is compared to the specified threshold."
+               },
+               "MetricName": {
+                "type": "string",
+                "description": "The name for the alarm's associated metric."
+               },
+               "Namespace": {
+                "type": "string",
+                "description": "The namespace for the alarm's associated metric."
+               },
+               "Period": {
+                "type": "integer",
+                "description": "The period in seconds over which the specified statistic is applied."
+               },
+               "Statistic": {
+                "type": "string",
+                "description": "The statistic to apply to the alarm's associated metric."
+               },
+               "Threshold": {
+                "type": "double",
+                "description": "The value against which the specified statistic is compared."
+               },
+               "Unit": {
+                "type": "string",
+                "description": "The statistic's unit of measure."
+               },
+               "Dimensions": {
+                "type": "array",
+                "description": "The dimensions for the alarm's associated metric.",
+                "items": {
+                 "type": "object",
+                 "properties": {
+                  "Key": {
+                   "type": "string",
+                   "description": "Dimension Key."
+                  },
+                  "Value": {
+                   "type": "string",
+                   "description": "Dimension Value."
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "Configurations": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "Classification": {
+          "type": "string",
+          "description": "Application configuration classification name"
+         },
+         "Properties": {
+          "type": "map",
+          "key": {
+           "type": "string",
+           "description": "Configuration key"
+          },
+          "value": {
+           "type": "string",
+           "description": "Configuration value"
+          },
+          "description": "Application configuration properties"
+         },
+         "Configurations": {
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "Classification": {
+             "type": "string",
+             "description": "Application configuration classification name"
+            },
+            "Properties": {
+             "type": "map",
+             "key": {
+              "type": "string",
+              "description": "Configuration key"
+             },
+             "value": {
+              "type": "string",
+              "description": "Configuration value"
+             },
+             "description": "Application configuration properties"
+            }
+           }
+          },
+          "description": "Instance group application configurations."
+         }
+        }
+       },
+       "description": "Instance group application configurations."
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "instance-type"
+  },
+  {
+   "name": "instance-count"
+  },
+  {
+   "name": "auto-terminate",
+   "action": "store_true"
+  },
+  {
+   "name": "no-auto-terminate",
+   "action": "store_true"
+  },
+  {
+   "name": "instance-fleets",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Name": {
+       "type": "string",
+       "description": "Friendly name given to the instance fleet."
+      },
+      "InstanceFleetType": {
+       "type": "string",
+       "description": "The type of the instance fleet in the cluster.",
+       "enum": [
+        "MASTER",
+        "CORE",
+        "TASK"
+       ],
+       "required": true
+      },
+      "TargetOnDemandCapacity": {
+       "type": "integer",
+       "description": "Target on-demand capacity for the instance fleet."
+      },
+      "TargetSpotCapacity": {
+       "type": "integer",
+       "description": "Target spot capacity for the instance fleet."
+      },
+      "InstanceTypeConfigs": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "InstanceType": {
+          "type": "string",
+          "description": "The Amazon EC2 instance type for the instance fleet.",
+          "required": true
+         },
+         "WeightedCapacity": {
+          "type": "integer",
+          "description": "The weight assigned to an instance type, which will impact the overall fulfillment of the capacity."
+         },
+         "BidPrice": {
+          "type": "string",
+          "description": "Bid price for each Amazon EC2 instance in the instance fleet when launching nodes as Spot Instances, expressed in USD."
+         },
+         "BidPriceAsPercentageOfOnDemandPrice": {
+          "type": "double",
+          "description": "Bid price as percentage of on-demand price."
+         },
+         "CustomAmiId": {
+          "type": "string",
+          "description": "The AMI ID of a custom AMI to use when Amazon EMR provisions EC2 instances."
+         },
+         "Priority": {
+          "type": "double",
+          "description": "The priority at which Amazon EMR launches the EC2 instances with this instance type. Priority starts at 0, which is the highest priority. Amazon EMR considers the highest priority first."
+         },
+         "EbsConfiguration": {
+          "type": "object",
+          "description": "EBS configuration that is associated with the instance group.",
+          "properties": {
+           "EbsOptimized": {
+            "type": "boolean",
+            "description": "Boolean flag used to tag EBS-optimized instances."
+           },
+           "EbsBlockDeviceConfigs": {
+            "type": "array",
+            "items": {
+             "type": "object",
+             "properties": {
+              "VolumeSpecification": {
+               "type": "object",
+               "description": "The EBS volume specification that is created and attached to each instance in the instance group.",
+               "properties": {
+                "VolumeType": {
+                 "type": "string",
+                 "description": "The EBS volume type that is attached to all the instances in the instance group. Valid types are: gp2, io1, and standard.",
+                 "required": true
+                },
+                "SizeInGB": {
+                 "type": "integer",
+                 "description": "The EBS volume size, in GB, that is attached to all the instances in the instance group.",
+                 "required": true
+                },
+                "Iops": {
+                 "type": "integer",
+                 "description": "The IOPS of the EBS volume that is attached to all the instances in the instance group."
+                },
+                "Throughput": {
+                 "type": "integer",
+                 "description": "The throughput of the EBS volume that is attached to all the instances in the instance group."
+                }
+               }
+              },
+              "VolumesPerInstance": {
+               "type": "integer",
+               "description": "The number of EBS volumes that will be created and attached to each instance in the instance group."
+              }
+             }
+            }
+           }
+          }
+         },
+         "Configurations": {
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "Classification": {
+             "type": "string",
+             "description": "Application configuration classification name"
+            },
+            "Properties": {
+             "type": "map",
+             "key": {
+              "type": "string",
+              "description": "Configuration key"
+             },
+             "value": {
+              "type": "string",
+              "description": "Configuration value"
+             },
+             "description": "Application configuration properties"
+            },
+            "Configurations": {
+             "type": "array",
+             "items": {
+              "type": "object",
+              "properties": {
+               "Classification": {
+                "type": "string",
+                "description": "Application configuration classification name"
+               },
+               "Properties": {
+                "type": "map",
+                "key": {
+                 "type": "string",
+                 "description": "Configuration key"
+                },
+                "value": {
+                 "type": "string",
+                 "description": "Configuration value"
+                },
+                "description": "Application configuration properties"
+               }
+              }
+             },
+             "description": "Instance group application configurations."
+            }
+           }
+          },
+          "description": "Instance group application configurations."
+         }
+        }
+       }
+      },
+      "LaunchSpecifications": {
+       "type": "object",
+       "properties": {
+        "OnDemandSpecification": {
+         "type": "object",
+         "properties": {
+          "AllocationStrategy": {
+           "type": "string",
+           "description": "The strategy to use to launch On-Demand instance fleets.",
+           "enum": [
+            "lowest-price",
+            "prioritized"
+           ]
+          },
+          "CapacityReservationOptions": {
+           "type": "object",
+           "properties": {
+            "UsageStrategy": {
+             "type": "string",
+             "description": "The strategy of whether to use available capacity reservations to fulfill On-Demand capacity.",
+             "enum": [
+              "use-capacity-reservations-first"
+             ]
+            },
+            "CapacityReservationPreference": {
+             "type": "string",
+             "description": "The preference of the capacity reservation of the instance.",
+             "enum": [
+              "open",
+              "none"
+             ]
+            },
+            "CapacityReservationResourceGroupArn": {
+             "type": "string",
+             "description": "The ARN of the capacity reservation resource group in which to run the instance."
+            }
+           }
+          }
+         }
+        },
+        "SpotSpecification": {
+         "type": "object",
+         "properties": {
+          "TimeoutDurationMinutes": {
+           "type": "integer",
+           "description": "The time, in minutes, after which the action specified in TimeoutAction field will be performed if requested resources are unavailable."
+          },
+          "TimeoutAction": {
+           "type": "string",
+           "description": "The action that is performed after TimeoutDurationMinutes.",
+           "enum": [
+            "TERMINATE_CLUSTER",
+            "SWITCH_TO_ONDEMAND"
+           ]
+          },
+          "BlockDurationMinutes": {
+           "type": "integer",
+           "description": "Block duration in minutes."
+          },
+          "AllocationStrategy": {
+           "type": "string",
+           "description": "The strategy to use to launch Spot instance fleets.",
+           "enum": [
+            "capacity-optimized",
+            "price-capacity-optimized",
+            "lowest-price",
+            "diversified",
+            "capacity-optimized-prioritized"
+           ]
+          }
+         }
+        }
+       }
+      },
+      "ResizeSpecifications": {
+       "type": "object",
+       "properties": {
+        "SpotResizeSpecification": {
+         "type": "object",
+         "properties": {
+          "TimeoutDurationMinutes": {
+           "type": "integer",
+           "description": "The time, in minutes, after which the resize will be stopped if requested resources are unavailable."
+          },
+          "AllocationStrategy": {
+           "type": "string",
+           "description": "The strategy to use to launch Spot instance fleets.",
+           "enum": [
+            "capacity-optimized",
+            "price-capacity-optimized",
+            "lowest-price",
+            "diversified",
+            "capacity-optimized-prioritized"
+           ]
+          }
+         }
+        },
+        "OnDemandResizeSpecification": {
+         "type": "object",
+         "properties": {
+          "TimeoutDurationMinutes": {
+           "type": "integer",
+           "description": "The time, in minutes, after which the resize will be stopped if requested resources are unavailable."
+          },
+          "AllocationStrategy": {
+           "type": "string",
+           "description": "The strategy to use to launch On-Demand instance fleets.",
+           "enum": [
+            "lowest-price",
+            "prioritized"
+           ]
+          },
+          "CapacityReservationOptions": {
+           "type": "object",
+           "properties": {
+            "UsageStrategy": {
+             "type": "string",
+             "description": "The strategy of whether to use available capacity reservations to fulfill On-Demand capacity.",
+             "enum": [
+              "use-capacity-reservations-first"
+             ]
+            },
+            "CapacityReservationPreference": {
+             "type": "string",
+             "description": "The preference of the capacity reservation of the instance.",
+             "enum": [
+              "open",
+              "none"
+             ]
+            },
+            "CapacityReservationResourceGroupArn": {
+             "type": "string",
+             "description": "The ARN of the capacity reservation resource group in which to run the instance."
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "Context": {
+       "type": "string",
+       "description": "Reserved."
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "name",
+   "default": "Development Cluster"
+  },
+  {
+   "name": "log-uri"
+  },
+  {
+   "name": "log-encryption-kms-key-id"
+  },
+  {
+   "name": "service-role"
+  },
+  {
+   "name": "auto-scaling-role"
+  },
+  {
+   "name": "use-default-roles",
+   "action": "store_true"
+  },
+  {
+   "name": "configurations"
+  },
+  {
+   "name": "ec2-attributes",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "KeyName": {
+      "type": "string",
+      "description": "The name of the Amazon EC2 key pair that can be used to ssh to the master node as the user 'hadoop'."
+     },
+     "SubnetId": {
+      "type": "string",
+      "description": "To launch the cluster in Amazon Virtual Private Cloud (Amazon VPC), set this parameter to the identifier of the Amazon VPC subnet where you want the cluster to launch. If you do not specify this value, the cluster is launched in the normal Amazon Web Services cloud, outside of an Amazon VPC. "
+     },
+     "SubnetIds": {
+      "type": "array",
+      "description": "List of SubnetIds.",
+      "items": {
+       "type": "string"
+      }
+     },
+     "AvailabilityZone": {
+      "type": "string",
+      "description": "The Availability Zone the cluster will run in."
+     },
+     "AvailabilityZones": {
+      "type": "array",
+      "description": "List of AvailabilityZones.",
+      "items": {
+       "type": "string"
+      }
+     },
+     "InstanceProfile": {
+      "type": "string",
+      "description": "An IAM role for the cluster. The EC2 instances of the cluster assume this role. The default role is EMR_EC2_DefaultRole. In order to use the default role, you must have already created it using the <code>create-default-roles</code> command. "
+     },
+     "EmrManagedMasterSecurityGroup": {
+      "type": "string",
+      "description": "<p>The identifier of the Amazon EC2 security group for the master node.</p>"
+     },
+     "EmrManagedSlaveSecurityGroup": {
+      "type": "string",
+      "description": "<p>The identifier of the Amazon EC2 security group for the slave nodes.</p>"
+     },
+     "ServiceAccessSecurityGroup": {
+      "type": "string",
+      "description": "<p>The identifier of the Amazon EC2 security group for Amazon EMR to access clusters in VPC private subnets.</p>"
+     },
+     "AdditionalMasterSecurityGroups": {
+      "type": "array",
+      "description": "<p> A list of additional Amazon EC2 security group IDs for the master node</p>",
+      "items": {
+       "type": "string"
+      }
+     },
+     "AdditionalSlaveSecurityGroups": {
+      "type": "array",
+      "description": "<p>A list of additional Amazon EC2 security group IDs for the slave nodes.</p>",
+      "items": {
+       "type": "string"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "termination-protected",
+   "action": "store_true"
+  },
+  {
+   "name": "no-termination-protected",
+   "action": "store_true"
+  },
+  {
+   "name": "unhealthy-node-replacement",
+   "action": "store_true"
+  },
+  {
+   "name": "no-unhealthy-node-replacement",
+   "action": "store_true"
+  },
+  {
+   "name": "scale-down-behavior"
+  },
+  {
+   "name": "visible-to-all-users",
+   "action": "store_true"
+  },
+  {
+   "name": "no-visible-to-all-users",
+   "action": "store_true"
+  },
+  {
+   "name": "enable-debugging",
+   "action": "store_true"
+  },
+  {
+   "name": "no-enable-debugging",
+   "action": "store_true"
+  },
+  {
+   "name": "tags",
+   "nargs": "+",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   }
+  },
+  {
+   "name": "bootstrap-actions",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Name": {
+       "type": "string",
+       "default": "Bootstrap Action"
+      },
+      "Path": {
+       "type": "string",
+       "description": "Location of the script to run during a bootstrap action. Can be either a location in Amazon S3 or on a local file system.",
+       "required": true
+      },
+      "Args": {
+       "type": "array",
+       "description": "A list of command line arguments to pass to the bootstrap action script",
+       "items": {
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "applications",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Name": {
+       "type": "string",
+       "description": "Application name.",
+       "enum": [
+        "MapR",
+        "HUE",
+        "HIVE",
+        "PIG",
+        "HBASE",
+        "IMPALA",
+        "GANGLIA",
+        "HADOOP",
+        "SPARK"
+       ],
+       "required": true
+      },
+      "Args": {
+       "type": "array",
+       "description": "A list of arguments to pass to the application.",
+       "items": {
+        "type": "string"
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "emrfs",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "Consistent": {
+      "type": "boolean",
+      "description": "Enable EMRFS consistent view."
+     },
+     "SSE": {
+      "type": "boolean",
+      "description": "Enable Amazon S3 server-side encryption on files written to S3 by EMRFS."
+     },
+     "RetryCount": {
+      "type": "integer",
+      "description": "The maximum number of times to retry upon S3 inconsistency."
+     },
+     "RetryPeriod": {
+      "type": "integer",
+      "description": "The amount of time (in seconds) until the first retry. Subsequent retries use an exponential back-off."
+     },
+     "Args": {
+      "type": "array",
+      "description": "A list of arguments to pass for additional EMRFS configuration.",
+      "items": {
+       "type": "string"
+      }
+     },
+     "Encryption": {
+      "type": "string",
+      "description": "EMRFS encryption type.",
+      "enum": [
+       "SERVERSIDE",
+       "CLIENTSIDE"
+      ]
+     },
+     "ProviderType": {
+      "type": "string",
+      "description": "EMRFS client-side encryption provider type.",
+      "enum": [
+       "KMS",
+       "CUSTOM"
+      ]
+     },
+     "KMSKeyId": {
+      "type": "string",
+      "description": "AWS KMS's customer master key identifier"
+     },
+     "CustomProviderLocation": {
+      "type": "string",
+      "description": "Custom encryption provider JAR location."
+     },
+     "CustomProviderClass": {
+      "type": "string",
+      "description": "Custom encryption provider full class name."
+     }
+    }
+   }
+  },
+  {
+   "name": "steps",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Type": {
+       "type": "string",
+       "description": "The type of a step to be added to the cluster.",
+       "default": "custom_jar",
+       "enum": [
+        "CUSTOM_JAR",
+        "STREAMING",
+        "HIVE",
+        "PIG",
+        "IMPALA"
+       ]
+      },
+      "Name": {
+       "type": "string",
+       "description": "The name of the step. "
+      },
+      "ActionOnFailure": {
+       "type": "string",
+       "description": "The action to take if the cluster step fails.",
+       "enum": [
+        "TERMINATE_CLUSTER",
+        "CANCEL_AND_WAIT",
+        "CONTINUE"
+       ],
+       "default": "CONTINUE"
+      },
+      "Jar": {
+       "type": "string",
+       "description": "A path to a JAR file run during the step."
+      },
+      "Args": {
+       "type": "array",
+       "description": "A list of command line arguments to pass to the step.",
+       "items": {
+        "type": "string"
+       }
+      },
+      "MainClass": {
+       "type": "string",
+       "description": "The name of the main class in the specified Java file. If not specified, the JAR file should specify a Main-Class in its manifest file."
+      },
+      "Properties": {
+       "type": "string",
+       "description": "A list of Java properties that are set when the step runs. You can use these properties to pass key value pairs to your main function."
+      },
+      "LogUri": {
+       "type": "string",
+       "description": "The Amazon S3 destination URI for log publishing. If not specified, the cluster logging location is used."
+      },
+      "EncryptionKeyArn": {
+       "type": "string",
+       "description": "The KMS key ARN to encrypt the logs published to the given Amazon S3 destination. If not specified, the cluster KMS key is used."
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "additional-info"
+  },
+  {
+   "name": "restore-from-hbase-backup",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "Dir": {
+      "type": "string",
+      "description": "<p>The Amazon S3 location of the Hbase backup. Example: <code>s3://mybucket/mybackup</code>, where <code>mybucket</code> is the specified Amazon S3 bucket and mybackup is the specified backup location. The path argument must begin with s3://, which refers to an Amazon S3 bucket.</p>"
+     },
+     "BackupVersion": {
+      "type": "string",
+      "description": "<p>The backup version to restore from. If not specified, the latest backup in the specified location is used.</p>"
+     }
+    }
+   }
+  },
+  {
+   "name": "security-configuration"
+  },
+  {
+   "name": "custom-ami-id"
+  },
+  {
+   "name": "ebs-root-volume-size"
+  },
+  {
+   "name": "ebs-root-volume-iops"
+  },
+  {
+   "name": "ebs-root-volume-throughput"
+  },
+  {
+   "name": "repo-upgrade-on-boot"
+  },
+  {
+   "name": "kerberos-attributes",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "Realm": {
+      "type": "string",
+      "description": "The name of Kerberos realm."
+     },
+     "KdcAdminPassword": {
+      "type": "string",
+      "description": "The password of Kerberos administrator."
+     },
+     "CrossRealmTrustPrincipalPassword": {
+      "type": "string",
+      "description": "The password to establish cross-realm trusts."
+     },
+     "ADDomainJoinUser": {
+      "type": "string",
+      "description": "The name of the user with privileges to join instances to Active Directory."
+     },
+     "ADDomainJoinPassword": {
+      "type": "string",
+      "description": "The password of the user with privileges to join instances to Active Directory."
+     }
+    }
+   }
+  },
+  {
+   "name": "step-concurrency-level",
+   "cli_type_name": "integer"
+  },
+  {
+   "name": "step-execution-role-arn"
+  },
+  {
+   "name": "managed-scaling-policy",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "ComputeLimits": {
+      "type": "object",
+      "description": "The EC2 unit limits for a managed scaling policy. The managed scaling activity of a cluster is not allowed to go above or below these limits. The limits apply to CORE and TASK groups and exclude the capacity of the MASTER group.",
+      "properties": {
+       "MinimumCapacityUnits": {
+        "type": "integer",
+        "description": "The lower boundary of EC2 units. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. Managed scaling activities are not allowed beyond this boundary.",
+        "required": true
+       },
+       "MaximumCapacityUnits": {
+        "type": "integer",
+        "description": "The upper boundary of EC2 units. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. Managed scaling activities are not allowed beyond this boundary.",
+        "required": true
+       },
+       "MaximumOnDemandCapacityUnits": {
+        "type": "integer",
+        "description": "The upper boundary of on-demand EC2 units. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. The on-demand units are not allowed to scale beyond this boundary. This value must be lower than MaximumCapacityUnits."
+       },
+       "UnitType": {
+        "type": "string",
+        "description": "The unit type used for specifying a managed scaling policy.",
+        "enum": [
+         "VCPU",
+         "Instances",
+         "InstanceFleetUnits"
+        ],
+        "required": true
+       },
+       "MaximumCoreCapacityUnits": {
+        "type": "integer",
+        "description": "The upper boundary of EC2 units for core node type in a cluster. It is measured through VCPU cores or instances for instance groups and measured through units for instance fleets. The core units are not allowed to scale beyond this boundary. The parameter is used to split capacity allocation between core and task nodes."
+       }
+      }
+     },
+     "ScalingStrategy": {
+      "type": "string",
+      "enum": [
+       "DEFAULT",
+       "ADVANCED"
+      ],
+      "description": "Determines whether a custom scaling utilization performance index can be set. Possible values include ADVANCED or DEFAULT."
+     },
+     "UtilizationPerformanceIndex": {
+      "type": "integer",
+      "description": "An integer value that represents an advanced scaling strategy. Setting a higher value optimizes for performance. Setting a lower value optimizes for resource conservation. Setting the value to 50 balances performance and resource conservation. Possible values are 1, 25, 50, 75, and 100."
+     }
+    }
+   }
+  },
+  {
+   "name": "placement-group-configs",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "InstanceRole": {
+       "type": "string",
+       "description": "Role of the instance in the cluster.",
+       "enum": [
+        "MASTER",
+        "CORE",
+        "TASK"
+       ],
+       "required": true
+      },
+      "PlacementStrategy": {
+       "type": "string",
+       "description": "EC2 Placement Group strategy associated with instance role.",
+       "enum": [
+        "SPREAD",
+        "PARTITION",
+        "CLUSTER",
+        "NONE"
+       ]
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "auto-termination-policy",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "IdleTimeout": {
+      "type": "long",
+      "description": "Specifies the amount of idle time in seconds after which the cluster automatically terminates. You can specify a minimum of 60 seconds and a maximum of 604800 seconds (seven days)."
+     }
+    }
+   }
+  },
+  {
+   "name": "monitoring-configuration",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "CloudWatchLogConfiguration": {
+      "type": "object",
+      "description": "CloudWatch log configuration settings and metadata that specify settings like log files to monitor and where to send them.",
+      "properties": {
+       "Enabled": {
+        "type": "boolean",
+        "description": "Specifies if CloudWatch logging is enabled.",
+        "required": true
+       },
+       "LogGroupName": {
+        "type": "string",
+        "description": "The name of the CloudWatch log group where logs are published."
+       },
+       "LogStreamNamePrefix": {
+        "type": "string",
+        "description": "The prefix of the log stream name."
+       },
+       "EncryptionKeyArn": {
+        "type": "string",
+        "description": "The ARN of the encryption key used to encrypt the logs."
+       },
+       "LogTypes": {
+        "type": "map",
+        "key": {
+         "type": "string",
+         "description": "Log type category"
+        },
+        "value": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         },
+         "description": "File names (STDOUT or STDERR) for the log type"
+        },
+        "description": "A map of log types to file names for publishing logs to the standard output or standard error streams for CloudWatch. Valid log types include STEP_LOGS, SPARK_DRIVER, and SPARK_EXECUTOR. Valid file names for each type include STDOUT and STDERR."
+       }
+      }
+     },
+     "S3LoggingConfiguration": {
+      "type": "object",
+      "description": "S3 logging configuration settings that specify S3 upload behavior for different log types.",
+      "properties": {
+       "LogTypeUploadPolicy": {
+        "type": "map",
+        "key": {
+         "type": "string",
+         "description": "Log type category"
+        },
+        "value": {
+         "type": "string",
+         "description": "Upload policy for the log type"
+        },
+        "description": "A map of log types to their upload policies. Valid log types include system-logs, application-logs, and persistent-ui-logs. Valid upload policies include emr-managed, on-customer-s3only, and disabled."
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "extended-support",
+   "action": "store_true"
+  },
+  {
+   "name": "no-extended-support",
+   "action": "store_true"
+  },
+  {
+   "name": "session-enabled",
+   "action": "store_true"
+  },
+  {
+   "name": "no-session-enabled",
+   "action": "store_true"
+  }
+ ],
+ "add-steps": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "steps",
+   "required": true,
+   "nargs": "+",
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Type": {
+       "type": "string",
+       "description": "The type of a step to be added to the cluster.",
+       "default": "custom_jar",
+       "enum": [
+        "CUSTOM_JAR",
+        "STREAMING",
+        "HIVE",
+        "PIG",
+        "IMPALA"
+       ]
+      },
+      "Name": {
+       "type": "string",
+       "description": "The name of the step. "
+      },
+      "ActionOnFailure": {
+       "type": "string",
+       "description": "The action to take if the cluster step fails.",
+       "enum": [
+        "TERMINATE_CLUSTER",
+        "CANCEL_AND_WAIT",
+        "CONTINUE"
+       ],
+       "default": "CONTINUE"
+      },
+      "Jar": {
+       "type": "string",
+       "description": "A path to a JAR file run during the step."
+      },
+      "Args": {
+       "type": "array",
+       "description": "A list of command line arguments to pass to the step.",
+       "items": {
+        "type": "string"
+       }
+      },
+      "MainClass": {
+       "type": "string",
+       "description": "The name of the main class in the specified Java file. If not specified, the JAR file should specify a Main-Class in its manifest file."
+      },
+      "Properties": {
+       "type": "string",
+       "description": "A list of Java properties that are set when the step runs. You can use these properties to pass key value pairs to your main function."
+      },
+      "LogUri": {
+       "type": "string",
+       "description": "The Amazon S3 destination URI for log publishing. If not specified, the cluster logging location is used."
+      },
+      "EncryptionKeyArn": {
+       "type": "string",
+       "description": "The KMS key ARN to encrypt the logs published to the given Amazon S3 destination. If not specified, the cluster KMS key is used."
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "execution-role-arn",
+   "required": false
+  }
+ ],
+ "restore-from-hbase-backup": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "dir",
+   "required": true
+  },
+  {
+   "name": "backup-version"
+  }
+ ],
+ "create-hbase-backup": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "dir",
+   "required": true
+  },
+  {
+   "name": "consistent",
+   "action": "store_true"
+  }
+ ],
+ "schedule-hbase-backup": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "type",
+   "required": true
+  },
+  {
+   "name": "dir",
+   "required": true
+  },
+  {
+   "name": "interval",
+   "required": true
+  },
+  {
+   "name": "unit",
+   "required": true
+  },
+  {
+   "name": "start-time"
+  },
+  {
+   "name": "consistent",
+   "action": "store_true"
+  }
+ ],
+ "disable-hbase-backups": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "full",
+   "action": "store_true"
+  },
+  {
+   "name": "incremental",
+   "action": "store_true"
+  }
+ ],
+ "create-default-roles": [
+  {
+   "name": "iam-endpoint",
+   "no_paramfile": true
+  }
+ ],
+ "add-instance-groups": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "instance-groups",
+   "required": true,
+   "schema": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "properties": {
+      "Name": {
+       "type": "string",
+       "description": "Friendly name given to the instance group."
+      },
+      "InstanceGroupType": {
+       "type": "string",
+       "description": "The type of the instance group in the cluster.",
+       "enum": [
+        "MASTER",
+        "CORE",
+        "TASK"
+       ],
+       "required": true
+      },
+      "BidPrice": {
+       "type": "string",
+       "description": "Bid price for each Amazon EC2 instance in the instance group when launching nodes as Spot Instances, expressed in USD."
+      },
+      "InstanceType": {
+       "type": "string",
+       "description": "The Amazon EC2 instance type for all instances in the instance group.",
+       "required": true
+      },
+      "InstanceCount": {
+       "type": "integer",
+       "description": "Target number of Amazon EC2 instances for the instance group",
+       "required": true
+      },
+      "CustomAmiId": {
+       "type": "string",
+       "description": "The AMI ID of a custom AMI to use when Amazon EMR provisions EC2 instances."
+      },
+      "EbsConfiguration": {
+       "type": "object",
+       "description": "EBS configuration that will be associated with the instance group.",
+       "properties": {
+        "EbsOptimized": {
+         "type": "boolean",
+         "description": "Boolean flag used to tag EBS-optimized instances."
+        },
+        "EbsBlockDeviceConfigs": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "VolumeSpecification": {
+            "type": "object",
+            "description": "The EBS volume specification that will be created and attached to every instance in this instance group.",
+            "properties": {
+             "VolumeType": {
+              "type": "string",
+              "description": "The EBS volume type that is attached to all the instances in the instance group. Valid types are: gp2, io1, and standard.",
+              "required": true
+             },
+             "SizeInGB": {
+              "type": "integer",
+              "description": "The EBS volume size, in GB, that is attached to all the instances in the instance group.",
+              "required": true
+             },
+             "Iops": {
+              "type": "integer",
+              "description": "The IOPS of the EBS volume that is attached to all the instances in the instance group."
+             },
+             "Throughput": {
+              "type": "integer",
+              "description": "The throughput of the EBS volume that is attached to all the instances in the instance group."
+             }
+            }
+           },
+           "VolumesPerInstance": {
+            "type": "integer",
+            "description": "The number of EBS volumes that will be created and attached to each instance in the instance group."
+           }
+          }
+         }
+        }
+       }
+      },
+      "AutoScalingPolicy": {
+       "type": "object",
+       "description": "Auto Scaling policy that will be associated with the instance group.",
+       "properties": {
+        "Constraints": {
+         "type": "object",
+         "description": "The Constraints that will be associated to an Auto Scaling policy.",
+         "properties": {
+          "MinCapacity": {
+           "type": "integer",
+           "description": "The minimum value for the instances to scale in to in response to scaling activities."
+          },
+          "MaxCapacity": {
+           "type": "integer",
+           "description": "The maximum value for the instances to scale out to in response to scaling activities"
+          }
+         }
+        },
+        "Rules": {
+         "type": "array",
+         "description": "The Rules associated to an Auto Scaling policy.",
+         "items": {
+          "type": "object",
+          "properties": {
+           "Name": {
+            "type": "string",
+            "description": "Name of the Auto Scaling rule."
+           },
+           "Description": {
+            "type": "string",
+            "description": "Description of the Auto Scaling rule."
+           },
+           "Action": {
+            "type": "object",
+            "description": "The Action associated to an Auto Scaling rule.",
+            "properties": {
+             "Market": {
+              "type": "string",
+              "description": "Market type of the Amazon EC2 instances used to create a cluster node by Auto Scaling action.",
+              "enum": [
+               "ON_DEMAND",
+               "SPOT"
+              ]
+             },
+             "SimpleScalingPolicyConfiguration": {
+              "type": "object",
+              "description": "The Simple scaling configuration that will be associatedto Auto Scaling action.",
+              "properties": {
+               "AdjustmentType": {
+                "type": "string",
+                "description": "Specifies how the ScalingAdjustment parameter is interpreted.",
+                "enum": [
+                 "CHANGE_IN_CAPACITY",
+                 "PERCENT_CHANGE_IN_CAPACITY",
+                 "EXACT_CAPACITY"
+                ]
+               },
+               "ScalingAdjustment": {
+                "type": "integer",
+                "description": "The amount by which to scale, based on the specified adjustment type."
+               },
+               "CoolDown": {
+                "type": "integer",
+                "description": "The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start."
+               }
+              }
+             }
+            }
+           },
+           "Trigger": {
+            "type": "object",
+            "description": "The Trigger associated to an Auto Scaling rule.",
+            "properties": {
+             "CloudWatchAlarmDefinition": {
+              "type": "object",
+              "description": "The Alarm to be registered with CloudWatch, to trigger scaling activities.",
+              "properties": {
+               "ComparisonOperator": {
+                "type": "string",
+                "description": "The arithmetic operation to use when comparing the specified Statistic and Threshold."
+               },
+               "EvaluationPeriods": {
+                "type": "integer",
+                "description": "The number of periods over which data is compared to the specified threshold."
+               },
+               "MetricName": {
+                "type": "string",
+                "description": "The name for the alarm's associated metric."
+               },
+               "Namespace": {
+                "type": "string",
+                "description": "The namespace for the alarm's associated metric."
+               },
+               "Period": {
+                "type": "integer",
+                "description": "The period in seconds over which the specified statistic is applied."
+               },
+               "Statistic": {
+                "type": "string",
+                "description": "The statistic to apply to the alarm's associated metric."
+               },
+               "Threshold": {
+                "type": "double",
+                "description": "The value against which the specified statistic is compared."
+               },
+               "Unit": {
+                "type": "string",
+                "description": "The statistic's unit of measure."
+               },
+               "Dimensions": {
+                "type": "array",
+                "description": "The dimensions for the alarm's associated metric.",
+                "items": {
+                 "type": "object",
+                 "properties": {
+                  "Key": {
+                   "type": "string",
+                   "description": "Dimension Key."
+                  },
+                  "Value": {
+                   "type": "string",
+                   "description": "Dimension Value."
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      },
+      "Configurations": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "Classification": {
+          "type": "string",
+          "description": "Application configuration classification name"
+         },
+         "Properties": {
+          "type": "map",
+          "key": {
+           "type": "string",
+           "description": "Configuration key"
+          },
+          "value": {
+           "type": "string",
+           "description": "Configuration value"
+          },
+          "description": "Application configuration properties"
+         },
+         "Configurations": {
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "Classification": {
+             "type": "string",
+             "description": "Application configuration classification name"
+            },
+            "Properties": {
+             "type": "map",
+             "key": {
+              "type": "string",
+              "description": "Configuration key"
+             },
+             "value": {
+              "type": "string",
+              "description": "Configuration value"
+             },
+             "description": "Application configuration properties"
+            }
+           }
+          },
+          "description": "Instance group application configurations."
+         }
+        }
+       },
+       "description": "Instance group application configurations."
+      }
+     }
+    }
+   }
+  }
+ ],
+ "ssh": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "key-pair-file",
+   "required": true
+  },
+  {
+   "name": "command"
+  },
+  {
+   "name": "ssh-options",
+   "nargs": "+"
+  }
+ ],
+ "socks": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "key-pair-file",
+   "required": true
+  },
+  {
+   "name": "ssh-options",
+   "nargs": "+"
+  }
+ ],
+ "get": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "key-pair-file",
+   "required": true
+  },
+  {
+   "name": "src",
+   "required": true
+  },
+  {
+   "name": "dest"
+  },
+  {
+   "name": "ssh-options",
+   "nargs": "+"
+  }
+ ],
+ "put": [
+  {
+   "name": "cluster-id",
+   "required": true
+  },
+  {
+   "name": "key-pair-file",
+   "required": true
+  },
+  {
+   "name": "src",
+   "required": true
+  },
+  {
+   "name": "dest"
+  },
+  {
+   "name": "ssh-options",
+   "nargs": "+"
+  }
+ ],
+ "emr-containers update-role-trust-policy": [
+  {
+   "name": "cluster-name",
+   "required": true
+  },
+  {
+   "name": "namespace",
+   "required": true
+  },
+  {
+   "name": "role-name",
+   "required": true
+  },
+  {
+   "name": "iam-endpoint",
+   "no_paramfile": true,
+   "required": false
+  },
+  {
+   "name": "dry-run",
+   "action": "store_true",
+   "default": false,
+   "required": false
+  }
+ ],
+ "emr-containers create-role-associations": [
+  {
+   "name": "cluster-name",
+   "required": true
+  },
+  {
+   "name": "namespace",
+   "required": true
+  },
+  {
+   "name": "role-name",
+   "required": true
+  },
+  {
+   "name": "type",
+   "required": false,
+   "choices": [
+    "start_job_run",
+    "interactive_endpoint",
+    "spark_operator",
+    "flink_operator",
+    "livy"
+   ]
+  },
+  {
+   "name": "operator-namespace",
+   "required": false
+  },
+  {
+   "name": "service-account-name",
+   "required": false
+  }
+ ],
+ "emr-containers delete-role-associations": [
+  {
+   "name": "cluster-name",
+   "required": true
+  },
+  {
+   "name": "namespace",
+   "required": true
+  },
+  {
+   "name": "role-name",
+   "required": true
+  },
+  {
+   "name": "type",
+   "required": false,
+   "choices": [
+    "start_job_run",
+    "interactive_endpoint",
+    "spark_operator",
+    "flink_operator",
+    "livy"
+   ]
+  },
+  {
+   "name": "operator-namespace",
+   "required": false
+  },
+  {
+   "name": "service-account-name",
+   "required": false
+  }
+ ]
+}

@@ -88,12 +88,16 @@ fn body_text(content_type: &str, body: &[u8]) -> String {
 
 pub fn render_request(r: &Recorded) -> String {
     let mut out = format!("{} {}\n", r.method, r.target);
+    // A generated idempotency token in the body makes its checksums
+    // differ between runs.
+    let body_has_uuid = uuid_re().is_match(&String::from_utf8_lossy(&r.body));
     let mut headers: Vec<(String, String)> = r
         .headers
         .iter()
         .map(|(k, v)| {
             let k = k.to_ascii_lowercase();
-            let v = if MASKED_HEADERS.contains(&k.as_str()) {
+            let body_digest = k.starts_with("x-amz-checksum-") || k == "content-md5";
+            let v = if MASKED_HEADERS.contains(&k.as_str()) || (body_has_uuid && body_digest) {
                 "<masked>".to_string()
             } else {
                 String::from_utf8_lossy(v).into_owned()

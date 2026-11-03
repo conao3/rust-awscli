@@ -1,0 +1,260 @@
+[
+ {
+  "name": "cloudsearch define-expression",
+  "argv": [
+   "cloudsearch",
+   "define-expression",
+   "--domain-name",
+   "d",
+   "--name",
+   "e",
+   "--expression",
+   "_score*2",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineExpressionResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineExpressionResult><Expression><Options><ExpressionName>e</ExpressionName><ExpressionValue>1</ExpressionValue></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></Expression></DefineExpressionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineExpressionResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-expression missing name",
+  "argv": [
+   "cloudsearch",
+   "define-expression",
+   "--domain-name",
+   "d",
+   "--expression",
+   "1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineExpressionResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineExpressionResult><Expression><Options><ExpressionName>e</ExpressionName><ExpressionValue>1</ExpressionValue></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></Expression></DefineExpressionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineExpressionResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field int",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--name",
+   "f",
+   "--type",
+   "int",
+   "--default-value",
+   "5",
+   "--facet-enabled",
+   "true",
+   "--search-enabled",
+   "false",
+   "--sort-enabled",
+   "True",
+   "--source-field",
+   "src",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field double array",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--name",
+   "f",
+   "--type",
+   "double-array",
+   "--default-value",
+   "2.5",
+   "--return-enabled",
+   "no",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field latlon text",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--name",
+   "f",
+   "--type",
+   "latlon",
+   "--highlight-enabled",
+   "false",
+   "--analysis-scheme",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field text",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--name",
+   "f",
+   "--type",
+   "TEXT",
+   "--default-value",
+   "abc",
+   "--highlight-enabled",
+   "true",
+   "--analysis-scheme",
+   "_en_default_",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field bad int",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--name",
+   "f",
+   "--type",
+   "int",
+   "--default-value",
+   "1.5",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field index-field rejected",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--index-field",
+   "IndexFieldName=f,IndexFieldType=int",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field missing type",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--domain-name",
+   "d",
+   "--name",
+   "f",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ },
+ {
+  "name": "cloudsearch define-index-field cli-input",
+  "argv": [
+   "cloudsearch",
+   "define-index-field",
+   "--cli-input-json",
+   "{\"DomainName\":\"d\",\"IndexField\":{\"IndexFieldName\":\"f\",\"IndexFieldType\":\"int\"}}",
+   "--facet-enabled",
+   "true",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DefineIndexFieldResponse xmlns=\"http://cloudsearch.amazonaws.com/doc/2013-01-01/\"><DefineIndexFieldResult><IndexField><Options><IndexFieldName>f</IndexFieldName><IndexFieldType>int</IndexFieldType></Options><Status><CreationDate>2020-01-01T00:00:00Z</CreationDate><UpdateDate>2020-01-01T00:00:00Z</UpdateDate><State>Processing</State></Status></IndexField></DefineIndexFieldResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DefineIndexFieldResponse>"
+   }
+  ]
+ }
+]

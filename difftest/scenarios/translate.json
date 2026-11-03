@@ -1,0 +1,264 @@
+[
+ {
+  "name": "translate import-terminology data-file",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--name",
+   "t",
+   "--merge-strategy",
+   "OVERWRITE",
+   "--data-file",
+   "fileb://data.csv",
+   "--terminology-data",
+   "Format=CSV",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TerminologyProperties\": {\"Name\": \"t\"}}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate import-terminology no terminology-data",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--name",
+   "t",
+   "--merge-strategy",
+   "OVERWRITE",
+   "--data-file",
+   "fileb://data.csv",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TerminologyProperties\": {\"Name\": \"t\"}}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate import-terminology file in original",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--name",
+   "t",
+   "--merge-strategy",
+   "OVERWRITE",
+   "--data-file",
+   "fileb://data.csv",
+   "--terminology-data",
+   "Format=CSV,File=abc",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TerminologyProperties\": {\"Name\": \"t\"}}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate import-terminology missing data-file",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--name",
+   "t",
+   "--merge-strategy",
+   "OVERWRITE",
+   "--terminology-data",
+   "Format=CSV",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TerminologyProperties\": {\"Name\": \"t\"}}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate import-terminology raw string",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--name",
+   "t",
+   "--merge-strategy",
+   "OVERWRITE",
+   "--data-file",
+   "aGVsbG8=",
+   "--terminology-data",
+   "Format=CSV",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TerminologyProperties\": {\"Name\": \"t\"}}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate translate-document",
+  "argv": [
+   "translate",
+   "translate-document",
+   "--document",
+   "ContentType=text/plain",
+   "--document-content",
+   "fileb://doc.txt",
+   "--source-language-code",
+   "en",
+   "--target-language-code",
+   "fr",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TranslatedDocument\": {\"Content\": \"Ym9uam91cg==\"}, \"SourceLanguageCode\": \"en\", \"TargetLanguageCode\": \"fr\"}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate translate-document missing document",
+  "argv": [
+   "translate",
+   "translate-document",
+   "--document-content",
+   "fileb://doc.txt",
+   "--source-language-code",
+   "en",
+   "--target-language-code",
+   "fr",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TranslatedDocument\": {\"Content\": \"Ym9uam91cg==\"}, \"SourceLanguageCode\": \"en\", \"TargetLanguageCode\": \"fr\"}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate translate-document content in document",
+  "argv": [
+   "translate",
+   "translate-document",
+   "--document",
+   "ContentType=text/plain,Content=abc",
+   "--document-content",
+   "fileb://doc.txt",
+   "--source-language-code",
+   "en",
+   "--target-language-code",
+   "fr",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TranslatedDocument\": {\"Content\": \"Ym9uam91cg==\"}, \"SourceLanguageCode\": \"en\", \"TargetLanguageCode\": \"fr\"}"
+   }
+  ],
+  "files": {
+   "data.csv": "en,fr\nhello,bonjour\n",
+   "doc.txt": "hello world"
+  }
+ },
+ {
+  "name": "translate import-terminology skeleton",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--generate-cli-skeleton"
+  ]
+ },
+ {
+  "name": "translate import-terminology cli-input-json",
+  "argv": [
+   "translate",
+   "import-terminology",
+   "--cli-input-json",
+   "{\"Name\":\"t\",\"MergeStrategy\":\"OVERWRITE\"}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"TerminologyProperties\": {\"Name\": \"t\"}}"
+   }
+  ]
+ }
+]

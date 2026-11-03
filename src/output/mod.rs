@@ -333,7 +333,6 @@ mod tests {
 
     /// Cases that run JMESPath through `crate::jmes`.
     #[test]
-    #[ignore = "crate::jmes turns numbers into serde_json arbitrary_precision maps and sorts object keys"]
     fn formatter_jmespath_goldens() {
         check_format_cases(goldens::FORMAT_JMES);
     }

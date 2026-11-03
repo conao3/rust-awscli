@@ -8,6 +8,7 @@ use std::process::Stdio;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use sha1::{Digest, Sha1};
 use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 
@@ -26,7 +27,17 @@ pub struct RunOut {
     pub outfile: Option<Vec<u8>>,
 }
 
-const CONFIG: &str = "[default]\nregion = us-east-1\n";
+const SSO_SESSION: &str = "difftest";
+const CONFIG: &str = "[default]\n\
+region = us-east-1\n\
+sso_session = difftest\n\
+\n\
+[sso-session difftest]\n\
+sso_region = us-east-1\n\
+sso_start_url = https://difftest.awsapps.com/start\n";
+/// A cached SSO token for bearer-auth services (botocore
+/// `SSOTokenLoader`), valid far into the future so it is never refreshed.
+const SSO_TOKEN: &str = r#"{"startUrl": "https://difftest.awsapps.com/start", "region": "us-east-1", "accessToken": "difftest-bearer-token", "expiresAt": "2099-01-01T00:00:00Z"}"#;
 /// The static fake credentials of the SigV4 test suite.
 const CREDENTIALS: &str = "[default]\n\
 aws_access_key_id = AKIDEXAMPLE\n\
@@ -39,6 +50,10 @@ pub fn write_home(dir: &Path) -> Result<PathBuf> {
     std::fs::create_dir_all(&aws)?;
     std::fs::write(aws.join("config"), CONFIG)?;
     std::fs::write(aws.join("credentials"), CREDENTIALS)?;
+    let cache = aws.join("sso/cache");
+    std::fs::create_dir_all(&cache)?;
+    let key = hex::encode(Sha1::digest(SSO_SESSION.as_bytes()));
+    std::fs::write(cache.join(format!("{key}.json")), SSO_TOKEN)?;
     Ok(home)
 }
 

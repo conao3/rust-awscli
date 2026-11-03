@@ -1,0 +1,4 @@
+# Cases the corpus mode skips: `service Operation reason`, `*` matches any
+# operation. Operations with event streams, operations that are not CLI
+# commands, and operations with custom required arguments are skipped by
+# the harness itself.

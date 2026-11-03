@@ -91,6 +91,9 @@ struct Ctx {
     uri: bool,
     bucket: bool,
     account: bool,
+    /// An input member named `*Arn`, which handlers and endpoint rules
+    /// may parse.
+    arn: bool,
 }
 
 /// Response header names the stub server owns or that would change how
@@ -257,6 +260,7 @@ impl Generator<'_> {
             ctx.uri = location == Some("uri");
             ctx.bucket = name == "Bucket";
             ctx.account = name == "AccountId";
+            ctx.arn = name.ends_with("Arn") || name.ends_with("ARN");
         }
         if self.dir == Dir::Output && location == Some("statusCode") {
             return G::Int(self.rng.pick(&["200", "201", "202"]).to_string());
@@ -388,6 +392,20 @@ impl Generator<'_> {
             return (0..12)
                 .map(|_| char::from(b'0' + self.rng.below(10) as u8))
                 .collect();
+        }
+        if ctx.arn {
+            let name = self.alnum_lower(8);
+            let arn = if s.model.name == "cloudfront-keyvaluestore" {
+                format!("arn:aws:cloudfront::123456789012:key-value-store/{name}")
+            } else {
+                format!(
+                    "arn:aws:{}:us-east-1:123456789012:resource/{name}",
+                    s.model.endpoint_prefix()
+                )
+            };
+            if (min..=max).contains(&arn.len()) {
+                return arn;
+            }
         }
         if ctx.bucket {
             let n = self.rng.range(3, 16) as usize;

@@ -349,8 +349,10 @@ fn paginator_input_skips(op: &Operation<'_>) -> Vec<String> {
     let Some(p) = op.model.paginator(op.name) else {
         return vec![];
     };
+    let required = op.input().map(|s| s.required()).unwrap_or_default();
     let mut out = token_list(p.get("input_token"));
     out.extend(token_list(p.get("limit_key")));
+    out.retain(|m| !required.contains(&m.as_str()));
     out
 }
 

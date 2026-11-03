@@ -80,6 +80,9 @@ enum Command {
         /// Stop after this many cases.
         #[arg(long)]
         limit: Option<usize>,
+        /// Keep every K-th generated case (a sample across all services).
+        #[arg(long, default_value_t = 1)]
+        stride: usize,
     },
     /// Print the prepared command line, input, and responses of a case.
     Show {
@@ -107,9 +110,12 @@ struct Common {
     /// Seconds before a CLI run is killed.
     #[arg(long, default_value_t = 60)]
     timeout: u64,
-    /// Host in `--endpoint-url` (operations with a host prefix always use
-    /// `localhost`).
-    #[arg(long, default_value = "127.0.0.1")]
+    /// Host in `--endpoint-url`. Host prefixes from the model and from
+    /// endpoint rules (`{AccountId}.`, S3 virtual hosting) need a name
+    /// whose subdomains resolve to the stub, such as `localhost`; with an
+    /// IP address, operations with a modeled host prefix still use
+    /// `localhost`.
+    #[arg(long, default_value = "localhost")]
     endpoint_host: String,
     /// `service operation reason` lines; `*` matches every operation.
     #[arg(long)]
@@ -187,6 +193,7 @@ async fn async_main(cli: Cli) -> Result<()> {
             formats,
             error_every,
             limit,
+            stride,
         } => {
             let filter = filter.map(|f| regex::Regex::new(&f)).transpose()?;
             let formats: Vec<String> = formats.split(',').map(str::to_string).collect();
@@ -226,9 +233,12 @@ async fn async_main(cli: Cli) -> Result<()> {
                         }
                     }
                 }
-                if limit.is_some_and(|l| cases.len() >= l) {
+                if limit.is_some_and(|l| cases.len() >= l * stride.max(1)) {
                     break;
                 }
+            }
+            if stride > 1 {
+                cases = cases.into_iter().step_by(stride).collect();
             }
             if let Some(l) = limit {
                 cases.truncate(l);

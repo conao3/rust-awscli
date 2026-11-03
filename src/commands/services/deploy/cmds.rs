@@ -765,6 +765,7 @@ fn linux_distribution() -> String {
         })
         .unwrap_or_default();
     names.sort();
+    let lsb = Regex::new(r"(.+) release ([\d.]+)[^(]*(?:\((.+)\))?").expect("regex");
     for n in names {
         if let Some(c) = re.captures(&n)
             && supported.contains(&&c[1])
@@ -773,7 +774,6 @@ fn linux_distribution() -> String {
                 .ok()
                 .and_then(|t| t.lines().next().map(str::to_string))
                 .unwrap_or_default();
-            let lsb = Regex::new(r"(.+) release ([\d.]+)[^(]*(?:\((.+)\))?").expect("regex");
             return match lsb.captures(&first) {
                 Some(c) => c[1].to_string(),
                 None => c[1].to_string(),

@@ -1,0 +1,6 @@
+[
+  {"name": "lightsail push-container-image without lightsailctl",
+   "argv": ["lightsail", "push-container-image", "--service-name", "s", "--image", "i", "--label", "l"]},
+  {"name": "lightsail push-container-image missing",
+   "argv": ["lightsail", "push-container-image", "--service-name", "s"]}
+]

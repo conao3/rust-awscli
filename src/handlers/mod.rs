@@ -110,6 +110,7 @@ pub fn before_parameter_build(
     let Some(map) = params.as_map_mut() else {
         return Ok(context);
     };
+    alias_parameters(model, operation, map)?;
     match service_id(model).as_str() {
         "s3" => s3::before_parameter_build(operation, map, &mut context)?,
         "ec2" if operation.name == "RunInstances" => services::base64_encode_user_data(map),
@@ -143,6 +144,45 @@ pub fn before_parameter_build(
         map.insert(mode_member.to_string(), Value::str("ENABLED"));
     }
     Ok(context)
+}
+
+/// `_add_parameter_aliases`: `(service-id, operation or *, original,
+/// alias)`.
+const PARAMETER_ALIASES: &[(&str, &str, &str, &str)] = &[
+    ("ec2", "*", "Filter", "Filters"),
+    ("cloudwatch-logs", "CreateExportTask", "from", "fromTime"),
+    ("cloudsearch-domain", "Search", "return", "returnFields"),
+];
+
+/// `ParameterAlias.alias_parameter_in_call` (registered first): a value
+/// given under the alias moves to the modeled name.
+pub fn alias_parameters(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    params: &mut Map,
+) -> Result<()> {
+    let service = service_id(model);
+    for &(svc, op, original, alias) in PARAMETER_ALIASES {
+        if svc != service || (op != "*" && op != operation.name) {
+            continue;
+        }
+        let modeled = operation
+            .input()
+            .is_some_and(|i| i.member_shape(original).is_some());
+        if !modeled || !params.contains_key(alias) {
+            continue;
+        }
+        if params.contains_key(original) {
+            return Err(PythonError(format!(
+                "Parameter '{original}' and its alias '{alias}' were provided for operation {}.  Only one of them may be used.",
+                operation.name
+            ))
+            .into());
+        }
+        let value = params.shift_remove(alias).expect("checked");
+        params.insert(original.to_string(), value);
+    }
+    Ok(())
 }
 
 /// `before-call.<service-id>.<Operation>`: the service handlers (most

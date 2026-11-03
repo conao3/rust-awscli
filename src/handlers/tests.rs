@@ -350,3 +350,18 @@ fn expires_header() {
     s3::before_parse(&op, &mut response);
     assert_eq!(response.status, 500);
 }
+
+#[test]
+fn parameter_aliases() {
+    let model = ServiceModel::load("logs").unwrap();
+    let op = model.operation("CreateExportTask").unwrap();
+    let mut params = json(r#"{"logGroupName": "g", "fromTime": 1, "to": 2}"#);
+    alias_parameters(&model, &op, params.as_map_mut().unwrap()).unwrap();
+    assert_eq!(params, json(r#"{"logGroupName": "g", "to": 2, "from": 1}"#));
+    let mut params = json(r#"{"fromTime": 1, "from": 2}"#);
+    let err = alias_parameters(&model, &op, params.as_map_mut().unwrap()).unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        "Parameter 'from' and its alias 'fromTime' were provided for operation CreateExportTask.  Only one of them may be used."
+    );
+}

@@ -173,7 +173,6 @@ pub(crate) fn region(ctx: &Context) -> Result<Option<String>, CliError> {
 
 /// `GenerateDBAuthTokenCommand._run_main` (the `rds` module routes
 /// `generate-db-auth-token` here).
-#[allow(dead_code)]
 pub(crate) fn generate_db_auth_token(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     let defs = [
         ArgDef::new("hostname").required(),

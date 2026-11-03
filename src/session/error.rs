@@ -48,6 +48,15 @@ pub enum ErrorKind {
     HttpClient,
     /// `ValueError("Invalid endpoint: ...")` and similar.
     General,
+    /// A `ClientError` raised while loading credentials (an STS, SSO, or
+    /// Sign-In call failed); `message` is `str(ClientError)`.
+    ServiceError,
+    /// `awscli.customizations.exceptions.ConfigurationError`
+    /// (`ConfigurationErrorHandler`, exit 253, code `Configuration`).
+    Configuration,
+    /// `ParamValidationError` from botocore for an internal call
+    /// (`ParamValidationErrorsHandler`, exit 252).
+    ParamValidation,
 }
 
 /// An error with the exact text of `str(exception)`.
@@ -55,6 +64,10 @@ pub enum ErrorKind {
 pub struct SessionError {
     pub kind: ErrorKind,
     pub message: String,
+    /// Raised when deferred credentials were first used (an STS, SSO, or
+    /// Sign-In call, or the MFA prompt) rather than while the provider
+    /// chain was loaded.
+    pub deferred: bool,
 }
 
 impl SessionError {
@@ -62,7 +75,14 @@ impl SessionError {
         SessionError {
             kind,
             message: message.into(),
+            deferred: false,
         }
+    }
+
+    /// Mark the error as raised by deferred credentials.
+    pub fn into_deferred(mut self) -> SessionError {
+        self.deferred = true;
+        self
     }
 
     pub fn profile_not_found(profile: &str) -> SessionError {
@@ -110,7 +130,11 @@ impl SessionError {
     /// The exit code the AWS CLI's exception handler chain returns.
     pub fn exit_code(&self) -> ExitCode {
         match self.kind {
-            ErrorKind::NoCredentials | ErrorKind::NoRegion => ExitCode::Config,
+            ErrorKind::NoCredentials | ErrorKind::NoRegion | ErrorKind::Configuration => {
+                ExitCode::Config
+            }
+            ErrorKind::ServiceError => ExitCode::Service,
+            ErrorKind::ParamValidation => ExitCode::Usage,
             _ => ExitCode::General,
         }
     }
@@ -134,6 +158,10 @@ impl SessionError {
                     self.message
                 ),
             )),
+            ErrorKind::Configuration => Some(("Configuration".to_string(), self.message.clone())),
+            ErrorKind::ParamValidation => {
+                Some(("ParamValidation".to_string(), self.message.clone()))
+            }
             _ => None,
         }
     }

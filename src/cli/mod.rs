@@ -10,7 +10,7 @@ pub(crate) mod argparse;
 pub(crate) mod argprocess;
 pub mod arguments;
 mod commands;
-mod difflib;
+pub(crate) mod difflib;
 mod driver;
 #[cfg(test)]
 mod fingerprint_tests;

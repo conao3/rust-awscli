@@ -10,6 +10,7 @@ use crate::model::Operation;
 
 pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
     match name {
+        "generate-db-auth-token" => super::presign::generate_db_auth_token(ctx, args),
         "add-option-to-option-group" => exec::run_operation(
             ctx,
             "rds",

@@ -103,7 +103,12 @@ pub(crate) fn raw_call(
         && let Some(input) = operation.input()
     {
         let mut check = params.clone();
-        let _ = crate::handlers::before_parameter_build(&client.model, &operation, &mut check, &client.ctx.session);
+        let _ = crate::handlers::before_parameter_build(
+            &client.model,
+            &operation,
+            &mut check,
+            &client.ctx.session,
+        );
         if let Some(report) = crate::cli::validate::validate(&check, &input) {
             return Err(report);
         }

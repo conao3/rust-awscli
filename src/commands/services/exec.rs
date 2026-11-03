@@ -33,7 +33,12 @@ impl<'c> Client<'c> {
                 .general_error(&anyhow::anyhow!("unknown operation"))
         })?;
         let mut params = params.clone();
-        let _ = crate::handlers::before_parameter_build(&self.model, &op, &mut params, &self.ctx.session);
+        let _ = crate::handlers::before_parameter_build(
+            &self.model,
+            &op,
+            &mut params,
+            &self.ctx.session,
+        );
         if let Some(input) = op.input()
             && let Some(report) = validate::validate(&params, &input)
         {

@@ -25,12 +25,18 @@ use crate::endpoint::Endpoint;
 use crate::model::{Operation, ServiceModel};
 use crate::protocol::{HttpRequest, HttpResponse};
 
+pub mod cache;
+pub mod client;
 pub mod credentials;
 pub mod error;
 pub mod http;
 pub mod imds;
+pub mod login_token;
+pub mod prompt;
+pub mod pydatetime;
 pub mod retry;
 pub mod sign;
+pub mod sso_token;
 pub mod url;
 pub mod useragent;
 
@@ -703,6 +709,7 @@ impl Session {
             }
             version => {
                 if client_region.is_none() {
+                    credentials::preflight(&self.config)?;
                     return Err(SessionError::new(
                         ErrorKind::NoRegion,
                         "You must specify a region.",

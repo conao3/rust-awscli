@@ -533,6 +533,7 @@ dependencies = [
  "md-5",
  "num-bigint",
  "num-traits",
+ "p256",
  "percent-encoding",
  "quick-xml",
  "rand 0.9.5",

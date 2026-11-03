@@ -32,6 +32,7 @@ hex = "0.4"
 http = "1"
 indexmap = "2"
 md-5 = "0.10"
+p256 = { version = "0.13", features = ["ecdsa", "pkcs8"] }
 num-bigint = "0.4"
 num-traits = "0.2"
 percent-encoding = "2"

@@ -6,7 +6,11 @@ use anyhow::Result;
 use crate::model::{Operation, ServiceModel};
 use crate::value::Value;
 
+pub mod ec2;
+pub mod query;
+pub mod rest_xml;
 pub mod timestamp;
+mod xml_common;
 
 /// botocore's serialized `request_dict`.
 #[derive(Debug, Clone, Default, PartialEq)]

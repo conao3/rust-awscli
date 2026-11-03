@@ -382,6 +382,16 @@ impl<'a> Shape<'a> {
     }
 }
 
+impl ServiceModel {
+    /// Shape names in model order (`ServiceModel.shape_names`).
+    pub fn shape_names(&self) -> Vec<&str> {
+        self.service()["shapes"]
+            .as_object()
+            .map(|o| o.keys().map(String::as_str).collect())
+            .unwrap_or_default()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

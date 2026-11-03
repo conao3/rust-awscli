@@ -1,0 +1,23 @@
+[
+  {"name": "deploy create-deployment s3-location",
+   "argv": ["deploy", "create-deployment", "--application-name", "a", "--deployment-group-name", "g", "--s3-location", "bucket=b,key=k.zip,bundleType=zip,eTag=e", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"deploymentId\": \"d-1\"}"}]},
+  {"name": "deploy create-deployment github-location",
+   "argv": ["deploy", "create-deployment", "--application-name", "a", "--github-location", "repository=o/r,commitId=abc", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"deploymentId\": \"d-1\"}"}]},
+  {"name": "deploy create-deployment s3 json",
+   "argv": ["deploy", "create-deployment", "--application-name", "a", "--s3-location", "{\"bucket\": \"b\", \"key\": \"k\", \"bundleType\": \"tar\", \"version\": \"v\"}", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"deploymentId\": \"d-1\"}"}]},
+  {"name": "deploy create-deployment s3 incomplete",
+   "argv": ["deploy", "create-deployment", "--application-name", "a", "--s3-location", "bucket=b,key=k"]},
+  {"name": "deploy get-application-revision github incomplete",
+   "argv": ["deploy", "get-application-revision", "--application-name", "a", "--github-location", "repository=r"]},
+  {"name": "deploy get-application-revision s3",
+   "argv": ["deploy", "get-application-revision", "--application-name", "a", "--s3-location", "bucket=b,key=k,bundleType=zip", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"applicationName\": \"a\"}"}]},
+  {"name": "deploy register-application-revision none",
+   "argv": ["deploy", "register-application-revision", "--application-name", "a", "--endpoint-url", "{endpoint}"]},
+  {"name": "deploy register-application-revision s3",
+   "argv": ["deploy", "register-application-revision", "--application-name", "a", "--s3-location", "bucket=b,key=k,bundleType=tgz", "--description", "d", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{}"}]}
+]

@@ -12,6 +12,9 @@ mod exec;
 mod response;
 mod rng;
 mod run;
+mod s3run;
+mod s3scenarios;
+mod s3stub;
 mod server;
 mod table;
 mod values;
@@ -83,6 +86,23 @@ enum Command {
         /// Keep every K-th generated case (a sample across all services).
         #[arg(long, default_value_t = 1)]
         stride: usize,
+    },
+    /// Run the `aws s3` scenarios against the stateful S3 stub.
+    S3 {
+        #[arg(long, env = "AWSR_REFERENCE_AWS", default_value = "aws")]
+        reference: PathBuf,
+        #[arg(long, env = "AWSR_BIN")]
+        awsr_bin: Option<PathBuf>,
+        /// Only scenarios whose name matches.
+        #[arg(long)]
+        filter: Option<String>,
+        #[arg(long, default_value_t = 3)]
+        show: usize,
+        #[arg(long, default_value_t = default_jobs())]
+        jobs: usize,
+        /// Run only the reference CLI and print what it did.
+        #[arg(long)]
+        reference_only: bool,
     },
     /// Print the prepared command line, input, and responses of a case.
     Show {
@@ -156,6 +176,29 @@ fn main() -> Result<()> {
 
 async fn async_main(cli: Cli) -> Result<()> {
     match cli.command {
+        Command::S3 {
+            reference,
+            awsr_bin,
+            filter,
+            show,
+            jobs,
+            reference_only,
+        } => {
+            let ok = s3scenarios::run(s3scenarios::Options {
+                reference,
+                candidate: awsr_bin.unwrap_or_else(|| manifest_dir().join("../target/debug/awsr")),
+                filter: filter.map(|f| regex::Regex::new(&f)).transpose()?,
+                show,
+                report_dir: manifest_dir().join("../target/difftest/s3report"),
+                jobs,
+                reference_only,
+            })
+            .await?;
+            if !ok {
+                std::process::exit(1);
+            }
+            Ok(())
+        }
         Command::Show { cli_table, spec } => {
             let table = load_table(cli_table.as_deref())?;
             let case = Case::parse(&spec.join(" "))?;

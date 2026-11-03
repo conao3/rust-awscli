@@ -21,15 +21,15 @@ mod globals;
 mod golden_tests;
 #[cfg(test)]
 mod goldens;
-mod operation;
+pub(crate) mod operation;
 pub(crate) mod paramfile;
 mod pyjson;
-mod pynum;
+pub(crate) mod pynum;
 pub(crate) mod render;
 pub(crate) mod shorthand;
 mod skeleton;
 mod tables;
-mod validate;
+pub(crate) mod validate;
 mod yamlskel;
 
 use crate::config::ConfigLookup;

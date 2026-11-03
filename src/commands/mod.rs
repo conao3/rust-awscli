@@ -3,14 +3,18 @@
 //! `login`, ...), commands a customization adds to a service, and
 //! operations whose arguments a customization reshapes.
 
+pub(crate) mod s3;
+
 use crate::driver::Context;
 use crate::error::{CliError, ExitCode};
 
 /// Run the custom command at `path` with `args` (the arguments after the
 /// command path).
 pub(crate) fn run(ctx: &Context, path: &[String], args: &[String]) -> Result<ExitCode, CliError> {
-    let _ = (ctx, path, args);
-    Err(not_implemented())
+    match path {
+        [first] if first == "s3" => s3::run(ctx, args),
+        _ => Err(not_implemented()),
+    }
 }
 
 pub(crate) fn not_implemented() -> CliError {

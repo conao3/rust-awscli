@@ -23,6 +23,8 @@ pub(crate) enum Nargs {
     Optional,
     /// `'*'`.
     ZeroOrMore,
+    /// `'+'`.
+    OneOrMore,
     /// An integer (`0` for flags).
     Exact(usize),
 }
@@ -33,6 +35,11 @@ pub(crate) enum Kind {
     StoreTrue,
     StoreFalse,
     Version,
+    /// `action='append'`.
+    Append,
+    /// `awscli/customizations/s3/utils.py` `AppendFilter`: appends
+    /// `[option_string, values[0]]`.
+    AppendFilter,
 }
 
 /// The `type` callable of an action.
@@ -335,6 +342,7 @@ impl Parser {
             Nargs::One => if option { "([A])" } else { "(-*A-*)" }.to_string(),
             Nargs::Optional => if option { "(A?)" } else { "(-*A?-*)" }.to_string(),
             Nargs::ZeroOrMore => if option { "(A*)" } else { "(-*[A-]*)" }.to_string(),
+            Nargs::OneOrMore => if option { "(A+)" } else { "(-*A[A-]*)" }.to_string(),
             Nargs::Exact(n) => {
                 if option {
                     format!("([AO]{{{n}}})")
@@ -357,6 +365,7 @@ impl Parser {
                     Nargs::Exact(1) => "expected 1 argument".to_string(),
                     Nargs::Exact(n) => format!("expected {n} arguments"),
                     Nargs::ZeroOrMore => "expected arguments".to_string(),
+                    Nargs::OneOrMore => "expected at least one argument".to_string(),
                 };
                 Err(ArgumentError::new(Some(action), msg))
             }
@@ -504,6 +513,7 @@ impl Parser {
         }
 
         let take_action = |idx: usize,
+                           option_string: Option<&str>,
                            strings: &[String],
                            ns: &mut IndexMap<String, NsVal>,
                            seen: &mut Vec<usize>|
@@ -514,6 +524,28 @@ impl Parser {
             match action.kind {
                 Kind::Store => {
                     ns.insert(action.dest.clone(), value);
+                }
+                Kind::Append | Kind::AppendFilter => {
+                    let item = if action.kind == Kind::Append {
+                        value
+                    } else {
+                        let first = match value {
+                            NsVal::List(mut l) if !l.is_empty() => l.remove(0),
+                            other => other,
+                        };
+                        NsVal::List(vec![
+                            NsVal::Str(option_string.unwrap_or_default().to_string()),
+                            first,
+                        ])
+                    };
+                    let mut items = match ns.get(&action.dest) {
+                        Some(NsVal::List(l)) if action.kind == Kind::Append || !l.is_empty() => {
+                            l.clone()
+                        }
+                        _ => Vec::new(),
+                    };
+                    items.push(item);
+                    ns.insert(action.dest.clone(), NsVal::List(items));
                 }
                 Kind::StoreTrue => {
                     ns.insert(action.dest.clone(), NsVal::Bool(true));
@@ -551,7 +583,7 @@ impl Parser {
             let mut option_string = option_string;
             let mut sep = sep;
             let mut explicit = explicit;
-            let mut action_tuples: Vec<(usize, Vec<String>)> = Vec::new();
+            let mut action_tuples: Vec<(usize, String, Vec<String>)> = Vec::new();
             let stop;
             loop {
                 let action = &self.actions[idx];
@@ -565,7 +597,7 @@ impl Parser {
                                 format!("ignored explicit argument {}", str_repr(&exp)),
                             ));
                         }
-                        action_tuples.push((idx, Vec::new()));
+                        action_tuples.push((idx, option_string.clone(), Vec::new()));
                         let first = exp.chars().next().expect("explicit");
                         let new_option = format!("-{first}");
                         if let Some(&next) = self.option_map.get(&new_option) {
@@ -589,7 +621,7 @@ impl Parser {
                         }
                     } else if arg_count == 1 {
                         stop = start + 1;
-                        action_tuples.push((idx, vec![exp]));
+                        action_tuples.push((idx, option_string.clone(), vec![exp]));
                         break;
                     } else {
                         return Err(ArgumentError::new(
@@ -601,12 +633,12 @@ impl Parser {
                     let s = start + 1;
                     let arg_count = Parser::match_argument(action, &pattern[s..])?;
                     stop = s + arg_count;
-                    action_tuples.push((idx, args[s..stop].to_vec()));
+                    action_tuples.push((idx, option_string.clone(), args[s..stop].to_vec()));
                     break;
                 }
             }
-            for (idx, strings) in action_tuples {
-                if take_action(idx, &strings, ns, seen)? {
+            for (idx, option_string, strings) in action_tuples {
+                if take_action(idx, Some(&option_string), &strings, ns, seen)? {
                     return Ok(Step::Version);
                 }
             }
@@ -630,7 +662,7 @@ impl Parser {
                     strings.remove(p);
                 }
                 start += count;
-                take_action(idx, &strings, ns, seen)?;
+                take_action(idx, None, &strings, ns, seen)?;
             }
             positionals.drain(..counts.len());
             Ok(start)

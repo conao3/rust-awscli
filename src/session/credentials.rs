@@ -73,12 +73,28 @@ pub async fn resolve_credentials(
     // the provider reads), as botocore's providers return `None`
     // otherwise.
     let mut providers: Vec<Box<dyn ProvideCredentials>> = Vec::new();
-    let has_profile_credentials = config
-        .full_config()
-        .profiles
-        .get(&profile_name)
-        .is_some_and(|p| PROFILE_CREDENTIAL_KEYS.iter().any(|k| p.contains_key(*k)));
-    if has_profile_credentials {
+    let profile = config.full_config().profiles.get(&profile_name);
+    let profile_str = |key: &str| {
+        profile
+            .and_then(|p| p.get(key))
+            .and_then(|v| v.as_str())
+            .map(str::to_string)
+    };
+    let needs_provider =
+        profile.is_some_and(|p| PROFILE_PROVIDER_KEYS.iter().any(|k| p.contains_key(*k)));
+    if !needs_provider
+        && let (Some(access_key), Some(secret_key)) = (
+            profile_str("aws_access_key_id"),
+            profile_str("aws_secret_access_key"),
+        )
+    {
+        return Ok(Some(Credentials {
+            access_key,
+            secret_key,
+            token: profile_str("aws_session_token").or_else(|| profile_str("aws_security_token")),
+        }));
+    }
+    if needs_provider {
         providers.push(Box::new(
             aws_config::profile::ProfileFileCredentialsProvider::builder()
                 .configure(&pc)
@@ -141,17 +157,17 @@ pub async fn resolve_credentials(
     Ok(None)
 }
 
-/// The profile keys that make one of botocore's profile providers load
-/// credentials (`AssumeRoleProvider`, `AssumeRoleWithWebIdentityProvider`,
-/// `SSOProvider`, `SharedCredentialProvider`, `LoginProvider`,
-/// `ProcessProvider`, `ConfigProvider`).
-const PROFILE_CREDENTIAL_KEYS: &[&str] = &[
-    "aws_access_key_id",
+/// The profile keys that make one of botocore's profile providers ahead of
+/// the static keys load credentials (`AssumeRoleProvider`,
+/// `AssumeRoleWithWebIdentityProvider`, `SSOProvider` (which needs
+/// `sso_account_id` or `sso_role_name`), `LoginProvider`,
+/// `ProcessProvider`); a profile with only static keys is read directly
+/// (`SharedCredentialProvider`, `ConfigProvider`).
+const PROFILE_PROVIDER_KEYS: &[&str] = &[
     "role_arn",
     "web_identity_token_file",
-    "sso_start_url",
-    "sso_session",
     "sso_account_id",
+    "sso_role_name",
     "credential_process",
     "login_session",
 ];

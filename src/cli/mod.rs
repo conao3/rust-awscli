@@ -8,7 +8,7 @@
 
 mod argparse;
 mod argprocess;
-mod arguments;
+pub mod arguments;
 mod commands;
 mod difflib;
 mod driver;

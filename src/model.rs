@@ -383,6 +383,39 @@ impl<'a> Shape<'a> {
 }
 
 impl ServiceModel {
+    /// The operation model changes botocore makes before the first call
+    /// when endpoint rule sets are in effect: s3
+    /// `remove_bucket_from_url_paths_from_model` and s3control
+    /// `remove_accid_host_prefix_from_model` (`botocore/handlers.py`).
+    pub fn apply_endpoint_ruleset_customizations(&mut self) {
+        let name = self.name.clone();
+        let Some(ops) = self.doc["service"]["operations"].as_object_mut() else {
+            return;
+        };
+        for op in ops.values_mut() {
+            if name == "s3" {
+                if let Some(uri) = op.get_mut("http").and_then(|h| h.get_mut("requestUri"))
+                    && let Some(rest) = uri.as_str().and_then(|u| u.strip_prefix("/{Bucket}"))
+                {
+                    *uri = Json::String(rest.to_string());
+                }
+            } else if name == "s3control" {
+                let requires_account_id = op
+                    .get("staticContextParams")
+                    .and_then(|p| p.get("RequiresAccountId"))
+                    .and_then(|p| p.get("value"))
+                    .and_then(Json::as_bool)
+                    == Some(true);
+                if requires_account_id
+                    && let Some(endpoint) = op.get_mut("endpoint").and_then(Json::as_object_mut)
+                    && endpoint.get("hostPrefix").and_then(Json::as_str) == Some("{AccountId}.")
+                {
+                    endpoint.remove("hostPrefix");
+                }
+            }
+        }
+    }
+
     /// Shape names in model order (`botocore/model.py`
     /// `ServiceModel.shape_names`).
     pub fn shape_names(&self) -> Vec<&str> {

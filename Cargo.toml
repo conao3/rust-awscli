@@ -45,11 +45,12 @@ serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision
 sha1 = "0.10"
 sha2 = "0.10"
 thiserror = "2"
-tokio = { version = "1", features = ["rt", "macros", "time", "net", "io-util", "fs", "sync"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "time", "net", "io-util", "fs", "sync"] }
 url = "2"
 unicode-normalization = "0.1"
 uuid = { version = "1", features = ["v4"] }
 zstd = "0.13"
+libc = "0.2"
 aws-runtime = "1"
 hmac = "0.12"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }

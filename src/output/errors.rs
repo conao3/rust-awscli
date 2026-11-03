@@ -277,6 +277,23 @@ fn is_py_whitespace(c: char) -> bool {
     )
 }
 
+/// `FilteredExceptionHandler._do_handle_exception` for errors whose
+/// handler extracts `{'Code': code, 'Message': message}` (no credentials,
+/// no region, configuration, pager errors).
+pub fn render_structured_error(
+    code: &str,
+    message: &str,
+    error_format: &str,
+    options: &ErrorOutputOptions,
+) -> String {
+    let mut error_info = Map::new();
+    error_info.insert("Code".to_string(), Value::str(code));
+    error_info.insert("Message".to_string(), Value::str(message));
+    let formatted = format!("An error occurred ({code}): {message}");
+    display_structured_error(&error_info, &formatted, error_format, options)
+        .unwrap_or_else(|| render_general_error(message))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

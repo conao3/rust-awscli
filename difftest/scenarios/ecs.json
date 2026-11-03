@@ -1,0 +1,15 @@
+[
+  {"name": "ecs delete-express-gateway-service",
+   "argv": ["ecs", "delete-express-gateway-service", "--service-arn", "arn", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"service\": {\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c/s\", \"status\": {\"statusCode\": \"ACTIVE\"}}}"}]},
+  {"name": "ecs delete-express-gateway-service monitor non-tty",
+   "argv": ["ecs", "delete-express-gateway-service", "--service-arn", "arn", "--monitor-resources", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"service\": {\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c/s\", \"status\": {\"statusCode\": \"ACTIVE\"}}}"}]},
+  {"name": "ecs create-express-gateway-service monitor resource",
+   "argv": ["ecs", "create-express-gateway-service", "--infrastructure-role-arn", "r", "--execution-role-arn", "e", "--primary-container", "image=x", "--monitor-resources", "RESOURCE", "--endpoint-url", "{endpoint}"],
+   "responses": [{"headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{\"service\": {}}"}]},
+  {"name": "ecs update-express-gateway-service mode without monitor",
+   "argv": ["ecs", "update-express-gateway-service", "--service-arn", "a", "--monitor-mode", "TEXT-ONLY"]},
+  {"name": "ecs update-express-gateway-service bad choice",
+   "argv": ["ecs", "update-express-gateway-service", "--service-arn", "a", "--monitor-resources", "BOGUS"]}
+]

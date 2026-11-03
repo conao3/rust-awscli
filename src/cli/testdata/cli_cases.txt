@@ -1,0 +1,410 @@
+foo
+ec2 describe-instancs
+s3api
+s3api get-object
+s3api get-object --bucket b --key k o --foo
+--output xml sts
+--region
+--reg us-east-1
+--no sts
+--cli-auto-prompt --no-cli-auto-prompt sts
+--cli-read-timeout abc sts get-caller-identity
+--endpoint-url foo sts get-caller-identity
+sts get-caller-identity
+sts get-caller-identity --cli-input-json '{"a":1}'
+dynamodb put-item --table-name t --item '{"a":{"S":1}}'
+dynamodb put-item --table-name t --item '{"a":{"S":"x"}}'
+ec2 describe-instances --filters Name=abc,Values=1 --max-results abc
+ec2 describe-instances --filters '[{"Name": 1}'
+ec2 describe-instances --filters Name=a,Values=b,c Name=d,Values=e --max-items 5
+ec2 describe-instances --instance-ids i-1 i-2 --dry-run
+ec2 run-instances --image-id x --cpu-options CoreCount=abc
+ec2 run-instances --image-id ami-1 --count 2:3 --ebs-optimized --disable-api-termination
+ec2 run-instances --image-id ami-1 --secondary-private-ip-addresses 10.0.0.1 10.0.0.2 --subnet-id s-1 --associate-public-ip-address
+dynamodb put-item --table-name t --item file:///nonexist
+ec2 describe-instances --filters ''
+ec2 wait
+ec2 wait --foo
+ec2 wait instance-runnin
+ec2 wait instance-running --foo
+ec2 wait instance-running --instance-ids i-1
+s3api put-object --bucket b --key k --body /etc/hostname
+s3api get-object --bucket b --key k out.txt
+iam create-user --user-name u --tags Key=a,Value=b
+sts assume-role --generate-cli-skeleton
+ec2 modify-instance-attribute --instance-id i-1 --no-disable-api-termination
+ec2 modify-instance-attribute --instance-id i-1 --disable-api-termination --no-disable-api-termination
+ec2 describe-instances --max-items 0
+ec2 describe-instances --max-items -1 --page-size 10
+ec2 describe-instances --no-paginate --max-items 3
+ec2 describe-instances --next-token abc --max-items 3
+ec2 describe-instances --starting-token abc
+ec2 describe-instances --page-size 3
+ec2 describe-volumes
+ec2 describe-snapshots --owner-ids self
+ec2 describe-snapshots --owner-ids self --filters Name=a,Values=b
+ec2 describe-instances --cli-input-json '{"MaxResults": 5}'
+ec2 describe-instances --cli-input-json '{"NextToken": "x"}'
+ec2 describe-instances --cli-input-json '[1]'
+ec2 describe-instances --cli-input-json '{bad'
+ec2 describe-instances --cli-input-json '{}' --cli-input-yaml 'a: 1'
+ec2 describe-instances --cli-input-yaml 'MaxResults: 5'
+ec2 describe-instances --cli-input-yaml '{bad'
+ec2 describe-instances --cli-input-json file:///nonexist
+dynamodb put-item --cli-input-json '{"TableName": "t", "Item": {"a": {"S": "b"}}}' --table-name other
+dynamodb put-item --table-name t --item '{"a":{"B":"aGVsbG8="}}'
+dynamodb put-item --table-name t --item '{"a":{"B":"aGVsbG8"}}'
+--cli-binary-format raw-in-base64-out dynamodb put-item --table-name t --item '{"a":{"B":"aGVsbG8"}}'
+dynamodb put-item --table-name t --item a={S=b}
+dynamodb put-item --table-name t --item 'a={S=b},c={N=1}' --return-values ALL_OLD
+dynamodb get-item --table-name t --key '{"k": {"S": "v"}}' --consistent-read
+dynamodb get-item --table-name t --key '{"k": {"S": "v"}}' --no-consistent-read
+dynamodb create-table --table-name t --attribute-definitions AttributeName=a,AttributeType=S --key-schema AttributeName=a,KeyType=HASH --billing-mode PAY_PER_REQUEST
+dynamodb create-table --table-name t --attribute-definitions AttributeName=a,AttributeType=S --key-schema AttributeName=a,KeyType=HASH --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=x
+dynamodb scan --table-name t --limit 0
+dynamodb query --table-name t --key-condition-expression x --expression-attribute-values '{":v": {"S": "x"}}' --max-items 2
+s3api put-object --bucket b --key k --body /nonexistent
+s3api put-object --bucket b --key k --metadata a=b,c=d
+s3api put-object --bucket b --key k --body fileb:///etc/hostname
+s3api get-object --bucket b --key k
+s3api get-object --bucket b --key k --generate-cli-skeleton
+s3api list-objects-v2 --bucket b --max-items 3 --page-size 2
+iam create-role --role-name r --assume-role-policy-document file:///nonexist
+iam create-role --role-name r --assume-role-policy-document '{"Version": "2012-10-17"}'
+iam list-users --max-items 2
+iam create-user
+iam create-user --user-name
+iam create-user --user-name a --user-name b
+iam create-user --user-nam a
+iam create-user --user a
+iam create-user --use a
+iam create-user --user-name u --path=/x/
+iam create-user --user-name u --tags Key=a
+iam create-user --user-name u --tags '[{"Key":"a","Value":"b"}]' '[{"Key":"c"}]'
+iam create-user --user-name u --tags Key=a,Value=b Key=c,Value=d
+iam create-user --user-name u extra
+iam create-user --user-name u --regoin us-east-1
+iam create-user --user-name u --usr-name x
+sts get-caller-identity help-me
+sts get-caller-identity --debug-x
+sqs send-message --queue-url q --message-body b --delay-seconds 1.5
+sqs send-message --queue-url q --message-body b --delay-seconds x
+sqs send-message --queue-url q --message-body b --message-attributes a={DataType=String,StringValue=v}
+sqs receive-message --queue-url q --max-number-of-messages 0
+cloudwatch get-metric-statistics --namespace n --metric-name m --start-time 2020-01-01 --end-time now --period 60 --statistics Average
+cloudwatch get-metric-statistics --namespace n --metric-name m --start-time 2020-01-01T00:00:00Z --end-time 1577836800 --period 60 --statistics Average
+lambda invoke --function-name f out.json
+lambda invoke --function-name f --payload '{"a":1}' out.json
+lambda invoke --function-name f --payload aGVsbG8= out.json
+lambda invoke --function-name f --payload notbase64! out.json
+cloudsearchdomain search --search-query x
+cloudsearchdomain search --search-query x --endpoint-url https://x.example.com
+ec2 create-network-acl-entry --network-acl-id a --rule-number 1 --protocol tcp --rule-action allow --egress --cidr-block 0.0.0.0/0
+ec2 create-network-acl-entry --network-acl-id a --rule-number 1 --protocol tcp --rule-action allow --ingress --cidr-block 0.0.0.0/0
+ec2 run-instances --image-id ami-1 --count x
+ec2 run-instances --image-id ami-1 --count 1:2:3
+ec2 run-instances --image-id ami-1 --network-interfaces DeviceIndex=0 --associate-public-ip-address
+ec2 create-image --instance-id i-1 --name n --no-reboot
+ec2 create-image --instance-id i-1 --name n --reboot
+ec2 describe-instances --dry-run --no-dry-run
+ec2 describe-instances --filters Name=a,Values=b --filters Name=c,Values=d
+ec2 describe-instance-attribute --instance-id i --attribute x
+ec2 modify-instance-attribute --instance-id i-1 --source-dest-check Value=false
+ec2 modify-instance-attribute --instance-id i-1 --source-dest-check '{"Value": true}'
+ec2 modify-instance-attribute --instance-id i-1 --source-dest-check --no-source-dest-check
+ec2 modify-instance-attribute --instance-id i-1 --instance-type m5.large
+ec2 modify-instance-attribute --instance-id i-1 --instance-type Value=m5.large
+--cli-error-format json iam create-user
+--cli-error-format yaml iam create-user
+--cli-error-format text iam create-user
+--cli-error-format table iam create-user
+--cli-error-format legacy iam create-user
+--cli-error-format json iam create-user --foo
+--cli-error-format json foo
+# main parser
+--version
+--version foo
+foo --version
+sts --version
+--profile
+--output=json sts get-caller-identity
+--output json --output text sts get-caller-identity
+--color maybe sts get-caller-identity
+--no-verify-ssl --ca-bundle x sts get-caller-identity
+--query 'Account' sts get-caller-identity
+--query 'a[' sts get-caller-identity
+--endpoint-url ' http://x' sts get-caller-identity
+--cli-connect-timeout 0 --cli-read-timeout ' 5 ' sts get-caller-identity
+--cli-connect-timeout 1.5 sts get-caller-identity
+--debug=1 sts get-caller-identity
+-x sts get-caller-identity
+- sts get-caller-identity
+-- sts get-caller-identity
+ec2s describe-instances
+s3apii
+dynamo
+sts get-caller-id
+sts get-caller-identity --
+sts get-caller-identity -- extra
+sts get-caller-identity -1
+sts get-caller-identity '-a b'
+# operation arguments
+ec2 describe-instances --instance-ids=i-1
+ec2 describe-instances --instance-ids i-1 --instance-ids i-2
+ec2 describe-instances --in i-1
+ec2 describe-instances --inst i-1
+ec2 describe-instances --dry-run=true
+ec2 describe-instances --max-items=-1
+ec2 describe-instances --max-items 1.5
+ec2 describe-instances --page-size x
+ec2 describe-instances --filters Name=a,Values=b --region us-west-2 --output text
+ec2 describe-instances --filters file://@DIR@/filters.json
+ec2 describe-instances --filters file://@DIR@/missing.json
+ec2 describe-instances --filters '{"Name": "a"}'
+ec2 describe-instances --filters '{"Name": "a"}' '{"Name": "b", "Values": ["x"]}'
+ec2 describe-instances --filters Name=a,Values=[x,y] Name=b,Values=
+ec2 describe-instances --filters 'Name=a,Values="x,y"'
+ec2 describe-instances --filters Name=a,Values=x Nam=b
+ec2 describe-instances --filters Name=a,Name=b
+ec2 describe-instances --filters Name==a
+ec2 describe-instances --instance-ids file://@DIR@/list.json
+ec2 describe-instances --instance-ids '["i-1", "i-2"]'
+ec2 describe-instances --instance-ids '[bad'
+ec2 run-instances --image-id ami-1 --cpu-options CoreCount=2,ThreadsPerCore=1
+ec2 run-instances --image-id ami-1 --cpu-options CoreCount=2,CoreCount=3
+ec2 run-instances --image-id ami-1 --block-device-mappings DeviceName=/dev/sda1,Ebs={VolumeSize=20,DeleteOnTermination=true,Encrypted=False}
+ec2 run-instances --image-id ami-1 --block-device-mappings DeviceName=/dev/sda1,Ebs={VolumeSize=x}
+ec2 run-instances --image-id ami-1 --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=web}]'
+ec2 run-instances --image-id ami-1 --network-interfaces DeviceIndex=0,SubnetId=s --secondary-private-ip-address-count 2
+ec2 run-instances --image-id ami-1 --secondary-private-ip-address-count x
+ec2 run-instances --image-id ami-1 --no-associate-public-ip-address --subnet-id s-1 --security-group-ids sg-1 --private-ip-address 10.0.0.5
+ec2 run-instances --image-id ami-1 --count 0
+ec2 run-instances --image-id ami-1 --min-count 1
+ec2 run-instances
+ec2 run-instances --image-id ami-1 --enable-api-termination
+ec2 run-instances --image-id ami-1 --no-disable-api-termination
+ec2 run-instances --image-id ami-1 --generate-cli-skeleton
+ec2 create-tags --resources r-1 --tags Key=a,Value=b Key=c
+ec2 create-tags --resources r-1 --tags Key=a,Value=b,Extra=c
+ec2 modify-instance-attribute --instance-id i-1 --ebs-optimized Value=maybe
+ec2 modify-instance-attribute --instance-id i-1 --ebs-optimized
+ec2 create-image --instance-id i-1 --name n --no-no-reboot
+ec2 describe-images --owners self amazon --executable-users all
+ec2 describe-subnets --filters Name=vpc-id,Values=v --query 'Subnets[].SubnetId'
+ec2 describe-launch-template-versions --launch-template-id lt-1 --versions 1 2 --max-items 1
+ec2 describe-spot-price-history --start-time 2020-01-01T00:00:00 --instance-types m5.large
+ec2 describe-spot-price-history --start-time notatime
+ec2 wait instance-running --instance-ids i-1 --filters Name=a,Values=b
+ec2 wait instance-running --instance-ids i-1 --max-items 3
+ec2 wait instance-running --cli-input-json '{"InstanceIds": ["i-1"]}'
+ec2 wait instance-running --generate-cli-skeleton
+ec2 wait instance-running --dry-run --no-dry-run
+dynamodb wait table-exists --table-name t
+dynamodb wait table-exists
+dynamodb wait
+dynamodb put-item --table-name t --item file://@DIR@/item.json
+dynamodb put-item --table-name t --item fileb://@DIR@/item.json
+dynamodb put-item --cli-input-json file://@DIR@/input.json
+dynamodb put-item --cli-input-yaml file://@DIR@/input.yaml
+dynamodb put-item --cli-input-yaml 'TableName: t'
+dynamodb put-item --cli-input-yaml '- a'
+dynamodb put-item --table-name t --item '{"k": {"N": 1.5}}'
+dynamodb put-item --table-name t --item '{"k": {"BOOL": "yes"}}'
+dynamodb put-item --table-name t --item '{"k": {"L": [{"S": "a"}, {"N": "1"}]}}'
+dynamodb put-item --table-name t --item '{"k": {"SS": "a"}}'
+dynamodb put-item --table-name t --item '{"k": {"S": "a", "N": "1"}}'
+dynamodb put-item --table-name t --item '{"k": {}}'
+dynamodb put-item --table-name '' --item '{}'
+dynamodb put-item --table-name t --item '{"k": {"S": "a"}}' --expected '{"k": {"Exists": false}}'
+dynamodb put-item --table-name t --item 'k={S=a}' --return-values NOPE
+dynamodb batch-write-item --request-items '{"t": [{"PutRequest": {"Item": {"k": {"S": "v"}}}}]}'
+dynamodb transact-write-items --transact-items '[]'
+dynamodb update-item --table-name t --key k={S=a} --update-expression 'SET a = :v' --expression-attribute-values ':v={N=1}'
+dynamodb scan --table-name t --total-segments 2 --segment 0 --select COUNT
+dynamodb scan --table-name t --exclusive-start-key k={S=a}
+dynamodb execute-statement --statement 'SELECT * FROM t' --parameters S=a N=1
+dynamodb list-tables --max-items 1 --starting-token abc
+dynamodb list-tables --no-paginate --starting-token abc
+dynamodb list-tables --exclusive-start-table-name t
+s3api put-object --bucket b --key k --body @DIR@/body.bin
+s3api put-object --bucket b --key k --body @DIR@/body.bin --content-length x
+s3api put-object --bucket b --key k --tagging a=b --acl public-read --cache-control max-age=60
+s3api put-object --bucket b --key k --sse-customer-algorithm AES256
+s3api put-object --bucket b --key k --object-lock-retain-until-date 2030-01-01T00:00:00Z
+s3api get-object --bucket b --key k @DIR@/out.bin --range bytes=0-9
+s3api get-object --bucket b --key k --if-modified-since 2020-01-01 out
+s3api get-object --bucket b --key k out --part-number x
+s3api get-object --bucket b --key k out --cli-input-json '{}'
+s3api get-object --bucket b out --key k
+s3api get-object out --bucket b --key k
+s3api put-bucket-policy --bucket b --policy file://@DIR@/policy.json
+s3api put-bucket-tagging --bucket b --tagging 'TagSet=[{Key=a,Value=b}]'
+s3api put-bucket-versioning --bucket b --versioning-configuration Status=Enabled
+s3api create-bucket --bucket b --create-bucket-configuration LocationConstraint=eu-west-1
+s3api delete-objects --bucket b --delete 'Objects=[{Key=a},{Key=b}],Quiet=true'
+s3api list-objects-v2 --bucket b --prefix p --delimiter / --max-items 10
+s3api head-object --bucket b --key k --checksum-mode ENABLED
+iam create-role --role-name r --assume-role-policy-document file://@DIR@/policy.json
+iam create-role --role-name r --assume-role-policy-document file://@DIR@/latin1.txt
+iam put-role-policy --role-name r --policy-name p --policy-document file://@DIR@/crlf.txt
+iam create-policy --policy-name p --policy-document '{}' --tags Key=a,Value=b
+iam attach-role-policy --role-name r --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess
+iam list-roles --path-prefix / --max-items 1
+iam get-account-authorization-details --filter User Role
+iam wait role-exists --role-name r
+iam upload-server-certificate --server-certificate-name c --certificate-body file://@DIR@/crlf.txt --private-key x
+sns publish --topic-arn t --message m --message-attributes '{"a": {"DataType": "String", "StringValue": "v"}}'
+sns publish --topic-arn t --message m --message-attributes a={DataType=String,StringValue=v}
+sns subscribe --topic-arn t --protocol email --notification-endpoint e@example.com
+sns subscribe --topic-arn t --protocol email --endpoint e@example.com
+sqs send-message-batch --queue-url q --entries Id=1,MessageBody=a Id=2,MessageBody=b,DelaySeconds=3
+sqs get-queue-attributes --queue-url q --attribute-names All
+sqs change-message-visibility --queue-url q --receipt-handle r --visibility-timeout -1
+kms encrypt --key-id k --plaintext aGVsbG8=
+kms encrypt --key-id k --plaintext fileb://@DIR@/body.bin
+kms encrypt --key-id k --plaintext hello
+kms encrypt --key-id k --plaintext 'h€llo'
+--cli-binary-format raw-in-base64-out kms encrypt --key-id k --plaintext hello
+AWS_CLI_BINARY_FORMAT=x kms encrypt --key-id k --plaintext aGVsbG8=
+kms encrypt --key-id k --plaintext aGVsbG8= --encryption-context a=b,c=d
+lambda invoke --function-name f --payload file://@DIR@/item.json out.json
+lambda invoke --function-name f --cli-binary-format raw-in-base64-out --payload '{"a": 1}' out.json
+lambda invoke --function-name f
+lambda list-functions --max-items 2 --function-version ALL
+logs filter-log-events --log-group-name g --start-time 0 --end-time 1 --filter-pattern x --max-items 5
+logs put-log-events --log-group-name g --log-stream-name s --log-events timestamp=1,message=a
+cloudformation create-stack --stack-name s --template-body file://@DIR@/policy.json --parameters ParameterKey=a,ParameterValue=b --capabilities CAPABILITY_IAM
+cloudformation create-stack --stack-name s --template-url https://x/y --tags Key=a,Value=b --on-failure ROLLBACK
+cloudformation describe-stacks --stack-name s --max-items 1
+ecs run-task --cluster c --task-definition t --overrides '{"containerOverrides": []}' --count 2
+ecs run-task --cluster c --task-definition t --network-configuration 'awsvpcConfiguration={subnets=[s1,s2],securityGroups=[g],assignPublicIp=ENABLED}'
+ecs update-service --cluster c --service s --force-new-deployment --no-enable-execute-command
+ecs update-service --cluster c --service s --disable-execute-command
+ssm put-parameter --name n --value v --type SecureString --overwrite
+ssm get-parameters --names a b --with-decryption
+ssm send-command --document-name AWS-RunShellScript --targets Key=instanceids,Values=i-1 --parameters commands=ls
+secretsmanager create-secret --name s --secret-string '{"a":1}' --tags Key=a,Value=b
+secretsmanager get-secret-value --secret-id s --version-stage AWSCURRENT
+route53 change-resource-record-sets --hosted-zone-id Z --change-batch file://@DIR@/policy.json
+apigateway create-rest-api --name n --api-version 1
+apigateway create-rest-api --name n --version 1
+stepfunctions start-execution --state-machine-arn a --input '{"a":1}'
+glue get-unfiltered-table-metadata --catalog-id c --database-name d --name n --supported-permission-types COLUMN_PERMISSION --resource-region us-east-1
+mgn describe-source-servers --filters sourceServerIDs=s-1
+events put-events --entries Source=a,DetailType=b,Detail='{}'
+kinesis put-record --stream-name s --data aGVsbG8= --partition-key p
+kinesis put-record --stream-name s --data hello --partition-key p
+firehose put-record-batch --delivery-stream-name s --records Data=aGk= Data=aGVsbG8=
+elb describe-instance-health --load-balancer-name l --instances i-1 i-2
+elb register-instances-with-load-balancer --load-balancer-name l --instances i-1
+autoscaling update-auto-scaling-group --auto-scaling-group-name g --min-size 1 --max-size 2 --new-instances-protected-from-scale-in
+rds create-db-instance --db-instance-identifier d --db-instance-class db.t3.micro --engine mysql --master-username u --master-user-password p --allocated-storage 20 --vpc-security-group-ids sg-1 sg-2
+rds describe-db-instances --db-instance-identifier d --filters Name=engine,Values=mysql
+codepipeline get-pipeline --name n --pipeline-version 1
+datapipeline describe-objects --pipeline-id p --object-ids a
+cloudsearchdomain suggest --suggester s --suggest-query q --endpoint-url https://x
+cloudwatch put-metric-alarm --alarm-name a --metric-name m --namespace n --statistic Average --period 60 --evaluation-periods 1 --threshold 1.5 --comparison-operator GreaterThanThreshold --dimensions Name=a,Value=b
+cloudwatch get-metric-data --metric-data-queries file://@DIR@/policy.json --start-time 2020-01-01 --end-time 2020-01-02
+cloudwatch get-metric-data --start-time 2020-01-01 --end-time 2020-01-02 --metric-data-queries '[{"Id": "a", "Expression": "1"}]' --max-items 1
+sts assume-role --role-arn arn --role-session-name s --duration-seconds 900 --tags Key=a,Value=b --policy-arns arn=x
+sts assume-role --role-arn arn --role-session-name s --duration-seconds 1
+sts assume-role --role-arn arn --role-session-name '' 
+sts assume-role --role-arn arn
+sts get-session-token --duration-seconds x
+organizations list-accounts --max-items 1 --page-size 1
+servicediscovery discover-instances --namespace-name n --service-name s --query-parameters a=b
+appsync evaluate-code --runtime name=APPSYNC_JS,runtimeVersion=1.0.0 --code x --context '{}'
+bedrock-runtime converse --model-id m --messages 'role=user,content=[{text=hi}]'
+bedrock-runtime converse --model-id m --messages '[{"role": "user", "content": [{"text": "hi"}]}]' --additional-model-request-fields '{"a": 1}'
+bedrock-runtime converse-stream --model-id m
+bedrock-agent-runtime invoke-agent --agent-id a
+dynamodb put-item --table-name t --item '{"k": {"S": "v"}}' --cli-error-format json --foo
+iam create-user --cli-error-format yaml
+AWS_CLI_ERROR_FORMAT=json iam create-user
+AWS_CLI_ERROR_FORMAT=JSON foo
+AWS_CLI_ERROR_FORMAT=bogus iam create-user
+AWS_CLI_ERROR_FORMAT=legacy ec2 describe-instances --filters ''
+# skeletons
+dynamodb put-item --generate-cli-skeleton
+dynamodb put-item --generate-cli-skeleton input --table-name t
+dynamodb put-item --generate-cli-skeleton output --table-name t --item k={S=v}
+dynamodb put-item --generate-cli-skeleton output
+dynamodb put-item --generate-cli-skeleton nope
+cloudwatch get-metric-data --generate-cli-skeleton
+s3api put-object --generate-cli-skeleton
+s3api put-object --generate-cli-skeleton --bucket b
+lambda invoke --generate-cli-skeleton
+ec2 describe-instances --generate-cli-skeleton
+sts get-caller-identity --generate-cli-skeleton
+sts get-caller-identity --generate-cli-skeleton output
+bedrock-runtime converse --generate-cli-skeleton
+quicksight create-analysis --generate-cli-skeleton
+iam create-user --generate-cli-skeleton --cli-input-json '{'
+iam create-user --cli-input-json '{"UserName": "u"}' --generate-cli-skeleton
+iam create-user --cli-input-json '{"UserName": 1}'
+iam create-user --cli-input-json '{"UserName": "u", "Bogus": 1}'
+iam create-user --cli-input-json '{"UserName": "u"}' --user-name v
+# tests/unit/test_argprocess.py, through the command line
+sqs set-queue-attributes --queue-url q --attributes VisibilityTimeout=15
+elb create-load-balancer --load-balancer-name l --listeners Protocol=HTTP,LoadBalancerPort=80,InstanceProtocol=HTTP,InstancePort=80
+elb create-load-balancer --load-balancer-name l --listeners '{"Protocol": "HTTP", "LoadBalancerPort": 80, "InstancePort": 80}'
+elb create-load-balancer --load-balancer-name l --listeners Protocol=HTTP,LoadBalancerPort=x
+dynamodb update-table --table-name t --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1
+emr modify-instance-groups --instance-groups InstanceGroupId=foo,InstanceCount=4
+emr modify-instance-groups --instance-groups InstanceGroupId=foo,InstanceCount=4 InstanceGroupId=bar,InstanceCount=1
+emr modify-instance-groups --instance-groups
+ec2 describe-instances --filters Name:tag:Name,Values:foo
+ec2 describe-instances --filters 'Name=tag:Name,Values=foo' 'Name=a,Values=b,c'
+ec2 describe-instances --filters Name=foo,Values=
+cloudformation create-stack --stack-name s --parameters 'ParameterKey=key,ParameterValue=foo\,bar'
+cloudformation create-stack --stack-name s --parameters 'ParameterKey=key,ParameterValue="foo,bar"'
+cloudformation create-stack --stack-name s --parameters "ParameterKey=key,ParameterValue='foo,bar'"
+cloudformation create-stack --stack-name s --parameters 'ParameterKey=key,ParameterValue="foo,bar'
+cloudformation create-stack --stack-name s --parameters 'ParameterKey=key,ParameterValue=foo,bar"'
+cloudformation create-stack --stack-name s --parameters 'ParameterKey=key,ParameterValue=""foo,bar"'
+cloudformation create-stack --stack-name s --parameters "ParameterKey=key,ParameterValue=\"foo,bar'"
+ec2 run-instances --image-id ami-1 --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":20}}]'
+ec2 run-instances --image-id ami-1 --block-device-mappings '  [{"DeviceName":"/dev/sda1",  "Ebs" : {"VolumeSize":20}}]'
+ec2 run-instances --image-id ami-1 --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":20}}'
+lex-runtime post-content --bot-name b --bot-alias a --user-id u --content-type t --input-stream @DIR@/body.bin --session-attributes '{"foo": "bar"}'
+lex-runtime post-content --bot-name b --bot-alias a --user-id u --content-type t --input-stream @DIR@/body.bin --session-attributes 5
+lex-runtime post-content --bot-name b --bot-alias a --user-id u --content-type t --input-stream @DIR@/body.bin --session-attributes 'invalid string to be serialized'
+lex-runtime post-content --bot-name b --bot-alias a --user-id u --content-type t --input-stream nofile
+workspaces reboot-workspaces --reboot-workspace-requests ws-1 ws-2
+workspaces reboot-workspaces --reboot-workspace-requests WorkspaceId=ws-1
+firehose put-record-batch --delivery-stream-name s --records '[{"Data": "aGk="}]'
+ec2 modify-instance-attribute --instance-id i-1 --instance-initiated-shutdown-behavior terminate
+ec2 modify-instance-attribute --instance-id i-1 --instance-initiated-shutdown-behavior Value=terminate
+s3api put-bucket-notification-configuration --bucket b --notification-configuration '{}'
+ec2 describe-instances --dry-run --filters
+ec2 describe-instances --instance-ids
+ec2 describe-instances --instance-ids ''
+iam create-user --user-name ''
+iam create-user --user-name u --permissions-boundary arn:aws:iam::1:policy/p --tags []
+dynamodb query --table-name t --key-conditions '{}' --limit 0 --no-paginate
+dynamodb query --table-name t --scan-index-forward --no-scan-index-forward
+s3control put-public-access-block --account-id 1 --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=maybe
+sts assume-role --generate-cli-skeleton yaml-input
+sts get-caller-identity --generate-cli-skeleton yaml-input
+dynamodb put-item --generate-cli-skeleton yaml-input
+ec2 run-instances --generate-cli-skeleton yaml-input
+ec2 describe-instances --generate-cli-skeleton yaml-input
+iam create-role --generate-cli-skeleton yaml-input
+lambda invoke --generate-cli-skeleton yaml-input
+cloudformation create-stack --generate-cli-skeleton yaml-input
+ecs register-task-definition --generate-cli-skeleton yaml-input
+s3api put-bucket-lifecycle-configuration --generate-cli-skeleton yaml-input
+sqs send-message --generate-cli-skeleton yaml-input
+bedrock-runtime converse --generate-cli-skeleton yaml-input
+glue create-table --generate-cli-skeleton yaml-input
+sagemaker create-training-job --generate-cli-skeleton yaml-input
+quicksight create-analysis --generate-cli-skeleton yaml-input
+apigateway put-integration --generate-cli-skeleton yaml-input
+route53 change-resource-record-sets --generate-cli-skeleton yaml-input
+kms encrypt --generate-cli-skeleton yaml-input
+ssm send-command --generate-cli-skeleton yaml-input
+apigatewayv2 export-api --generate-cli-skeleton yaml-input
+apigatewayv2 export-api --generate-cli-skeleton
+connect create-routing-profile --generate-cli-skeleton yaml-input
+dynamodb put-item --generate-cli-skeleton yaml-input --table-name t
+ec2 wait instance-running --generate-cli-skeleton yaml-input

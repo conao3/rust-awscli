@@ -50,3 +50,11 @@ for name, token, region in [('eks_token.txt', None, 'us-east-1'), ('eks_token_se
     sts = STSClientFactory(s).get_sts_client(region_name=region)
     gen = TokenGenerator(sts)
     write(name, gen._get_presigned_url('my-cluster') + '\n' + gen.get_token('my-cluster'))
+
+import awscli.customizations.codecommit as _cc  # noqa: E402
+
+_cc.datetime.datetime = Fixed
+s = _bsession.get_session()
+s.set_credentials('AKIDEXAMPLE', SECRET)
+write('codecommit_signature.txt', _cc.CodeCommitGetCommand(s).sign_request(
+    'eu-west-1', 'https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/r'))

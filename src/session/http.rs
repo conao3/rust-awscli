@@ -54,7 +54,7 @@ type Conn = BufReader<Box<dyn Io>>;
 
 pub struct HttpClient {
     config: HttpConfig,
-    tls: Arc<rustls::ClientConfig>,
+    tls: std::sync::OnceLock<Result<Arc<rustls::ClientConfig>, SessionError>>,
     pool: Mutex<HashMap<String, Conn>>,
 }
 
@@ -130,21 +130,32 @@ fn tls_config(verify: &Verify) -> Result<rustls::ClientConfig, SessionError> {
             let mut roots = rustls::RootCertStore::empty();
             match verify {
                 Verify::Bundle(path) => {
+                    // `SSLContext.load_verify_locations` fails inside
+                    // `URLLib3Session.send`, which wraps it in
+                    // `HTTPClientError`.
                     let bytes = std::fs::read(path).map_err(|e| {
+                        let errno = e.raw_os_error().unwrap_or(0);
+                        let text = match e.kind() {
+                            std::io::ErrorKind::NotFound => "No such file or directory".to_string(),
+                            std::io::ErrorKind::PermissionDenied => "Permission denied".to_string(),
+                            _ => e.to_string(),
+                        };
                         SessionError::new(
-                            ErrorKind::General,
+                            ErrorKind::HttpClient,
                             format!(
-                                "Could not find a suitable TLS CA certificate bundle, invalid path: {path}{}",
-                                if e.kind() == std::io::ErrorKind::NotFound {
-                                    String::new()
-                                } else {
-                                    format!(" ({e})")
-                                }
+                                "An HTTP Client raised an unhandled exception: [Errno {errno}] {text}"
                             ),
                         )
                     })?;
                     for cert in CertificateDer::pem_slice_iter(&bytes).flatten() {
                         let _ = roots.add(cert);
+                    }
+                    if roots.is_empty() {
+                        return Err(SessionError::new(
+                            ErrorKind::HttpClient,
+                            "An HTTP Client raised an unhandled exception: \
+                             [X509: NO_CERTIFICATE_OR_CRL_FOUND] no certificate or crl found",
+                        ));
                     }
                 }
                 _ => {
@@ -302,12 +313,19 @@ enum SendError {
 
 impl HttpClient {
     pub fn new(config: HttpConfig) -> Result<HttpClient, SessionError> {
-        let tls = Arc::new(tls_config(&config.verify)?);
         Ok(HttpClient {
             config,
-            tls,
+            tls: std::sync::OnceLock::new(),
             pool: Mutex::new(HashMap::new()),
         })
+    }
+
+    /// The TLS configuration, built at the first `https` connection (the
+    /// CA bundle is loaded per connection in urllib3).
+    fn tls(&self) -> Result<Arc<rustls::ClientConfig>, SessionError> {
+        self.tls
+            .get_or_init(|| tls_config(&self.config.verify).map(Arc::new))
+            .clone()
     }
 
     /// Send one request and read the whole response.
@@ -398,7 +416,7 @@ impl HttpClient {
                 format!("SSL validation failed for {url} {e}"),
             )
         })?;
-        let connector = tokio_rustls::TlsConnector::from(self.tls.clone());
+        let connector = tokio_rustls::TlsConnector::from(self.tls()?);
         let fut = connector.connect(server_name, stream);
         let tls = match self.config.connect_timeout {
             Some(t) => tokio::time::timeout(t, fut).await.map_err(|_| {
@@ -872,6 +890,33 @@ mod tests {
                 ("Set-Cookie".to_string(), "a, b".to_string()),
                 ("Transfer-Encoding".to_string(), "chunked".to_string()),
             ]
+        );
+    }
+
+    #[tokio::test]
+    async fn missing_ca_bundle() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        tokio::spawn(async move {
+            let _conn = listener.accept().await;
+            tokio::time::sleep(Duration::from_secs(5)).await;
+        });
+        let client = HttpClient::new(HttpConfig {
+            verify: Verify::Bundle("/nonexistent/ca.pem".into()),
+            connect_timeout: Some(Duration::from_secs(5)),
+            read_timeout: Some(Duration::from_secs(5)),
+            env: HashMap::new(),
+            proxy_use_forwarding_for_https: false,
+        })
+        .unwrap();
+        let err = client
+            .send("GET", &format!("https://127.0.0.1:{port}/"), &[], b"")
+            .await
+            .unwrap_err();
+        assert_eq!(err.kind, ErrorKind::HttpClient);
+        assert_eq!(
+            err.message,
+            "An HTTP Client raised an unhandled exception: [Errno 2] No such file or directory"
         );
     }
 

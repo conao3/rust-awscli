@@ -391,7 +391,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_ser_s3_get_object_ts() {
         check_serialize(
             serialize,
@@ -403,7 +402,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_ser_s3_put_object_lock_ts() {
         check_serialize(
             serialize,
@@ -415,7 +413,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_ser_s3_put_object_retention_ts() {
         check_serialize(
             serialize,
@@ -452,7 +449,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_parse_s3_list_objects_v2_ts() {
         check_parse(
             parse,
@@ -518,7 +514,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_parse_s3_head_object_ts() {
         check_parse(
             parse,

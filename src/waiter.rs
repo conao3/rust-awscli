@@ -445,7 +445,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs jmes rewrite"]
     fn numeric_projection_matches_across_int_and_float() {
         let config = serde_json::json!({"operation": "Op", "delay": 1, "maxAttempts": 1,
             "acceptors": [{"state": "success", "matcher": "pathAll", "argument": "Items[].N", "expected": 1}]});

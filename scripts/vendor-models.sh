@@ -8,9 +8,10 @@ out="models"
 
 rm -rf "$out"
 mkdir -p "$out/services"
-null_file="$(mktemp)"
+tmp_dir="$(mktemp -d)"
+null_file="$tmp_dir/null.json"
 echo null > "$null_file"
-trap 'rm -f "$null_file"' EXIT
+trap 'rm -rf "$tmp_dir"' EXIT
 
 for dir in "$data"/*/; do
   service="$(basename "$dir")"
@@ -19,11 +20,21 @@ for dir in "$data"/*/; do
   vdir="$dir$version"
   [ -f "$vdir/service-2.json" ] || continue
   path_or_null() { if [ -f "$vdir/$1" ]; then echo "$vdir/$1"; else echo "$null_file"; fi; }
+  with_extras() {
+    local base="$vdir/$1.json" extras="$vdir/$1.sdk-extras.json" merged="$tmp_dir/$service.$1.json"
+    if [ ! -f "$base" ]; then echo "$null_file"; return; fi
+    if [ -f "$extras" ]; then
+      jq -c --slurpfile e "$extras" '. * ($e[0].merge // {})' "$base" > "$merged"
+      echo "$merged"
+    else
+      echo "$base"
+    fi
+  }
   jq -c -n \
     --arg version "$version" \
-    --slurpfile service "$vdir/service-2.json" \
-    --slurpfile paginators "$(path_or_null paginators-1.json)" \
-    --slurpfile waiters "$(path_or_null waiters-2.json)" \
+    --slurpfile service "$(with_extras service-2)" \
+    --slurpfile paginators "$(with_extras paginators-1)" \
+    --slurpfile waiters "$(with_extras waiters-2)" \
     --slurpfile ruleset "$(path_or_null endpoint-rule-set-1.json)" \
     '{api_version: $version, service: $service[0], paginators: ($paginators[0].pagination // null), waiters: ($waiters[0].waiters // null), ruleset: $ruleset[0]}' \
     | zstd -19 -q -o "$out/services/$service.json.zst"

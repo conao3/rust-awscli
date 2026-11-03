@@ -147,12 +147,12 @@ fn replace_non_finite(text: &str) -> String {
         if in_str {
             let ch = text[i..].chars().next().unwrap();
             out.push(ch);
-            if ch == '\\' {
-                if let Some(next) = text[i + 1..].chars().next() {
-                    out.push(next);
-                    i += 1 + next.len_utf8();
-                    continue;
-                }
+            if ch == '\\'
+                && let Some(next) = text[i + 1..].chars().next()
+            {
+                out.push(next);
+                i += 1 + next.len_utf8();
+                continue;
             }
             if ch == '"' {
                 in_str = false;

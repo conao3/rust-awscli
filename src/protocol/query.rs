@@ -368,7 +368,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_ser_rds_describe_events_ts() {
         check_serialize(
             serialize,
@@ -403,7 +402,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_parse_sts_assume_role_ts() {
         check_parse(
             parse,
@@ -430,7 +428,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_parse_iam_list_users_ts() {
         check_parse(
             parse,

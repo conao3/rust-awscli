@@ -149,7 +149,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "needs protocol::timestamp"]
     fn golden_parse_describe_instances_ts() {
         check_parse(
             parse,

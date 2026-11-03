@@ -229,8 +229,18 @@ impl<'a> Caller<'a> {
             .operation(operation_name)
             .ok_or_else(|| anyhow::anyhow!("unknown operation {operation_name}"))?;
         let settings = ctx.session.client_settings()?;
-        let region = settings.region.clone();
         let config = ctx.session.config();
+        let region = match settings.region.clone() {
+            Some(r) => Some(r),
+            None => {
+                let endpoint_url = ctx
+                    .globals
+                    .endpoint_url
+                    .clone()
+                    .or_else(|| config.configured_endpoint_url(&model.name).ok().flatten());
+                default_region(model, endpoint_url.is_some())?
+            }
+        };
         let account_id = None;
         let s3_get = |key: &str| config.get(&format!("s3.{key}")).ok().flatten();
         let s3_bool = |key: &str| config.get_bool(&format!("s3.{key}")).ok().flatten();
@@ -716,5 +726,27 @@ pub(crate) fn block_on<F: std::future::Future>(runtime: &Runtime, future: F) -> 
     match tokio::runtime::Handle::try_current() {
         Ok(handle) => tokio::task::block_in_place(|| handle.block_on(future)),
         Err(_) => runtime.block_on(future),
+    }
+}
+
+/// The region `ClientEndpointBridge.resolve` gives a client created without
+/// one: the service's `partitionEndpoint` in the `aws` partition of
+/// `endpoints.json` (kept only when no endpoint URL is given,
+/// `_pick_region_values`), else `NoRegionError`.
+fn default_region(model: &ServiceModel, has_endpoint_url: bool) -> Result<Option<String>> {
+    let partition_endpoint = crate::model::endpoints()["partitions"]
+        .as_array()
+        .and_then(|p| p.iter().find(|p| p["partition"] == "aws"))
+        .and_then(|p| p["services"].get(model.endpoint_prefix()))
+        .and_then(|s| s.get("partitionEndpoint"))
+        .and_then(|e| e.as_str());
+    match partition_endpoint {
+        Some(endpoint) if !has_endpoint_url => Ok(Some(endpoint.to_string())),
+        Some(_) => Ok(None),
+        None => Err(SessionError::new(
+            crate::session::ErrorKind::NoRegion,
+            "You must specify a region.",
+        )
+        .into()),
     }
 }

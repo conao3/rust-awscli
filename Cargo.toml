@@ -57,6 +57,7 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 rustls-native-certs = "0.8"
 tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
 webpki-roots = "1"
+xxhash-rust = { version = "0.8.19", features = ["xxh64", "xxh3"] }
 
 [dev-dependencies]
 tempfile = "3"

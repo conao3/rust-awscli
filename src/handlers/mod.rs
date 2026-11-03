@@ -305,10 +305,13 @@ pub struct RequestChecksum {
     pub algorithm: String,
     /// `x-amz-checksum-<algorithm>`.
     pub header: String,
-    /// The header targeted by `requestAlgorithmMember`, set to `CRC32` when
+    /// The header targeted by `requestAlgorithmMember`, set to `CRC64NVME` when
     /// the algorithm was chosen by default.
     pub algorithm_header: Option<String>,
 }
+
+/// `httpchecksum.DEFAULT_CHECKSUM_ALGORITHM`.
+const DEFAULT_CHECKSUM_ALGORITHM: &str = "CRC64NVME";
 
 const SUPPORTED_CHECKSUM_ALGORITHMS: &[&str] = &[
     "crc32",
@@ -372,7 +375,7 @@ pub fn resolve_request_checksum(
                     .as_str()
                     .map(str::to_string)
             });
-            ("crc32".to_string(), header)
+            (DEFAULT_CHECKSUM_ALGORITHM.to_lowercase(), header)
         }
         None => return Ok(None),
     };
@@ -394,7 +397,7 @@ pub fn apply_request_checksum(request: &mut HttpRequest, checksum: &RequestCheck
         set_header(&mut request.headers, &checksum.header, &digest);
     }
     if let Some(name) = &checksum.algorithm_header {
-        set_header(&mut request.headers, name, "CRC32");
+        set_header(&mut request.headers, name, DEFAULT_CHECKSUM_ALGORITHM);
     }
     Ok(())
 }
@@ -412,6 +415,9 @@ fn checksum_digest(algorithm: &str, body: &[u8]) -> Result<String> {
         "sha256" => sha2::Sha256::digest(body).to_vec(),
         "sha512" => sha2::Sha512::digest(body).to_vec(),
         "md5" => md5::Md5::digest(body).to_vec(),
+        "xxhash64" => xxhash_rust::xxh64::xxh64(body, 0).to_be_bytes().to_vec(),
+        "xxhash3" => xxhash_rust::xxh3::xxh3_64(body).to_be_bytes().to_vec(),
+        "xxhash128" => xxhash_rust::xxh3::xxh3_128(body).to_be_bytes().to_vec(),
         other => bail!("Unsupported checksum algorithm: {other}"),
     };
     Ok(STANDARD.encode(bytes))

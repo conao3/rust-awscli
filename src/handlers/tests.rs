@@ -365,3 +365,18 @@ fn parameter_aliases() {
         "Parameter 'from' and its alias 'fromTime' were provided for operation CreateExportTask.  Only one of them may be used."
     );
 }
+
+/// `awscrt.checksums.XXHash` digests of `b"hello world"`.
+#[test]
+fn xxhash_checksums() {
+    for (algorithm, expected) in [
+        ("xxhash64", "RatnNLIeaWg="),
+        ("xxhash3", "1Eex6kDmmIs="),
+        ("xxhash128", "340J6T+HSQCpm4d1zBW2xw=="),
+    ] {
+        assert_eq!(
+            checksum_digest(algorithm, b"hello world").unwrap(),
+            expected
+        );
+    }
+}

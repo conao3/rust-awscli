@@ -99,22 +99,14 @@ pub(crate) fn raw_call(
     op: &str,
     params: &Value,
 ) -> Result<CallResult, String> {
-    if let Some(operation) = client.model.operation(op)
-        && let Some(input) = operation.input()
-    {
-        let mut check = params.clone();
-        let _ = crate::handlers::before_parameter_build(
-            &client.model,
-            &operation,
-            &mut check,
-            &client.ctx.session,
-        );
-        if let Some(report) = crate::cli::validate::validate(&check, &input) {
-            return Err(report);
+    client.call_raw(op, params).map_err(|e| {
+        if let Some(p) = e.downcast_ref::<crate::handlers::ParamValidationError>() {
+            return p.to_string();
         }
-    }
-    client.try_call(op, params).map_err(|e| {
-        e.message
+        client
+            .ctx
+            .general_error(&e)
+            .message
             .trim()
             .trim_start_matches("aws: [ERROR]: ")
             .to_string()

@@ -10,7 +10,7 @@ use regex::Regex;
 use super::super::basic::{self, ArgDef, Args};
 use super::super::exec::Client;
 use crate::cli::argparse::Nargs;
-use crate::cli::{Fail, pyjson, render_fail, validate};
+use crate::cli::pyjson;
 use crate::driver::{CallResult, Caller, Context, client_error};
 use crate::error::{CliError, ExitCode};
 use crate::output::Color;
@@ -239,23 +239,6 @@ fn format_event(event: &Value, format: Format, colorize: bool) -> Result<String,
     Ok(format!("{}\n", line.trim_end_matches(is_py_space)))
 }
 
-fn validate_params(ctx: &Context, client: &Client<'_>, params: &Value) -> Result<(), CliError> {
-    let op = client
-        .model
-        .operation("FilterLogEvents")
-        .expect("FilterLogEvents");
-    if let Some(input) = op.input()
-        && let Some(report) = validate::validate(params, &input)
-    {
-        return Err(render_fail(
-            Fail::ParamValidation(report),
-            &ctx.globals,
-            &ctx.session,
-        ));
-    }
-    Ok(())
-}
-
 fn events(ctx: &Context, page: &Value) -> Result<Vec<Value>, CliError> {
     match page.get("events") {
         Some(Value::List(l)) => Ok(l.clone()),
@@ -273,7 +256,6 @@ fn no_follow(
     display: &mut dyn FnMut(&Value) -> Result<(), CliError>,
 ) -> Result<(), CliError> {
     let params = Value::Map(params.clone());
-    validate_params(ctx, client, &params)?;
     let op = client
         .model
         .operation("FilterLogEvents")

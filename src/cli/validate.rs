@@ -12,15 +12,19 @@ use crate::value::Value;
 /// `ParamValidationError` message, or `None` when the parameters are
 /// valid.
 pub(crate) fn validate(params: &Value, shape: &Shape<'_>) -> Option<String> {
+    report(params, shape).map(|r| format!("Parameter validation failed:\n{r}"))
+}
+
+/// `ValidationErrors.generate_report()`: the lines after the
+/// `ParamValidationError` heading, or `None` when the parameters are
+/// valid.
+pub(crate) fn report(params: &Value, shape: &Shape<'_>) -> Option<String> {
     let mut errors = Vec::new();
     validate_value(params, shape, &mut errors, "");
     if errors.is_empty() {
         None
     } else {
-        Some(format!(
-            "Parameter validation failed:\n{}",
-            errors.join("\n")
-        ))
+        Some(errors.join("\n"))
     }
 }
 

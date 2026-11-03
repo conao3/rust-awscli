@@ -71,9 +71,13 @@ impl<'a> Client<'a> {
             .filter(|(_, v)| !matches!(v, Value::Null))
             .collect();
         let params = Value::Map(params);
-        self.validate(operation, &params)?;
         let caller = Caller::new(self.ctx, self.model, operation).map_err(CallError::Other)?;
-        match caller.call(&params).map_err(CallError::Other)? {
+        let raised =
+            |e: anyhow::Error| match e.downcast_ref::<crate::handlers::ParamValidationError>() {
+                Some(p) => CallError::Validation(p.to_string()),
+                None => CallError::Other(e),
+            };
+        match caller.call(&params).map_err(raised)? {
             CallResult::Ok(Value::Map(m)) => Ok(m
                 .into_iter()
                 .filter(|(_, v)| !matches!(v, Value::Null))

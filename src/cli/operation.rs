@@ -327,7 +327,6 @@ pub(crate) fn run_with<'m>(
                 hooks.before_call(&mut params)?;
                 let mut params = Value::Map(params);
                 client_params(op, &mut params, ctx)?;
-                validate_input(op, &params, None)?;
                 return Ok(Invocation::Call(Box::new(OperationInvocation {
                     cli_service: String::new(),
                     service: op.model.name.clone(),
@@ -371,15 +370,6 @@ pub(crate) fn run_with<'m>(
     hooks.before_call(&mut params)?;
     let mut params = Value::Map(params);
     client_params(op, &mut params, ctx)?;
-    let limit = match (paginate, pagination.page_size) {
-        (true, Some(page_size)) => extras
-            .paginator
-            .and_then(|c| c.get("limit_key"))
-            .and_then(|v| v.as_str())
-            .map(|k| (k, page_size)),
-        _ => None,
-    };
-    validate_input(op, &params, limit)?;
     Ok(Invocation::Call(Box::new(OperationInvocation {
         cli_service: String::new(),
         service: op.model.name.clone(),
@@ -390,27 +380,6 @@ pub(crate) fn run_with<'m>(
         outfile: state.outfile,
         stub_response: None,
     })))
-}
-
-/// botocore's validation of the parameters of the first request (with the
-/// idempotency tokens botocore fills in and the paginator's limit key).
-fn validate_input(
-    op: &Operation<'_>,
-    params: &Value,
-    limit: Option<(&str, i64)>,
-) -> Result<(), Fail> {
-    let Some(input) = op.input() else {
-        return Ok(());
-    };
-    let mut check = params.clone();
-    fill_idempotency_tokens(&mut check, &input);
-    if let (Some((key, size)), Value::Map(m)) = (limit, &mut check) {
-        m.insert(key.to_string(), Value::int(size));
-    }
-    match validate::validate(&check, &input) {
-        Some(report) => Err(Fail::ParamValidation(report)),
-        None => Ok(()),
-    }
 }
 
 fn operation_help(path: CommandPath<'_>, table: &ArgTable<'_>) -> String {
@@ -898,20 +867,6 @@ fn py_b64decode(data: &[u8]) -> Option<Vec<u8>> {
         }
     }
     if quad != 0 { None } else { Some(out) }
-}
-
-/// botocore `generate_idempotent_uuid` (for validation only): missing
-/// top-level idempotency token members get a value.
-fn fill_idempotency_tokens(params: &mut Value, input: &Shape<'_>) {
-    let Value::Map(m) = params else { return };
-    for (name, member) in input.members() {
-        if member.get_bool("idempotencyToken") && !m.contains_key(name) {
-            m.insert(
-                name.to_string(),
-                Value::str("00000000-0000-4000-8000-000000000000"),
-            );
-        }
-    }
 }
 
 #[cfg(test)]

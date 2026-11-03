@@ -12,6 +12,7 @@ mod exec;
 mod response;
 mod rng;
 mod run;
+mod scenario;
 mod server;
 mod table;
 mod values;
@@ -83,6 +84,16 @@ enum Command {
         /// Keep every K-th generated case (a sample across all services).
         #[arg(long, default_value_t = 1)]
         stride: usize,
+    },
+    /// Run hand-written scenarios (`difftest/scenarios/*.json`) for the
+    /// commands and argument customizations the models do not describe.
+    Scenario {
+        #[command(flatten)]
+        common: Common,
+        /// Only scenarios whose name matches.
+        #[arg(long)]
+        filter: Option<String>,
+        files: Vec<PathBuf>,
     },
     /// Print the prepared command line, input, and responses of a case.
     Show {
@@ -168,6 +179,11 @@ async fn async_main(cli: Cli) -> Result<()> {
             print!("{}", exec::responses_text(&p));
             Ok(())
         }
+        Command::Scenario {
+            common,
+            filter,
+            files,
+        } => run_scenarios(&common, filter.as_deref(), &files).await,
         Command::Case { common, spec } => {
             let case = Case::parse(&spec.join(" "))?;
             run_cases(&common, vec![case]).await
@@ -286,6 +302,95 @@ impl Exclusions {
             })
             .map(|(_, _, r)| r.as_str())
     }
+}
+
+async fn run_scenarios(common: &Common, filter: Option<&str>, files: &[PathBuf]) -> Result<()> {
+    let filter = filter.map(regex::Regex::new).transpose()?;
+    let target = manifest_dir().join("../target/difftest");
+    std::fs::create_dir_all(&target)?;
+    let target = target.canonicalize()?;
+    let report_dir = common
+        .report_dir
+        .clone()
+        .unwrap_or_else(|| target.join("scenario-report"));
+    if report_dir.exists() {
+        std::fs::remove_dir_all(&report_dir)?;
+    }
+    std::fs::create_dir_all(&report_dir)?;
+    let candidate = Arc::new(
+        common
+            .awsr_bin
+            .clone()
+            .unwrap_or_else(|| manifest_dir().join("../target/debug/awsr")),
+    );
+    let reference = Arc::new(common.reference.clone());
+    let env = Arc::new(run::Env {
+        max_attempts: common.max_attempts,
+        timeout: Duration::from_secs(common.timeout),
+    });
+    let work = Arc::new(target.join("work"));
+    let mut scenarios = vec![];
+    for f in files {
+        for s in scenario::load(f)? {
+            if filter.as_ref().is_none_or(|re| re.is_match(&s.name)) {
+                scenarios.push(s);
+            }
+        }
+    }
+    let sem = Arc::new(Semaphore::new(common.jobs.max(1)));
+    let mut tasks = vec![];
+    for s in scenarios {
+        let (sem, reference, candidate, env, work) = (
+            sem.clone(),
+            reference.clone(),
+            candidate.clone(),
+            env.clone(),
+            work.clone(),
+        );
+        tasks.push(tokio::spawn(async move {
+            let _permit = sem.acquire().await;
+            let r = scenario::exec(&s, &reference, &candidate, &work, &env).await;
+            (s.name, r)
+        }));
+    }
+    let (mut passed, mut failed) = (0, 0);
+    let mut shown = 0;
+    for t in tasks {
+        let (name, r) = t.await?;
+        let stem: String = name
+            .chars()
+            .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+            .collect();
+        match r {
+            Ok(o) if o.pass => {
+                passed += 1;
+                if common.print_passing {
+                    println!("PASS {name}");
+                }
+            }
+            Ok(o) => {
+                failed += 1;
+                println!("FAIL {name}");
+                std::fs::write(report_dir.join(format!("{stem}.txt")), &o.detail)?;
+                if shown < common.show {
+                    shown += 1;
+                    println!("{}", o.detail);
+                }
+            }
+            Err(e) => {
+                failed += 1;
+                println!("FAIL {name}: harness: {e:#}");
+            }
+        }
+    }
+    println!(
+        "{passed} passed, {failed} failed; reports: {}",
+        report_dir.display()
+    );
+    if failed > 0 {
+        bail!("{failed} scenarios failed");
+    }
+    Ok(())
 }
 
 async fn run_cases(common: &Common, cases: Vec<Case>) -> Result<()> {

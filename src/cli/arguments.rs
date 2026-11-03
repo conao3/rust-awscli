@@ -79,6 +79,77 @@ pub(crate) enum ArgKind {
     /// `ec2.runinstances.AssociatePublicIpAddressArgument` /
     /// `NoAssociatePublicIpAddressArgument`.
     AssociatePublicIp { negative: bool },
+    /// A `CustomArgument` a service customization adds; its
+    /// `add_to_params` is the customization's
+    /// (`super::operation::OperationHooks::add_to_params`).
+    Custom(Box<CustomSpec>),
+}
+
+/// The `CustomArgument` keyword arguments that reach `add_argument`.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub(crate) struct CustomSpec {
+    /// `action` (`None` is `'store'`).
+    pub action: Option<Kind>,
+    pub nargs: Option<Nargs>,
+    pub choices: Vec<String>,
+    pub default: Option<NsVal>,
+    pub dest: Option<String>,
+    pub const_: Option<String>,
+    pub positional: bool,
+}
+
+impl<'m> Arg<'m> {
+    /// A `CustomArgument` for an operation's argument table.
+    pub(crate) fn custom_argument(name: &str, spec: CustomSpec, required: bool) -> Arg<'m> {
+        Arg {
+            name: name.to_string(),
+            kind: ArgKind::Custom(Box::new(spec)),
+            shape: None,
+            serialized_name: String::new(),
+            required,
+            undocumented: false,
+        }
+    }
+}
+
+/// `CustomArgument.add_to_parser`.
+pub(crate) fn custom_action(name: &str, spec: &CustomSpec, required: bool) -> Action {
+    let mut a = if spec.positional {
+        let mut a = Action::positional(name, spec.nargs.unwrap_or(Nargs::One));
+        a.metavar = None;
+        a
+    } else {
+        Action::option(&format!("--{name}"))
+    };
+    match spec.action {
+        Some(kind @ (Kind::StoreTrue | Kind::StoreFalse)) => {
+            let dest = a.dest.clone();
+            let option = a.option_strings.first().cloned().unwrap_or_default();
+            a = Action::flag(&option, kind);
+            a.dest = dest;
+        }
+        Some(Kind::Append) => a.kind = Kind::Append,
+        _ => {}
+    }
+    if let Some(dest) = &spec.dest {
+        a.dest = dest.clone();
+    }
+    if let Some(default) = &spec.default {
+        a.default = default.clone();
+    }
+    if !spec.choices.is_empty() {
+        a.choices = Some(spec.choices.clone());
+    }
+    if !spec.positional {
+        a.required = required;
+    }
+    if let Some(nargs) = spec.nargs {
+        a.nargs = nargs;
+    }
+    if spec.const_.is_some() {
+        a.const_ = spec.const_.clone();
+    }
+    a
 }
 
 /// One entry of an argument table.
@@ -128,8 +199,9 @@ impl<'m> Arg<'m> {
     }
 
     pub(crate) fn cli_name(&self) -> String {
-        match self.kind {
+        match &self.kind {
             ArgKind::Outfile => self.name.clone(),
+            ArgKind::Custom(spec) if spec.positional => self.name.clone(),
             _ => format!("--{}", self.name),
         }
     }
@@ -153,11 +225,16 @@ impl<'m> Arg<'m> {
             ArgKind::SecondaryIpCount => "SecondaryPrivateIpAddressCountArgument",
             ArgKind::AssociatePublicIp { negative: false } => "AssociatePublicIpAddressArgument",
             ArgKind::AssociatePublicIp { negative: true } => "NoAssociatePublicIpAddressArgument",
+            ArgKind::Custom(_) => "CustomArgument",
         }
     }
 
     /// `add_to_parser`.
     pub(crate) fn add_to_parser(&self, parser: &mut Parser) {
+        if let ArgKind::Custom(spec) = &self.kind {
+            parser.add(custom_action(&self.name, spec, self.required));
+            return;
+        }
         let cli_name = self.cli_name();
         let mut a = Action::option(&cli_name);
         match &self.kind {
@@ -219,6 +296,7 @@ impl<'m> Arg<'m> {
             ArgKind::SecondaryIpCount => {
                 a.ty = TypeFn::Int;
             }
+            ArgKind::Custom(_) => unreachable!("handled above"),
             ArgKind::AssociatePublicIp { negative } => {
                 a = Action::flag(
                     &cli_name,
@@ -593,9 +671,20 @@ pub(crate) struct CommandPath<'a> {
 /// (streamingoutputarg), `<parent>.*` (argrename, toplevelbool),
 /// `<parent>.<name>` (argrename, ec2 addcount and runinstances), then
 /// `building-argument-table` (cliinput, paginate, generatecliskeleton).
+#[cfg(test)]
 pub(crate) fn build_argument_table<'m>(
     operation: &Operation<'m>,
     path: CommandPath<'_>,
+) -> (ArgTable<'m>, TableExtras<'m>) {
+    build_argument_table_with(operation, path, &mut |_| {})
+}
+
+/// [`build_argument_table`] with a service customization's
+/// `building-argument-table.<parent>.<name>` handler.
+pub(crate) fn build_argument_table_with<'m>(
+    operation: &Operation<'m>,
+    path: CommandPath<'_>,
+    customize: &mut dyn FnMut(&mut ArgTable<'m>),
 ) -> (ArgTable<'m>, TableExtras<'m>) {
     let mut table: ArgTable<'m> = IndexMap::new();
     let mut extras = TableExtras::default();
@@ -688,6 +777,7 @@ pub(crate) fn build_argument_table<'m>(
             table.insert(name.to_string(), Arg::custom(name, kind));
         }
     }
+    customize(&mut table);
 
     if !table.contains_key("outfile") {
         table.insert(

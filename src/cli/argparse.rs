@@ -23,6 +23,8 @@ pub(crate) enum Nargs {
     Optional,
     /// `'*'`.
     ZeroOrMore,
+    /// `'+'`.
+    OneOrMore,
     /// An integer (`0` for flags).
     Exact(usize),
 }
@@ -32,6 +34,8 @@ pub(crate) enum Kind {
     Store,
     StoreTrue,
     StoreFalse,
+    /// `'append'`.
+    Append,
     Version,
 }
 
@@ -335,6 +339,7 @@ impl Parser {
             Nargs::One => if option { "([A])" } else { "(-*A-*)" }.to_string(),
             Nargs::Optional => if option { "(A?)" } else { "(-*A?-*)" }.to_string(),
             Nargs::ZeroOrMore => if option { "(A*)" } else { "(-*[A-]*)" }.to_string(),
+            Nargs::OneOrMore => if option { "(A+)" } else { "(-*A[A-]*)" }.to_string(),
             Nargs::Exact(n) => {
                 if option {
                     format!("([AO]{{{n}}})")
@@ -357,6 +362,7 @@ impl Parser {
                     Nargs::Exact(1) => "expected 1 argument".to_string(),
                     Nargs::Exact(n) => format!("expected {n} arguments"),
                     Nargs::ZeroOrMore => "expected arguments".to_string(),
+                    Nargs::OneOrMore => "expected at least one argument".to_string(),
                 };
                 Err(ArgumentError::new(Some(action), msg))
             }
@@ -520,6 +526,14 @@ impl Parser {
                 }
                 Kind::StoreFalse => {
                     ns.insert(action.dest.clone(), NsVal::Bool(false));
+                }
+                Kind::Append => {
+                    let mut items = match ns.get(&action.dest) {
+                        Some(NsVal::List(l)) => l.clone(),
+                        _ => Vec::new(),
+                    };
+                    items.push(value);
+                    ns.insert(action.dest.clone(), NsVal::List(items));
                 }
                 Kind::Version => return Ok(true),
             }

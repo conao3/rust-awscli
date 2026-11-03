@@ -77,6 +77,18 @@ impl ServiceModel {
         })
     }
 
+    /// A model with only `shapes` (the argument models
+    /// `awscli.arguments.create_argument_model_from_schema` resolves).
+    pub fn from_shapes(name: &str, shapes: Json) -> ServiceModel {
+        ServiceModel {
+            name: name.to_string(),
+            api_version: String::new(),
+            doc: serde_json::json!({
+                "service": {"metadata": {}, "operations": {}, "shapes": shapes}
+            }),
+        }
+    }
+
     fn service(&self) -> &Json {
         &self.doc["service"]
     }

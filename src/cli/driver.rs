@@ -130,6 +130,39 @@ fn service_command(
     }
 }
 
+/// The operation `name` of the `cli` service table parsed with a
+/// customization's handlers (`commands::services` calls this for the
+/// operations of `super::commands::is_customized`).
+pub(crate) fn customized_operation(
+    cli: &str,
+    name: &str,
+    args: &[String],
+    ctx: &Ctx<'_>,
+    hooks: &mut dyn super::OperationHooks,
+) -> Result<Command, Fail> {
+    let service = match find_main(cli) {
+        Some(MainCommand::Service(_, service)) => service,
+        _ => return Err(Fail::General(format!("unknown service command {cli}"))),
+    };
+    let model = ServiceModel::load(service).map_err(|e| Fail::General(e.to_string()))?;
+    let Some(ServiceEntry::Operation(op)) = service_commands(cli, &model)
+        .into_iter()
+        .find(|(n, _)| n == name)
+        .map(|(_, e)| e)
+    else {
+        return Err(Fail::General(format!("unknown operation {cli} {name}")));
+    };
+    let op = model.operation(&op).expect("operation");
+    let path = CommandPath { parent: cli, name };
+    match operation::run_with(&op, path, args, ctx, hooks)? {
+        Invocation::Print(text) => Ok(Command::Print(text)),
+        Invocation::Call(mut inv) => {
+            inv.cli_service = cli.to_string();
+            Ok(Command::Operation(*inv))
+        }
+    }
+}
+
 fn service_help(cli: &str, table: &[(String, ServiceEntry)]) -> String {
     let mut out = format!("{cli}\n\nAvailable commands:\n\n");
     for (n, _) in table {

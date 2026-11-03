@@ -81,7 +81,7 @@ pub(super) fn list_runs(ctx: &Context, args: &[String]) -> Result<ExitCode, CliE
     }
     let index = |l: &Vec<String>, i: usize| -> Result<Value, CliError> {
         l.get(i)
-            .map(|s| Value::str(s))
+            .map(Value::str)
             .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("list index out of range")))
     };
     let mut selectors = Vec::new();

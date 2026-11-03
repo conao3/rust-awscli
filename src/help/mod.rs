@@ -460,11 +460,22 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 },
                 Vec::new(),
             );
-            page.commands = waiter_commands(&model)
+            let waiters = waiter_commands(&model);
+            page.has_commands = !waiters.is_empty();
+            let deprecated = |waiter: &str| {
+                model
+                    .waiters()
+                    .and_then(|w| w.get(waiter))
+                    .and_then(|c| c.get("operation"))
+                    .and_then(Json::as_str)
+                    .and_then(|op| model.operation(op))
+                    .is_some_and(|op| op.is_deprecated())
+            };
+            page.commands = waiters
                 .into_iter()
+                .filter(|(_, w)| !deprecated(w))
                 .map(|(n, _)| n)
                 .collect();
-            page.has_commands = !page.commands.is_empty();
             page.generate()
         }
         HelpRequest::Waiter {
@@ -622,4 +633,57 @@ pub(crate) fn run(
         _ => render::page(&convert(req, "ascii").map_err(fail)?).map_err(fail)?,
     }
     Ok(ExitCode::Success)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The reference's documents (`doc.getvalue()`) for a page of each kind.
+    #[test]
+    fn documents_match_the_reference() {
+        let cases = [
+            (
+                HelpRequest::TopicLister,
+                include_str!("testdata/help-topics.rst"),
+            ),
+            (
+                HelpRequest::Wait("proton".to_string()),
+                include_str!("testdata/proton-wait.rst"),
+            ),
+            (
+                HelpRequest::Operation {
+                    service: "sts".to_string(),
+                    name: "get-caller-identity".to_string(),
+                    clear_required: false,
+                },
+                include_str!("testdata/sts-get-caller-identity.rst"),
+            ),
+            (
+                HelpRequest::Custom(vec!["configure".to_string(), "list".to_string()]),
+                include_str!("testdata/configure-list.rst"),
+            ),
+        ];
+        for (req, expected) in cases {
+            assert_eq!(document(&req).unwrap(), expected, "{req:?}");
+        }
+    }
+
+    #[test]
+    fn custom_requests() {
+        let s = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(
+            custom_request(&s(&["s3"]), &s(&["cp", "help"])),
+            Some(HelpRequest::Custom(s(&["s3", "cp"])))
+        );
+        assert_eq!(
+            custom_request(&s(&["ecs", "execute-command"]), &s(&["help"])),
+            Some(HelpRequest::Operation {
+                service: "ecs".to_string(),
+                name: "execute-command".to_string(),
+                clear_required: false,
+            })
+        );
+        assert_eq!(custom_request(&s(&["s3"]), &s(&["cp", "a", "b"])), None);
+    }
 }

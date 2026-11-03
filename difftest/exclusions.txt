@@ -1,0 +1,11 @@
+# Cases the corpus mode skips: `service Operation reason`, `*` matches any
+# operation. Operations with event streams, operations that are not CLI
+# commands, and operations with custom required arguments are skipped by
+# the harness itself.
+ssm StartSession launches session-manager-plugin
+ecs ExecuteCommand launches session-manager-plugin
+machinelearning Predict the customization sends the request to PredictEndpoint instead of --endpoint-url
+ec2 BundleInstance the customization reads Storage.S3 built from its --bucket and --prefix arguments
+translate ImportTerminology the customization reads TerminologyData.File from --data-file
+translate TranslateDocument the customization reads Document.Content from --document-content
+signin * the endpoint rules resolve control-plane operations to the real endpoint regardless of --endpoint-url

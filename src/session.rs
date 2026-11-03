@@ -759,6 +759,10 @@ impl ConfigLookup for Session {
     fn config_variable(&self, name: &str) -> Option<String> {
         self.config.config_variable(name)
     }
+
+    fn nested_keys(&self, name: &str) -> Vec<String> {
+        self.config.nested_keys(name)
+    }
 }
 
 #[cfg(test)]

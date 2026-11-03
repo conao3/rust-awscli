@@ -21,6 +21,11 @@ use ini::{FullConfig, IniValue, LoadError, Section};
 /// AWS CLI's precedence (command line, environment, config file, default).
 pub trait ConfigLookup {
     fn config_variable(&self, name: &str) -> Option<String>;
+    /// The keys of the nested section `name` of the profile
+    /// (`configutils.get_configs` for `emr`).
+    fn nested_keys(&self, _name: &str) -> Vec<String> {
+        Vec::new()
+    }
 }
 
 /// A fixed map, for tests.
@@ -877,6 +882,15 @@ pub fn snake_case_service_id(client_name: &str) -> String {
 }
 
 impl ConfigLookup for Config {
+    fn nested_keys(&self, name: &str) -> Vec<String> {
+        self.scoped_config()
+            .ok()
+            .and_then(|section| section.get(name))
+            .and_then(|v| v.as_nested())
+            .map(|m| m.keys().cloned().collect())
+            .unwrap_or_default()
+    }
+
     /// Resolved values; `None` when unset or when resolution raises (a
     /// missing profile is reported by `Session` when a client is made).
     fn config_variable(&self, name: &str) -> Option<String> {

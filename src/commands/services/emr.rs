@@ -424,11 +424,7 @@ fn config_keys(ctx: &Context) -> Vec<String> {
 }
 
 fn override_required_table(keys: &[String], table: &mut ArgTable<'_>) {
-    for (name, arg) in table.iter_mut() {
-        if keys.contains(&name.replace('-', "_")) {
-            arg.required = false;
-        }
-    }
+    crate::cli::driver::override_emr_required(keys, table);
 }
 
 /// `addtags.modify_tags_argument`.

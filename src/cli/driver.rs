@@ -114,7 +114,13 @@ fn service_command(
             }
             let op = model.operation(&op).expect("operation");
             let path = CommandPath { parent: cli, name };
-            match operation::run(&op, path, &remaining, ctx)? {
+            match operation::run_with(
+                &op,
+                path,
+                &remaining,
+                ctx,
+                &mut service_hooks(cli, ctx, &remaining),
+            )? {
                 Invocation::Print(text) => Ok(Command::Print(text)),
                 Invocation::Call(mut inv) => {
                     inv.cli_service = cli.to_string();
@@ -170,6 +176,41 @@ pub(crate) fn customized_operation(
         Invocation::Call(mut inv) => {
             inv.cli_service = cli.to_string();
             Ok(Command::Operation(*inv))
+        }
+    }
+}
+
+/// The handlers registered for every command of a service
+/// (`before-building-argument-table-parser.emr.*`:
+/// `emr.command.override_args_required_option`).
+struct ServiceHooks {
+    /// Keys of the profile's `emr` section.
+    emr_config_keys: Vec<String>,
+}
+
+fn service_hooks(cli: &str, ctx: &Ctx<'_>, args: &[String]) -> ServiceHooks {
+    let help = args.len() == 1 && args[0] == "help";
+    ServiceHooks {
+        emr_config_keys: if cli == "emr" && !help {
+            ctx.config.nested_keys("emr")
+        } else {
+            Vec::new()
+        },
+    }
+}
+
+impl super::OperationHooks for ServiceHooks {
+    fn table<'m>(&mut self, _op: &crate::model::Operation<'m>, table: &mut super::ArgTable<'m>) {
+        override_emr_required(&self.emr_config_keys, table);
+    }
+}
+
+/// `override_args_required_option`: arguments whose name is a key of the
+/// profile's `emr` section are not required.
+pub(crate) fn override_emr_required(keys: &[String], table: &mut super::ArgTable<'_>) {
+    for (name, arg) in table.iter_mut() {
+        if keys.contains(&name.replace('-', "_")) {
+            arg.required = false;
         }
     }
 }

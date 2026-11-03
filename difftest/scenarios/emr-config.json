@@ -1,0 +1,137 @@
+[
+ {
+  "name": "emr config describe-step missing cluster",
+  "argv": [
+   "emr",
+   "describe-step",
+   "--step-id",
+   "s-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  cluster_id = j-CFG\n  key_name = k\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr config list-steps missing cluster",
+  "argv": [
+   "emr",
+   "list-steps",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  cluster_id = j-CFG\n  key_name = k\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr config describe-step with cluster",
+  "argv": [
+   "emr",
+   "describe-step",
+   "--cluster-id",
+   "j-1",
+   "--step-id",
+   "s-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  cluster_id = j-CFG\n  key_name = k\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr config cancel-steps missing step",
+  "argv": [
+   "emr",
+   "cancel-steps",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  cluster_id = j-CFG\n  key_name = k\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ },
+ {
+  "name": "emr config wait cluster-running missing cluster",
+  "argv": [
+   "emr",
+   "wait",
+   "cluster-running",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  cluster_id = j-CFG\n  key_name = k\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Status\": {\"State\": \"RUNNING\"}}}"
+   }
+  ]
+ },
+ {
+  "name": "emr config remove-tags",
+  "argv": [
+   "emr",
+   "remove-tags",
+   "--tag-keys",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  cluster_id = j-CFG\n  key_name = k\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ]
+ }
+]

@@ -1446,7 +1446,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "sagemakertrainingsessionruntime",
-        "ec80c9a7bdc6e31001a4154f5088e42cf49e93f6c2118ecaca5211b8a5f2a3a2",
+        "d08e25ee67d01400242dffca7452975495a1ffd93f85753d81f4c28b88754666",
     ),
     (
         "savingsplans",

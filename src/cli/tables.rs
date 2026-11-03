@@ -984,12 +984,6 @@ pub(crate) static SERVICE_TABLE_DIFFS: &[(&str, &[&str], &[(&str, &str)], &[&str
         &[],
         &[],
     ),
-    (
-        "sagemakertrainingsessionruntime",
-        &["sample-training-session-with-response-stream"],
-        &[],
-        &[],
-    ),
     ("servicecatalog", &[], &[], &["generate"]),
     (
         "ses",

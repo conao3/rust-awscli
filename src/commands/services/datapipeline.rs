@@ -4,6 +4,7 @@
 //! `create-default-roles` commands.
 
 mod listruns;
+mod roles;
 
 use super::exec;
 use crate::cli::argparse::Nargs;
@@ -31,6 +32,7 @@ pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode
             &mut Definition { put: false },
         ),
         "list-runs" => listruns::list_runs(ctx, args),
+        "create-default-roles" => roles::create_default_roles(ctx, args),
         _ => Err(crate::commands::not_implemented()),
     }
 }

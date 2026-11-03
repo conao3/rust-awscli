@@ -1,0 +1,205 @@
+[
+ {
+  "name": "datapipeline create-default-roles existing",
+  "argv": [
+   "datapipeline",
+   "create-default-roles",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>a</RoleName><RoleId>AROA1</RoleId><Arn>arn:aws:iam::1:role/a</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>b</RoleName><RoleId>AROA1</RoleId><Arn>arn:aws:iam::1:role/b</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><Path>/</Path><InstanceProfileName>p</InstanceProfileName><InstanceProfileId>i</InstanceProfileId><Arn>a</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><Roles></Roles></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   }
+  ]
+ },
+ {
+  "name": "datapipeline create-default-roles new",
+  "argv": [
+   "datapipeline",
+   "create-default-roles",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>m</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>DataPipelineDefaultRole</RoleName><RoleId>AROA1</RoleId><Arn>arn:aws:iam::1:role/DataPipelineDefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Version%22%3A%222012-10-17%22%7D</Document><VersionId>v3</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>m</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>DataPipelineDefaultResourceRole</RoleName><RoleId>AROA1</RoleId><Arn>arn:aws:iam::1:role/DataPipelineDefaultResourceRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Version%22%3A%222012-10-17%22%7D</Document><VersionId>v3</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>m</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><CreateInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateInstanceProfileResult><InstanceProfile><Path>/</Path><InstanceProfileName>p</InstanceProfileName><InstanceProfileId>i</InstanceProfileId><Arn>a</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><Roles></Roles></InstanceProfile></CreateInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateInstanceProfileResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><AddRoleToInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AddRoleToInstanceProfileResult></AddRoleToInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AddRoleToInstanceProfileResponse>"
+   }
+  ]
+ },
+ {
+  "name": "datapipeline create-default-roles new text",
+  "argv": [
+   "datapipeline",
+   "create-default-roles",
+   "--endpoint-url",
+   "{endpoint}",
+   "--output",
+   "text"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>m</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>DataPipelineDefaultRole</RoleName><RoleId>AROA1</RoleId><Arn>arn:aws:iam::1:role/DataPipelineDefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Version%22%3A%222012-10-17%22%7D</Document><VersionId>v3</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>b</RoleName><RoleId>AROA1</RoleId><Arn>arn:aws:iam::1:role/b</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<?xml version=\"1.0\"?><GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><Path>/</Path><InstanceProfileName>p</InstanceProfileName><InstanceProfileId>i</InstanceProfileId><Arn>a</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><Roles></Roles></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   }
+  ]
+ },
+ {
+  "name": "datapipeline create-default-roles access denied",
+  "argv": [
+   "datapipeline",
+   "create-default-roles",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>AccessDenied</Code><Message>m</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   }
+  ]
+ },
+ {
+  "name": "datapipeline create-default-roles extra arg",
+  "argv": [
+   "datapipeline",
+   "create-default-roles",
+   "--foo"
+  ]
+ }
+]

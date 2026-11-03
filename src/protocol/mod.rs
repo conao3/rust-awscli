@@ -1,12 +1,22 @@
 //! Request serialization and response parsing for the botocore protocols
 //! (`botocore/serialize.py`, `botocore/parsers.py`).
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 
 use crate::model::{Operation, ServiceModel};
 use crate::value::Value;
 
+pub mod cbor;
+pub mod common;
+pub mod ec2;
+pub mod json;
+pub mod query;
+pub mod rest_json;
+pub mod rest_xml;
 pub mod timestamp;
+
+#[cfg(test)]
+mod tests;
 
 /// botocore's serialized `request_dict`.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -71,20 +81,38 @@ pub fn serialize(
     operation: &Operation<'_>,
     params: &Value,
 ) -> Result<HttpRequest> {
-    let _ = (model, operation, params);
-    todo!("protocol::serialize")
+    match model.protocol() {
+        "json" => json::serialize(model, operation, params),
+        "rest-json" => rest_json::serialize(model, operation, params),
+        "smithy-rpc-v2-cbor" => cbor::serialize(model, operation, params),
+        "query" => query::serialize(model, operation, params),
+        "ec2" => ec2::serialize(model, operation, params),
+        "rest-xml" => rest_xml::serialize(model, operation, params),
+        other => bail!("unsupported protocol: {other}"),
+    }
 }
 
-/// Parse a successful response. The result includes `ResponseMetadata`
-/// first, as botocore's parsers produce it.
+/// Parse a response as `Endpoint._do_get_response` does: the protocol
+/// parser's result (`ResponseMetadata` holds `RequestId` when the service
+/// sent one, then `HTTPStatusCode`, `HTTPHeaders`, and `RetryAttempts`;
+/// its position in the dict is the protocol's: first for the rest
+/// protocols, last for `json` and `smithy-rpc-v2-cbor`), with modeled
+/// error fields merged for statuses of 300 and above.
 pub fn parse(
     model: &ServiceModel,
     operation: &Operation<'_>,
     response: &HttpResponse,
     options: &ParseOptions,
 ) -> Result<Value> {
-    let _ = (model, operation, response, options);
-    todo!("protocol::parse")
+    match model.protocol() {
+        "json" => json::parse(model, operation, response, options),
+        "rest-json" => rest_json::parse(model, operation, response, options),
+        "smithy-rpc-v2-cbor" => cbor::parse(model, operation, response, options),
+        "query" => query::parse(model, operation, response, options),
+        "ec2" => ec2::parse(model, operation, response, options),
+        "rest-xml" => rest_xml::parse(model, operation, response, options),
+        other => bail!("unsupported protocol: {other}"),
+    }
 }
 
 /// Parse an error response (status >= 300, or an S3-style 200 error).
@@ -94,6 +122,13 @@ pub fn parse_error(
     response: &HttpResponse,
     options: &ParseOptions,
 ) -> Result<ServiceError> {
-    let _ = (model, operation, response, options);
-    todo!("protocol::parse_error")
+    match model.protocol() {
+        "json" => json::parse_error(model, operation, response, options),
+        "rest-json" => rest_json::parse_error(model, operation, response, options),
+        "smithy-rpc-v2-cbor" => cbor::parse_error(model, operation, response, options),
+        "query" => query::parse_error(model, operation, response, options),
+        "ec2" => ec2::parse_error(model, operation, response, options),
+        "rest-xml" => rest_xml::parse_error(model, operation, response, options),
+        other => bail!("unsupported protocol: {other}"),
+    }
 }

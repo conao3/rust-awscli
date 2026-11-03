@@ -1704,7 +1704,10 @@ impl XmlParser<'_> {
                 .member_shape(payload)
                 .ok_or_else(|| anyhow!("unknown payload member: {payload}"))?;
             if body_shape.get_bool("eventstream") {
-                bail!("event stream responses are not supported");
+                // The raw event stream; `commands::services::s3api`
+                // decodes it (the only rest-xml event stream output is
+                // `SelectObjectContent`).
+                out.insert(payload.to_string(), Value::Bytes(response.body.clone()));
             } else if matches!(body_shape.type_name(), "string" | "blob") {
                 let value =
                     if body_shape.is_streaming() {

@@ -365,7 +365,7 @@ async fn run_scenarios(common: &Common, filter: Option<&str>, files: &[PathBuf])
             Ok(o) if o.pass => {
                 passed += 1;
                 if common.print_passing {
-                    println!("PASS {name}");
+                    println!("PASS {name}\n{}", o.detail);
                 }
             }
             Ok(o) => {

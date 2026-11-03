@@ -1,0 +1,418 @@
+[
+ {
+  "name": "ecs deploy success",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"applicationName\": \"AppECS-c1-s1\", \"computePlatform\": \"ECS\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"s1\", \"clusterName\": \"c1\"}], \"blueGreenDeploymentConfiguration\": {\"deploymentReadyOption\": {\"waitTimeInMinutes\": 5}, \"terminateBlueInstancesOnDeploymentSuccess\": {\"terminationWaitTimeInMinutes\": 20}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"taskDefinition\": {\"taskDefinitionArn\": \"arn:aws:ecs:us-east-1:1:task-definition/f:2\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentId\": \"d-1\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentInfo\": {\"status\": \"Succeeded\"}}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy json appspec named",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "as.json",
+   "--codedeploy-application",
+   "A",
+   "--codedeploy-deployment-group",
+   "G"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n",
+   "as.json": "{\"version\": 0.0, \"resources\": [{\"svc\": {\"type\": \"AWS::ECS::Service\", \"properties\": {\"taskDefinition\": \"x\"}}}]}"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"applicationName\": \"AppECS-c1-s1\", \"computePlatform\": \"ECS\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"s1\", \"clusterName\": \"c1\"}], \"blueGreenDeploymentConfiguration\": {\"deploymentReadyOption\": {\"waitTimeInMinutes\": 5}, \"terminateBlueInstancesOnDeploymentSuccess\": {\"terminationWaitTimeInMinutes\": 20}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"taskDefinition\": {\"taskDefinitionArn\": \"arn:aws:ecs:us-east-1:1:task-definition/f:2\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentId\": \"d-1\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentInfo\": {\"status\": \"Succeeded\"}}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy failed deployment",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"applicationName\": \"AppECS-c1-s1\", \"computePlatform\": \"ECS\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"s1\", \"clusterName\": \"c1\"}], \"blueGreenDeploymentConfiguration\": {\"deploymentReadyOption\": {\"waitTimeInMinutes\": 5}, \"terminateBlueInstancesOnDeploymentSuccess\": {\"terminationWaitTimeInMinutes\": 20}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"taskDefinition\": {\"taskDefinitionArn\": \"arn:aws:ecs:us-east-1:1:task-definition/f:2\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentId\": \"d-1\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentInfo\": {\"status\": \"Failed\"}}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy service not found",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [], \"failures\": []}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy describe error",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"__type\": \"ClusterNotFoundException\", \"message\": \"no cluster\"}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy wrong platform",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"computePlatform\": \"Server\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"s1\", \"clusterName\": \"c1\"}], \"blueGreenDeploymentConfiguration\": {\"deploymentReadyOption\": {\"waitTimeInMinutes\": 5}, \"terminateBlueInstancesOnDeploymentSuccess\": {\"terminationWaitTimeInMinutes\": 20}}}}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy wrong group service",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"applicationName\": \"AppECS-c1-s1\", \"computePlatform\": \"ECS\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"other\", \"clusterName\": \"c1\"}]}}"
+   }
+  ]
+ },
+ {
+  "name": "ecs deploy missing file",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "nope.json",
+   "--codedeploy-appspec",
+   "appspec.yaml"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  }
+ },
+ {
+  "name": "ecs deploy missing args",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1"
+  ]
+ },
+ {
+  "name": "ecs deploy appspec missing properties",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "resources:\n  - svc:\n      type: x\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"applicationName\": \"AppECS-c1-s1\", \"computePlatform\": \"ECS\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"s1\", \"clusterName\": \"c1\"}], \"blueGreenDeploymentConfiguration\": {\"deploymentReadyOption\": {\"waitTimeInMinutes\": 5}, \"terminateBlueInstancesOnDeploymentSuccess\": {\"terminationWaitTimeInMinutes\": 20}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"taskDefinition\": {\"taskDefinitionArn\": \"arn:aws:ecs:us-east-1:1:task-definition/f:2\"}}"
+   }
+  ]
+ }
+]

@@ -7,7 +7,9 @@
 use anyhow::Result;
 
 use crate::cli::{self, Command, OperationHooks, OperationInvocation};
-use crate::driver::{CallResult, Caller, Context, client_error, display_response, write_stdout};
+use crate::driver::{
+    CallResult, Caller, ClientConfig, Context, client_error, display_response, write_stdout,
+};
 use crate::error::{CliError, ExitCode};
 use crate::model::ServiceModel;
 use crate::output::Response;
@@ -18,13 +20,23 @@ use crate::value::Value;
 pub(crate) struct Client<'c> {
     pub ctx: &'c Context,
     pub model: ServiceModel,
+    pub config: ClientConfig,
 }
 
 impl<'c> Client<'c> {
     pub(crate) fn new(ctx: &'c Context, service: &str) -> Result<Client<'c>, CliError> {
+        Client::with_config(ctx, service, ClientConfig::default())
+    }
+
+    /// `session.create_client(service, region_name=..., endpoint_url=...)`.
+    pub(crate) fn with_config(
+        ctx: &'c Context,
+        service: &str,
+        config: ClientConfig,
+    ) -> Result<Client<'c>, CliError> {
         let mut model = ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
         model.apply_endpoint_ruleset_customizations();
-        Ok(Client { ctx, model })
+        Ok(Client { ctx, model, config })
     }
 
     /// `client.<operation>(**params)`: the parsed response, or the
@@ -45,7 +57,7 @@ impl<'c> Client<'c> {
 
     /// [`Client::try_call`] keeping the exception as raised.
     pub(crate) fn call_raw(&self, operation: &str, params: &Value) -> Result<CallResult> {
-        Caller::new(self.ctx, &self.model, operation)?.call(params)
+        Caller::with_config(self.ctx, &self.model, operation, self.config.clone())?.call(params)
     }
 
     /// `client.get_paginator(operation).paginate(**params)`: every page.

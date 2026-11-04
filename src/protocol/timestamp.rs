@@ -333,10 +333,11 @@ impl Epoch {
 fn dateutil_parse(s: &str) -> Result<DateTime> {
     let fail = || anyhow!("Invalid timestamp \"{s}\": Unknown string format: {s}");
     let t = s.trim();
-    let parsed = if t.as_bytes().first().is_some_and(u8::is_ascii_digit)
-        && t.as_bytes().get(4) == Some(&b'-')
-    {
+    let b = t.as_bytes();
+    let parsed = if b.first().is_some_and(u8::is_ascii_digit) && b.get(4) == Some(&b'-') {
         parse_iso(t)
+    } else if b.len() > 8 && b[..8].iter().all(u8::is_ascii_digit) && matches!(b[8], b'T' | b't') {
+        parse_iso_basic(t)
     } else {
         parse_rfc822(t)
     };
@@ -494,6 +495,40 @@ fn parse_iso(t: &str) -> Option<DateTime> {
     dt.minute = c.digits(2, 2)?.0;
     if c.eat(b':') {
         dt.second = c.digits(2, 2)?.0;
+        if c.eat(b'.') || c.eat(b',') {
+            dt.microsecond = fraction(&mut c)?;
+        }
+    }
+    dt.offset = zone(&mut c)?;
+    Some(dt)
+}
+
+/// The ISO 8601 basic format (`20231114T221320Z`).
+fn parse_iso_basic(t: &str) -> Option<DateTime> {
+    let mut c = Cursor {
+        s: t.as_bytes(),
+        i: 0,
+    };
+    let (year, _) = c.digits(4, 4)?;
+    let (month, _) = c.digits(2, 2)?;
+    let (day, _) = c.digits(2, 2)?;
+    let mut dt = DateTime {
+        year: i64::from(year),
+        month,
+        day,
+        hour: 0,
+        minute: 0,
+        second: 0,
+        microsecond: 0,
+        offset: None,
+    };
+    if !(c.eat(b'T') || c.eat(b't')) {
+        return None;
+    }
+    dt.hour = c.digits(2, 2)?.0;
+    dt.minute = c.digits(2, 2)?.0;
+    if let Some((second, _)) = c.digits(2, 2) {
+        dt.second = second;
         if c.eat(b'.') || c.eat(b',') {
             dt.microsecond = fraction(&mut c)?;
         }

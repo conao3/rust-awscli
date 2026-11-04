@@ -1,0 +1,1250 @@
+[
+ {
+  "name": "cloudtrail validate-logs chain verbose",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/other.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "dc6ffe8a5c40ec6dfc09fefcc66c71cab22070eda25f26aed5965132802ac3adcf838d6f53aea8bd40ee9f482bb189ae1694c92a2fbc2b49e028de9c6a2f0e0cbb5b1a4dc89fcb98eccca8bf37c793c79a80f6b27ffb32765064abce7f971ad25f24fe331e2ad92c457a0686b16e9459408828f2854a121686fba64f0268eba67e7b3b2a3b38d39683bf62e6ee53498e92feaeefca30790318286d84eac1c12e4b9062bfe97ec4e830009d64905498bd5fe97b8875960ccbc33a8241ae355fa4fea31930c098adcf719e05eddb5b4ceee94efac79b1858526e47921aab2adce56e133a6e06e9d39488f00708ca9f05329e8ac1c6c849a5c45f76cbd236af1361",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/82RXW+bMBSG/0rEdSk+xwZD71g/1GqTNo1okzpNkW0McetChE2jrep/H0TqQpukm7Rd1OIG+z3Hz3n8EIi1y5Vq+8ZflcHJLACkLE54mhHA4GgWlKbWzhdedH5u7vQYQYI0BAiBzRFOCBm+6230vCn3BXEnWNB3vbrVfkzKWz89+ChvtNoc5F+LD23toilWdGrbvpx3wtjwbFMR9S7UwvkQovHOCCAC9qxmsVOz+F2z8OM2TDbGJgAbbDKs6+Mb1zbH9c8t46deWqPe6x8Xpql1t+pMs+GtVjAZxNSN8H2nc1u3nfHLuzFSXOYYJ+vh93ORj+FGr0dv97rxfzLX2vK16PQ1Vp2+N23vzg7Jfhl4O9JhR/pz1kvhll+E7cf5m97avYGXzsNB+p6xn55o28q29YWx2g073x4CtyvOTVQNYZiCLidogdKQslSztOKSUJZlNJOSiBJFglxncYycC42EKk6IgoxLnlRcK+CE8younxruHeXxaPY3dHiQjvzj+h909CAdlhwgYSg5JpIwRmBwpkRWSaEoVrFKY0oqCdlgT7FSEsQ45cAzBMHSFF6n+/74C42JpWf6BAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6tWCkpNzi9KKVayUog2jK0FAB3/9vUQAAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6tWCkpNzi9KKVayUog2iq0FAERBsPcQAAAA"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>k</Key></Error>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs chain",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/other.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "dc6ffe8a5c40ec6dfc09fefcc66c71cab22070eda25f26aed5965132802ac3adcf838d6f53aea8bd40ee9f482bb189ae1694c92a2fbc2b49e028de9c6a2f0e0cbb5b1a4dc89fcb98eccca8bf37c793c79a80f6b27ffb32765064abce7f971ad25f24fe331e2ad92c457a0686b16e9459408828f2854a121686fba64f0268eba67e7b3b2a3b38d39683bf62e6ee53498e92feaeefca30790318286d84eac1c12e4b9062bfe97ec4e830009d64905498bd5fe97b8875960ccbc33a8241ae355fa4fea31930c098adcf719e05eddb5b4ceee94efac79b1858526e47921aab2adce56e133a6e06e9d39488f00708ca9f05329e8ac1c6c849a5c45f76cbd236af1361",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/82RXW+bMBSG/0rEdSk+xwZD71g/1GqTNo1okzpNkW0McetChE2jrep/H0TqQpukm7Rd1OIG+z3Hz3n8EIi1y5Vq+8ZflcHJLACkLE54mhHA4GgWlKbWzhdedH5u7vQYQYI0BAiBzRFOCBm+6230vCn3BXEnWNB3vbrVfkzKWz89+ChvtNoc5F+LD23toilWdGrbvpx3wtjwbFMR9S7UwvkQovHOCCAC9qxmsVOz+F2z8OM2TDbGJgAbbDKs6+Mb1zbH9c8t46deWqPe6x8Xpql1t+pMs+GtVjAZxNSN8H2nc1u3nfHLuzFSXOYYJ+vh93ORj+FGr0dv97rxfzLX2vK16PQ1Vp2+N23vzg7Jfhl4O9JhR/pz1kvhll+E7cf5m97avYGXzsNB+p6xn55o28q29YWx2g073x4CtyvOTVQNYZiCLidogdKQslSztOKSUJZlNJOSiBJFglxncYycC42EKk6IgoxLnlRcK+CE8younxruHeXxaPY3dHiQjvzj+h909CAdlhwgYSg5JpIwRmBwpkRWSaEoVrFKY0oqCdlgT7FSEsQ45cAzBMHSFF6n+/74C42JpWf6BAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6tWCkpNzi9KKVayUog2jK0FAB3/9vUQAAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6tWCkpNzi9KKVayUog2iq0FAERBsPcQAAAA"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>k</Key></Error>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs tampered",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "dc6ffe8a5c40ec6dfc09fefcc66c71cab22070eda25f26aed5965132802ac3adcf838d6f53aea8bd40ee9f482bb189ae1694c92a2fbc2b49e028de9c6a2f0e0cbb5b1a4dc89fcb98eccca8bf37c793c79a80f6b27ffb32765064abce7f971ad25f24fe331e2ad92c457a0686b16e9459408828f2854a121686fba64f0268eba67e7b3b2a3b38d39683bf62e6ee53498e92feaeefca30790318286d84eac1c12e4b9062bfe97ec4e830009d64905498bd5fe97b8875960ccbc33a8241ae355fa4fea31930c098adcf719e05eddb5b4ceee94efac79b1858526e47921aab2adce56e133a6e06e9d39488f00708ca9f05329e8ac1c6c849a5c45f76cbd236af1361",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/82R0U7bMBSGX6XKNSE+J04cc9cNENMmbVqqbQKhynac1GCSKnaoNsS7k1RiDbSFSXAxKzex/3P8nc93gVi5qVJNV/tPRXA0CQBjmqQs4wQwOJgEham087kXrZ+ZGz1EkGAcAoRAZwhHhPTf+SZ6Uhe7grgVzOMPnbrWfkjKaz8++CqvtFofTH/mX5rKRWOs6KNtumLWCmPD43VF1LlQC+dDiIY7I4AI6JOa+VbN/G/N3A/bMNoYmgCssUm/zg+vXFMfVn82jN86aY36rH+fmrrS7bI19Zq3XMJoEFPVwnetntqqaY1f3AyR/GyKSbrqf7/nv4ZwrVeDt1td+9fMNbZ4KTp+jWWrb03TueN9sp8H/h/psCX9KeuZcIsfwnbD/HVn7c7Ac+dhL33H2I9PtGllm+rUWO36nYu7wG2LcyNVfRjGoIsRWqA0ZDTTNCuZJDHlPOZSElGgSJFpniTImNBIYsUIUcCZZGnJtAJGGCuT4rHhzlHuDyb/Qod76cgb13vQxXvpsGAAKUXJMJWEUgK9MyV4KYWKsUxUlsSklMB7e4oWkiAmGQPGEQTNMniZ7vL+AXsqy2X6BAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs missing digest",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>k</Key></Error>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs access denied digest",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs gap",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T200000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "c1221379ea3c33845be80170adbada7789f57dae8d1de861672efc6b3545dd608379d08529b4de35e123b06528eeb086c6577a1b55c0d4019687a48052d1f39ef969c3f5ca9d403534fbedf29a08de7d1bc2e4915fb60a83f0b646be33e95bd7b643caf9bfeba30ba81fe3dd39423f3e4d584ad8a24345e202cf345bdfac21028a443ea95a40f8accd483aeebe3ba655f3b8089cbebf711dda9c3ef7a90cee0b76a6349e7d576ae5cb8c07ddfedddb9d7acec7764ac984a7350d272edf7b766ccf857113522489ec7cbc6d9bc9542303c972a5e4119e2e408ae67c58de663bd3aa75fcd585174a132994d313c53b8c0ac74c0e74fbd7e955787f6a351e4d294c",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM75UPlbooEo4nGEU0whpTtWAqlJf2AqPG/uy6RTViw6U3P+5z2PW+/ArozSZYpJ+1tHgxaAZBOt9c/v7iMgQRnrSDnDI1NLdV2wtfoERKTTggQQndCYBDHxZ5W6I3Mm0ByBKadK5et0HpyvrJ14WG+xKwUkpf0XjET1W1F10K5fKIpF+Gw7IicCZEaG0Lk34wAIuj+6Zkd9cz2PTPry1Ar+EsASttxsabtpVGyzT4rj49uLnh2hx8jLhnqjeay9Pu+gdognElqncZEMKW5Xaw9ko4T0uvviuNTmnhY4s7ntkVp/0tOifwUWv+NjcYtV84MD8OWTogGfZ95oz6mZvFMhcNTwOGYYTFng5XfVKqrhGIjLtAUlde37x8PrMHSlQIAAA=="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "cac3a9596f9eac87d1b1fd86af2a87ab6c7677f0c6ec2c7f09626d049238f629790e18b7b97fc71b463862d2fd1fab942a9c9238b7e77f65c9149700a9bb4acca24539969556873765866d3c32d9f66224cd51fc038fedffd48f0a87661cd434a69a75356f1e699a9a44ecf291c55e70abdcec506bfdb00c5545a472b3689fe85e107e3f99c27bc3136e2f2a6918cc5844e7fa3bbefb0281f6097264d1d1a488977bfd8efc4800f3776ab095700758860219f609f7fe879fa70e38565a7746cf378cb7db5ba739a41913ee904287652a4d8055e36178ffd25df1d855db8dc25f884a0e4ac4ab3afe7b3ecb81f0fe421a12616749721a7aa3bccd70ef10d0c1f2",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRX0/CMBTFvwrZs2O7G6DwNkWC0UTjiCYYQ7rtWgqlJf0DUeN3d10iDFiw6Uvv+d323NNvj2x1kufSCnNXeIOWB1Hc6fYur/ohRN5FyysYRW1SQ5SZsBU6JAqj2AfwoTOB/iAMyz3do7eiaACj8ARM42ubL9E4MluauvCYLTCvhOQ1fZBUB3VbwQ2Xtpgowrg/rDoCq30k2vgQuDcDgAA6Bz2zk57ZrmdmXBlqBXcJQGXbrWl7oaVo06+9xyebcZbf4+eICYpqrZio/H6soTYIo4IYqzDhVCpm5iuHpOMk6va25fE5TRwscOty26Aw/yUneXEGPfiNtcINk1YPj8MWlvMGfZd5oz4mev5CuMVzwPGYfjlng5W/VPZXcUlHjKMuK2/vP7/WEmuWlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs no digests",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs no public keys",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": []}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs unknown fingerprint",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"other\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs bad key",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"bm90IGEga2V5\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs moved",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "0d79e6da29f9d52cc2ddefc633ab9ff305824245a0ee0893a0d7aeed70e3e5fda938ab37c13428a2af762144154c87785f3c6405cc5b37a5fe278e0010f8fbc048bb07d004a183c8188e44b9225d536c8e483774de05886f8444e6c3929ef5ebaa3882ace73a1b9290dcb59edec24cfe018de3d6539bdd709ce7e241dddc7f1326a4eac4b15dd758b680b15b43ef9d072b65b17e12e879aa4d49bb816a2f6a47cf3f1d0abff4233bc947f0c5c47308c05aa83f2f748f090cdabfd50bc90c036c1c19a4c482376e7c5eae690189b8b54b5d9bafeef31307cbd7cd6a94a6c3780971f8a614a6d0131e1e2a443f36e9592b36c683ca0aff20101c80ddf3c18b78d7",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WQT0/CQBDFvwrZsyXdLaByKwGC4aCxxIPGw3Y7bBeW3Wb/0Kjxu9slkTbYYDKXmfebyXvzhWhtU8a0V+6hQNMBwiQZjSe3d/cxJuhmgArBwbrMUeM24gABITFJIowjPNqQeBqHem3RhSr6QPwHzJKZZ3twgcz3ris85jtgJwGkhboEA8Od1WrIP1vsyedSsDV8LIXiYCoj1GllW+HOLcEVdd5AKrk2wpWHgGSrlIwnddM+Z2mAFdTB+hGU+8+8lsU1tPuQysBRaG/nl3mVl7JHP8fu1VfUli9UergGXMaMmpw9Vn6/0p6Smi+FBNtM3t6/fwAzQwiRGAIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs invalid gzip",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:cGxhaW4gdGV4dA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs missing field",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "33b5790e140bcd194a04c46ee6c1cf83af13e145b6066c037ecda367cfdfb1883678f46687c98375eca3bceefe25e9a5eebed1fd433645f5eeac98cccbb1a368e3408017d7c432a46746bbb03d4a4c6e6b6b896299979003e4c1ce7198523168f08279875a22705b99810d52dd183895b833cf94be1b0f4f68b7c3d8c7f3fc238e7f270882325b089a3a19f033ffd000b08bf75bae2394d0974dc878a2e9ed1a253795d2ff9e3076fb27ea7303a5ed607b707eca9718a7d8691e6b4ebab35db5c6ceba81b606ad084c273ea4ca160541469f76e58d5547ad81d9f08cec3afe393863b82a65d15cdad958d76d46c4eddce505eb5331b0f6c29c62212083ce2182",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/32QX0/CMBTFvwrZs2O720DlbYoEo4nGEU0whpTtWgqlJf0DUeN3d10iVFxo+tJ7fvf23PMVkJ3Oy1JaYW6rYNAJIEmzXv/84jKGJDjrBBWjqE1hiDITtkaHJHGShgAhZJMkHsTuTj00vbLlCo0j5yvjCw/zJZaNkL8U95LqyP8tuubSVhNFGA+HTUdkdYhEmxAi92cEEEH2p2f2r2e275kZVwav4IYAONsQ12faXWopuvTz4PHRzjkr7/BjxARFtVFMNH7fN+AtwqggxirMOZWKmcXaIcU4T3r9Xf18KnIHC9zV8M0WRWty4CUneXUK9UPeKNwyafXwOGxhOW/R95m36mOiF8+EWzwFHK8Z1nu2WPlN5TCKSzpiHHVdeX37/gHVg8LcbAIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs no signature",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6uuBQBDv6ajAgAAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs wrong signer",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "0018a2ceda5c4bcd0f114de2cf7f08a17e1f205e0655057f6b834403ea1db7e3e2481e742f795f23eab52eb7392c58105c64f6666bcb6bcbcea5060b971473a349c1bbe9aa519c9562337eef242ce995c1b6f4106eeca7fadbff62c019154191621d5eecfe5814dd44e6c92e26dfc301be5b8ced4a715de70b3548735bf0075c280e17c05caaf801beb7affdff197a6d4f84bb406532a43abc903f05e19dba089d8ec0cf965fe221749202f67e509dfb134107fb29422ab17e9296a4d5fb64ff2af8640a384a28f0ee6f698193e6b3b8fa98b65a2ca80bfa44339a60c6868f229945093a1603bef7580e7e92e1c490de2a92957b7f7cdb5d1e467da405947f65",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs backfill",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T230000Z_backfill.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "43e27bf5f42cf67ddd7c1203dfd87ebde9d5d0ae83a56a3c868fa507d7b91262475a9d4e4716ea898773e3229949a55699a3326eaeeb0d9e763c2becd020f4ed9d9b77bed812b7a496bbe8eed37e2cd176995e9c9936fefa0bf95154a2b7486396e7d7aa78abd9d36810d0636e95adee3b8e62152f56aa90431fafcb6d25c550d49ef6d0ffd4e24b83cd409b0af63643d7347ed9a4a4a5cfd87dfc71f4af85475139f75448577c2a58756645a0af6b11c7cc201183f4019daa5e5055872493d3bde5732441329afc60102fc9bc149901748d9e19e8ee0b88755d1594430789d134cc62d9caea367787c5d08278d1cf0ed9dd7450b4ca974743ce624967ba3e65",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA",
+     "x-amz-meta-backfill-generation-timestamp": "2023-11-15T01:00:00Z"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRX0/CMBTFvwrZs2NrB6i8TZFgNNE4ognGLN12KYXSkv6BqOG7uy6RTViw6Uvv+d323NNvj+x0nOfSCnNfeMOOh3DU6w8ur65DhL2LjlcwCtokhigzZWtwCA5x5CPko94U42EYlntWo3eiaAOjEzCJbmy+AuPIbGWawlO2hLwS4rfkUVIdNG0Ft1zaYqoI4/6o6gis9oFo46PAvRkgFKDen570pCc99KTGlVGj4C5BqLIdlmuWZiRfzRnn3aWWoku/arPPNuMsf4DPMRMU1EYxURmfb1BjIkYFMVZBzKlUzCzWDkkmMe4PduXxJYkdLGDnAtyCMP9FKHlxDm1+y0bBlkmrR8epC8t5i34Iv1WfEL14JdzCOeB4TL+cs8XKbyr1VVzSMeOgy8r7x/4HrRJLwJ4CAAA="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs backfill without timestamp",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T230000Z_backfill.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "43e27bf5f42cf67ddd7c1203dfd87ebde9d5d0ae83a56a3c868fa507d7b91262475a9d4e4716ea898773e3229949a55699a3326eaeeb0d9e763c2becd020f4ed9d9b77bed812b7a496bbe8eed37e2cd176995e9c9936fefa0bf95154a2b7486396e7d7aa78abd9d36810d0636e95adee3b8e62152f56aa90431fafcb6d25c550d49ef6d0ffd4e24b83cd409b0af63643d7347ed9a4a4a5cfd87dfc71f4af85475139f75448577c2a58756645a0af6b11c7cc201183f4019daa5e5055872493d3bde5732441329afc60102fc9bc149901748d9e19e8ee0b88755d1594430789d134cc62d9caea367787c5d08278d1cf0ed9dd7450b4ca974743ce624967ba3e65",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRX0/CMBTFvwrZs2NrB6i8TZFgNNE4ognGLN12KYXSkv6BqOG7uy6RTViw6Uvv+d323NNvj+x0nOfSCnNfeMOOh3DU6w8ur65DhL2LjlcwCtokhigzZWtwCA5x5CPko94U42EYlntWo3eiaAOjEzCJbmy+AuPIbGWawlO2hLwS4rfkUVIdNG0Ft1zaYqoI4/6o6gis9oFo46PAvRkgFKDen570pCc99KTGlVGj4C5BqLIdlmuWZiRfzRnn3aWWoku/arPPNuMsf4DPMRMU1EYxURmfb1BjIkYFMVZBzKlUzCzWDkkmMe4PduXxJYkdLGDnAtyCMP9FKHlxDm1+y0bBlkmrR8epC8t5i34Iv1WfEL14JdzCOeB4TL+cs8XKbyr1VVzSMeOgy8r7x/4HrRJLwJ4CAAA="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs explicit bucket and prefix",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--s3-bucket",
+   "bkt",
+   "--s3-prefix",
+   "pre",
+   "--verbose"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>pre/AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "803e0bf45580974c066a394110930ba12005cb1237efe8e77340f02cdfc89edd23923d420f23a2ef907781266d6c7b9410cbf242c88cd1d330d5779f46a43f97ae143db2e23c126adc853880c2ef9eaf647cf0f7a2832918262f54dcc7b48a4d98f801ee00135bdc2796c5b19920afc233bff97d03073eac5304349974a2ddb22710e3aa86222e36ad5dd1c97e2c92942bedb7705913fbcf1fc890c439a84b25b3dea3ee3cbc02ee368fb5f6e154da15ff3f2de87f14a1c66e205be92ab2275b1185350437053ee29227e3184ed4cf7aea9f6c35c3ad5475cae6207b7579249b11b702158dc845b346aed0ec12b9820b219e739abfb6c099f43ec516471f0a64",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtaM740PlbooEo4nGEU0whpTtWAqlJf2AqPG/uy6RTViw6U3P+5z2PW+/ArozSZYpJ+1tHgxaAcSdbq9/fnEZQRyctYKcMzQ2tVTbCV+jR+Io7oQAIXQncTSI/J5W6I3Mm0A4AtPOlctWaD05X9m68DBfYlYKG40keUnvFTOkbo1cC+XyiaZchMOyizgTIjU2BOLfJQAEun96Zkc9s33PzPoy1Ar+EoDSelSsaXtplGyzz8rno5sLnt3hx4hLhnqjuSw9v2+gNgxnklqnMRFMaW4Xa4+k4yTu9XfF8SlNPCxx57PborT/padEfgqt/0iR3pYrZ4aHgUsnRIO+z71RH1OzeKbC4SngcMywmLPBym8q1VVCsREXaIrK69v3D5OY3byZAgAA"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs paginated listing",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "343bee157ba0c0948ea9f08b158bd1da7716299897cdb6f67d1e1b74863dce93579da77418e18338216fa1b021d3026670a40db1fdb3d3744bbc33a53d517539e4d0246eb7125835cbf1eb7a90eb422e3d54e9f7b42e5904fc1816ea0caa281cfb06d588a263c3b9b550fb9e68b4f4d9fa79ff740770ed28e36d0be74f41d316319448ec45a120cc8ec40e2101d92f9b69090fd515a58eb9a0605632d046d765739fa558793b325fe99b8de722762dc7411f53e379d28a72ac76fd3b4256146b6e91924dd4a576c1c94a7a8c500f87b4b6bda097a17b1b884468a64443879e398cf233f13b6e4b0051cad15358b891d077e1aa42860e51ac5ce9cc47bdfb116c",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/82RXU/CMBSG/wrZtWM75UPlbooEo4nGEU0whnRbLYXSLv1gUcN/d12iDDb11qY3Pec5p+95z4eHCx2lqbTCXGfeqOMB6vUHw9Oz8xCQd9LxMkaJNrHByszYhjgEhajnA/jQnyEYhWF553v0SmRtIGqAce/CpmtiHJmsTT1xl6xIWiWip/hWUh3UZQWXXNpspjDj/riqCKz2CdbGh8D9GQAE0D+oWTRqFt81C+PCUAu4JgCV7LA88+5KS9Gl73uN9zbhLL0hbxMmKFG5YqLS+5pDbRBGBTZWkYhTqZhZbhwSTyM0GBbl8yGOHCxI4XzbEmH+ck7y7De0vo1ckS2TVo9/MvsY+D+mQ8P0Q61TrJePmFs3v7CctwLHnvul6S1jf61o34pLOmGc6DLy/LL7BG3IkskiAwAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs org trail",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z",
+   "--account-id",
+   "210987654321"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": true}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Organization\": {\"Id\": \"o-abc\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail validate-logs list denied",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 403,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>AccessDenied</Code><Message>Access Denied</Message></Error>"
+   }
+  ]
+ }
+]

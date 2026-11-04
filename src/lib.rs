@@ -5,6 +5,7 @@ pub mod driver;
 pub mod endpoint;
 pub mod error;
 pub mod handlers;
+pub mod help;
 pub mod jmes;
 pub mod model;
 pub mod output;

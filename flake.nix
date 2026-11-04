@@ -73,6 +73,7 @@
                 cargo
                 clippy
                 gnumake
+                groff
                 rust-analyzer
                 rustc
                 rustfmt

@@ -74,6 +74,7 @@ def main():
     for name, cmd in driver._get_command_table().items():
         if type(cmd) is not ServiceCommand:
             continue
+        cmd = create_clidriver()._get_command_table()[name]
         blocks = []
         for key, sub in cmd.subcommand_table.items():
             if type(sub) is ServiceOperation and (name, key) not in skip:

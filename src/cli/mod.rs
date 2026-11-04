@@ -9,7 +9,7 @@
 pub(crate) mod argparse;
 pub(crate) mod argprocess;
 pub mod arguments;
-mod commands;
+pub(crate) mod commands;
 pub(crate) mod difflib;
 mod driver;
 #[cfg(test)]
@@ -99,8 +99,10 @@ pub struct WaitInvocation {
 pub enum Command {
     /// `--version`.
     Version,
-    /// Text to print to stdout and exit 0 (help, `--generate-cli-skeleton`).
+    /// Text to print to stdout and exit 0 (`--generate-cli-skeleton`).
     Print(String),
+    /// A help page (`HelpCommand.__call__`).
+    Help(crate::help::HelpRequest),
     Operation(OperationInvocation),
     Wait(WaitInvocation),
     /// A command implemented by `crate::commands` (high-level commands such

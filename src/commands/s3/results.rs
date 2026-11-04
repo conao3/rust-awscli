@@ -44,6 +44,8 @@ pub(crate) enum TResult {
     Skip,
     Warning(String),
     Error(String),
+    /// `CtrlCResult`: a transfer cancelled by Ctrl-C.
+    CtrlC,
     FinalTotal(usize),
 }
 
@@ -125,7 +127,7 @@ impl Recorder {
             }
             TResult::Skip => self.files_skipped += 1,
             TResult::Warning(_) => self.files_warned += 1,
-            TResult::Error(_) => self.errors += 1,
+            TResult::Error(_) | TResult::CtrlC => self.errors += 1,
             TResult::FinalTotal(n) => self.final_expected_files_transferred = Some(*n as i64),
             TResult::DryRun(_) => {}
         }
@@ -196,6 +198,10 @@ impl Printer {
             TResult::Skip => self.redisplay(rec, false),
             TResult::Error(e) => {
                 let s = self.pad(&format!("fatal error: {e}"), '\n');
+                err(s.as_bytes());
+            }
+            TResult::CtrlC => {
+                let s = self.pad("cancelled: ctrl-c received", '\n');
                 err(s.as_bytes());
             }
             TResult::DryRun(loc) => {
@@ -312,7 +318,7 @@ impl Processor {
                     rec.record(&r);
                     printer.handle(&rec, &r);
                 }
-                if matches!(r, TResult::Error(_)) {
+                if matches!(r, TResult::Error(_) | TResult::CtrlC) {
                     enabled = false;
                 }
             }

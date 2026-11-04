@@ -1451,6 +1451,22 @@ type Done<'s> = Box<dyn FnOnce(Result<(), TransferError>) + Send + 's>;
 enum TransferError {
     Call(CallError),
     Message(String),
+    /// The transfer was cancelled by Ctrl-C before its request was sent.
+    Interrupted,
+}
+
+/// Set by SIGINT during a transfer command (`KeyboardInterrupt`).
+static INTERRUPTED: AtomicBool = AtomicBool::new(false);
+
+/// SIGINT stops the submissions and cancels the transfers whose requests
+/// are not in flight instead of ending the process.
+fn catch_interrupt() {
+    extern "C" fn on_sigint(_: libc::c_int) {
+        INTERRUPTED.store(true, Ordering::SeqCst);
+    }
+    unsafe {
+        libc::signal(libc::SIGINT, on_sigint as *const () as libc::sighandler_t);
+    }
 }
 
 impl std::fmt::Display for TransferError {
@@ -1458,6 +1474,7 @@ impl std::fmt::Display for TransferError {
         match self {
             TransferError::Call(e) => write!(f, "{e}"),
             TransferError::Message(m) => f.write_str(m),
+            TransferError::Interrupted => f.write_str("KeyboardInterrupt()"),
         }
     }
 }
@@ -1546,6 +1563,7 @@ impl<'a> Handler<'a> {
     }
 
     fn run(&self, items: Box<dyn Iterator<Item = Item> + '_>) {
+        catch_interrupt();
         let pool = Pool::new(self.cfg.max_queue_size as usize);
         let workers = self.cfg.max_concurrent_requests.max(1) as usize;
         let total = AtomicUsize::new(0);
@@ -1555,6 +1573,9 @@ impl<'a> Handler<'a> {
             }
             let mut items = items.peekable();
             while let Some(item) = items.next() {
+                if INTERRUPTED.load(Ordering::SeqCst) {
+                    break;
+                }
                 // Look one item ahead so that an error raised while
                 // generating the next file stops the command before the
                 // current one is submitted.
@@ -1587,9 +1608,17 @@ impl<'a> Handler<'a> {
                     }
                 }
             }
-            self.send(TResult::FinalTotal(total.load(Ordering::SeqCst)));
+            if !INTERRUPTED.load(Ordering::SeqCst) {
+                self.send(TResult::FinalTotal(total.load(Ordering::SeqCst)));
+            }
             pool.close();
             pool.wait_idle();
+            // `KeyboardInterrupt` out of the `TransferManager` block: the
+            // transfers not in flight were cancelled, then
+            // `CommandResultRecorder.__exit__` records the exception.
+            if INTERRUPTED.load(Ordering::SeqCst) {
+                self.send(TResult::Error(String::new()));
+            }
         });
     }
 
@@ -1640,6 +1669,7 @@ impl<'a> Handler<'a> {
         }
         match r {
             Ok(()) => self.send(TResult::Success(tx.loc.clone())),
+            Err(TransferError::Interrupted) => self.send(TResult::CtrlC),
             Err(e) if e.precondition_failed() => self.send(TResult::Skip),
             Err(e) => self.send(TResult::Failure(tx.loc.clone(), e.to_string())),
         }
@@ -1657,6 +1687,9 @@ impl<'a> Handler<'a> {
     fn call_with(&self, client: &Client<'_>, op: &str, params: Map) -> Result<Map, TransferError> {
         if self.cancelled.load(Ordering::SeqCst) {
             return Err(TransferError::Message("cancelled".into()));
+        }
+        if INTERRUPTED.load(Ordering::SeqCst) {
+            return Err(TransferError::Interrupted);
         }
         client.call(op, params).map_err(TransferError::Call)
     }

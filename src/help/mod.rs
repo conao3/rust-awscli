@@ -71,9 +71,7 @@ pub fn custom_request(path: &[String], args: &[String]) -> Option<HelpRequest> {
         }
         custom.command(&path.join(" "))?;
         let next = rest.first()?;
-        if custom.command(&format!("{} {next}", path.join(" "))).is_none() {
-            return None;
-        }
+        custom.command(&format!("{} {next}", path.join(" ")))?;
         path.push(next.clone());
         rest = &rest[1..];
     }

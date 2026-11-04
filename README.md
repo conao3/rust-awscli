@@ -29,13 +29,13 @@ Mean wall time measured with `hyperfine -N` against a local stub endpoint (`--en
 
 | Command | awsr | aws 2.39.3 |
 |---|---:|---:|
-| `--version` | 4.7 ms | 502 ms |
-| `sts get-caller-identity` | 9.6 ms | 614 ms |
-| `dynamodb list-tables` | 18.9 ms | 706 ms |
-| `ec2 describe-regions` | 33.7 ms | 819 ms |
-| `ec2 help` | 136 ms | 958 ms |
+| `--version` | 3.3 ms | 548 ms |
+| `sts get-caller-identity` | 6.6 ms | 704 ms |
+| `dynamodb list-tables` | 7.2 ms | 687 ms |
+| `ec2 describe-regions` | 8.3 ms | 981 ms |
+| `ec2 help` | 122 ms | 1008 ms |
 
-The release binary is 30 MB, of which the embedded models, examples, and help inputs are 11 MB.
+The service models are embedded uncompressed in a form that is read in place, so a command touches only the operations and shapes it uses and parses no JSON at start. This makes the release binary 97 MB.
 
 ## Development
 

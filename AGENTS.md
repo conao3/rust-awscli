@@ -11,7 +11,7 @@
 ## Layout
 
 - `src/value.rs`: the dynamic value (Python `dict` / `list` / `str` / `int` / `float` / `bool` / `None` / `bytes`).
-- `src/model.rs`: the embedded models (`models/services/<service>.json.zst`).
+- `src/model.rs`: the embedded models (`models/services/<service>.json.zst`), which `build.rs` encodes at build time into `src/bjson.rs` documents that are read in place.
 - `src/cli/`: global options, command tables, argument parsing, parameter values, validation.
 - `src/config.rs`, `src/session.rs`: configuration, credentials, signing, HTTP, retries.
 - `src/endpoint/`: the endpoint rule set interpreter.

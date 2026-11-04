@@ -69,10 +69,9 @@ pub fn custom_request(path: &[String], args: &[String]) -> Option<HelpRequest> {
         if rest.len() == 1 && rest[0] == "help" {
             break;
         }
-        let spec = custom.command(&path.join(" "))?;
+        custom.command(&path.join(" "))?;
         let next = rest.first()?;
-        let commands = spec["commands"].as_array()?;
-        if !commands.iter().any(|c| c.as_str() == Some(next)) {
+        if custom.command(&format!("{} {next}", path.join(" "))).is_none() {
             return None;
         }
         path.push(next.clone());

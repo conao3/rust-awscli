@@ -88,7 +88,7 @@ impl<'a> Client<'a> {
                 Some(p) => CallError::Validation(p.to_string()),
                 None => CallError::Other(e),
             };
-        match caller.call(&params).map_err(raised)? {
+        match crate::handlers::with_bytes_payload(|| caller.call(&params)).map_err(raised)? {
             CallResult::Ok(Value::Map(m)) => Ok(m
                 .into_iter()
                 .filter(|(_, v)| !matches!(v, Value::Null))

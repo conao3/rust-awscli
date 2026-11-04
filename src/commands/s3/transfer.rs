@@ -1445,6 +1445,9 @@ struct Tx {
     size: Option<i64>,
 }
 
+/// The annotations a multipart copy writes to the new object.
+type Annotations = Arc<Mutex<Option<Vec<(String, Vec<u8>)>>>>;
+
 /// What a job needs to finish a transfer.
 type Done<'s> = Box<dyn FnOnce(Result<(), TransferError>) + Send + 's>;
 
@@ -2352,6 +2355,10 @@ impl<'a> Handler<'a> {
         let (sb2, sk2) = (sb.clone(), sk.clone());
         let tags_after: Arc<Mutex<Option<Vec<Value>>>> = Arc::new(Mutex::new(None));
         let tags_after2 = tags_after.clone();
+        let annotations: Annotations = Arc::new(Mutex::new(None));
+        let annotations2 = annotations.clone();
+        let completed: Arc<Mutex<Option<Map>>> = Arc::default();
+        let completed2 = completed.clone();
         let (b2, k2) = (bucket.clone(), key.clone());
         let done: Done<'s> = Box::new(move |r| {
             let r = r.and_then(|()| {
@@ -2374,6 +2381,43 @@ impl<'a> Handler<'a> {
                         }
                         let _ = self.client.call("DeleteObject", del);
                         return Err(e);
+                    }
+                }
+                // `SetAnnotationsSubscriber._on_success`.
+                if let Some(list) = annotations2.lock().unwrap().take() {
+                    let response = completed2.lock().unwrap().clone().unwrap_or_default();
+                    let (mut succeeded, mut failed) = (Vec::new(), Vec::new());
+                    for (name, payload) in list {
+                        let mut params = map(&[
+                            ("Bucket", Value::str(&b2)),
+                            ("Key", Value::str(&k2)),
+                            ("AnnotationName", Value::str(&name)),
+                            ("AnnotationPayload", Value::Bytes(payload)),
+                        ]);
+                        if let Some(rp) = &request_payer {
+                            params.insert("RequestPayer".into(), rp.clone());
+                        }
+                        if let Some(etag) = response.get("ETag") {
+                            params.insert("ObjectIfMatch".into(), etag.clone());
+                        }
+                        if let Some(v) = response.get("VersionId") {
+                            params.insert("VersionId".into(), v.clone());
+                        }
+                        match self.call("PutObjectAnnotation", params) {
+                            Ok(_) => succeeded.push(name),
+                            Err(e) => failed.push(format!("{name}: {e}")),
+                        }
+                    }
+                    if !failed.is_empty() {
+                        let written = if succeeded.is_empty() {
+                            "(none)".to_string()
+                        } else {
+                            succeeded.join(", ")
+                        };
+                        return Err(TransferError::Message(format!(
+                            "Failed to copy all annotations to s3://{b2}/{k2}. The object was copied successfully and was not deleted. Annotations written: {written}. Annotations that failed: {}.",
+                            failed.join("; ")
+                        )));
                     }
                 }
                 if is_move {
@@ -2403,7 +2447,15 @@ impl<'a> Handler<'a> {
         let copy_source = copy_source_string(&sb, &sk);
         let r: Result<(), TransferError> = (|| {
             if !self.p.truthy("metadata_directive") {
-                self.copy_props(&mut extra, &sb, &sk, size, head_response, &tags_after)?;
+                self.copy_props(
+                    &mut extra,
+                    &sb,
+                    &sk,
+                    size,
+                    head_response,
+                    &tags_after,
+                    &annotations,
+                )?;
             }
             if size.is_none() || etag.is_none() {
                 let mut head = map(&[("Bucket", Value::str(&sb)), ("Key", Value::str(&sk))]);
@@ -2503,6 +2555,7 @@ impl<'a> Handler<'a> {
                 .get("ChecksumAlgorithm")
                 .and_then(Value::as_str)
                 .map(|a| format!("Checksum{}", a.to_uppercase())),
+            completed: completed.clone(),
         };
         pool.submit(Box::new(move |pool: &Pool<'s>| {
             let Some(mpu) = self.create_mpu(spec, done) else {
@@ -2558,6 +2611,7 @@ impl<'a> Handler<'a> {
     }
 
     /// `CopyPropsSubscriberFactory` subscribers' `on_queued`.
+    #[allow(clippy::too_many_arguments)]
     fn copy_props(
         &self,
         extra: &mut Map,
@@ -2566,6 +2620,7 @@ impl<'a> Handler<'a> {
         size: Option<i64>,
         head_response: Option<Map>,
         tags_after: &Arc<Mutex<Option<Vec<Value>>>>,
+        annotations: &Annotations,
     ) -> Result<(), TransferError> {
         let props = self.p.str("copy_props").unwrap_or("default").to_string();
         let multipart = size.is_some_and(|s| s >= self.cfg.multipart_threshold);
@@ -2644,6 +2699,71 @@ impl<'a> Handler<'a> {
             }
             Ok(())
         };
+        // `SetAnnotationsSubscriber.on_queued`: a multipart copy reads the
+        // source's annotations to write them after the copy.
+        let copy_annotations = || -> Result<(), TransferError> {
+            if !multipart {
+                return Ok(());
+            }
+            let version_id = head_response
+                .as_ref()
+                .and_then(|h| h.get("VersionId"))
+                .cloned();
+            let base = |extra: &[(&str, Value)]| {
+                let mut params = map(&[("Bucket", Value::str(sb)), ("Key", Value::str(sk))]);
+                for (k, v) in extra {
+                    params.insert((*k).to_string(), v.clone());
+                }
+                mapper::request_payer_only(&mut params, &self.p);
+                if let Some(v) = &version_id {
+                    params.insert("VersionId".into(), v.clone());
+                }
+                params
+            };
+            let mut names = Vec::new();
+            let mut token: Option<Value> = None;
+            loop {
+                let mut params = base(&[]);
+                if let Some(t) = &token {
+                    params.insert("ContinuationToken".into(), t.clone());
+                }
+                let page = self.src_call("ListObjectAnnotations", params)?;
+                for a in page
+                    .get("Annotations")
+                    .and_then(Value::as_list)
+                    .map(Vec::as_slice)
+                    .unwrap_or_default()
+                {
+                    if let Some(n) = a.get("AnnotationName").and_then(Value::as_str) {
+                        names.push(n.to_string());
+                    }
+                }
+                match page.get("NextContinuationToken") {
+                    Some(t) if t.is_truthy() && Some(t) != token.as_ref() => {
+                        token = Some(t.clone())
+                    }
+                    _ => break,
+                }
+            }
+            if names.is_empty() {
+                return Ok(());
+            }
+            let mut out = Vec::new();
+            for name in names {
+                let resp = self.src_call(
+                    "GetObjectAnnotation",
+                    base(&[("AnnotationName", Value::str(&name))]),
+                )?;
+                let payload = match resp.get("AnnotationPayload") {
+                    Some(Value::Bytes(b)) => b.clone(),
+                    Some(Value::Str(s)) => s.clone().into_bytes(),
+                    _ => Vec::new(),
+                };
+                out.push((name, payload));
+            }
+            *annotations.lock().unwrap() = Some(out);
+            Ok(())
+        };
         match props.as_str() {
             "none" => {
                 extra.insert("MetadataDirective".into(), Value::str("REPLACE"));
@@ -2658,6 +2778,7 @@ impl<'a> Handler<'a> {
             "all" => {
                 metadata_props(extra)?;
                 set_tags(extra)?;
+                copy_annotations()?;
             }
             _ => {
                 metadata_props(extra)?;
@@ -2767,6 +2888,8 @@ struct UploadSpec {
     complete_extra: Map,
     /// `Checksum{ALGORITHM}`, copied from part responses into the parts.
     checksum_member: Option<String>,
+    /// The `CompleteMultipartUpload` response (`future.result()`).
+    completed: Arc<Mutex<Option<Map>>>,
 }
 
 /// The upload arguments of `UploadSubmissionTask._submit_multipart_request`.
@@ -2813,6 +2936,7 @@ fn upload_spec(tx: Tx, bucket: &str, key: &str, mut extra: Map) -> UploadSpec {
             .get("ChecksumAlgorithm")
             .and_then(Value::as_str)
             .map(|a| format!("Checksum{}", a.to_uppercase())),
+        completed: Arc::default(),
     }
 }
 
@@ -2956,7 +3080,10 @@ impl<'s, 'a> Mpu<'s, 'a> {
                         &me.spec.complete_extra,
                     );
                     match me.h.call("CompleteMultipartUpload", params) {
-                        Ok(_) => Ok(()),
+                        Ok(resp) => {
+                            *me.spec.completed.lock().unwrap() = Some(resp);
+                            Ok(())
+                        }
                         Err(e) => {
                             abort();
                             Err(e)

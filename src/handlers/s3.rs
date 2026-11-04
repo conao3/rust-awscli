@@ -205,9 +205,23 @@ fn escape_xml_payload(request: &mut HttpRequest) {
     request.body = body;
 }
 
+thread_local! {
+    static BYTES_PAYLOAD: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Run `f` with the streaming payloads of its calls given as `bytes`
+/// rather than file objects (the high-level s3 commands' calls).
+pub(crate) fn with_bytes_payload<R>(f: impl FnOnce() -> R) -> R {
+    BYTES_PAYLOAD.with(|b| b.set(true));
+    let r = f();
+    BYTES_PAYLOAD.with(|b| b.set(false));
+    r
+}
+
 /// `add_expect_header`: the body is file-like when the operation's
-/// payload is a streaming blob the caller provided (the CLI opens the
-/// file, and `convert_body_to_file_like_object` wraps `str` and `bytes`).
+/// payload is a streaming blob the caller provided as a file (the CLI
+/// opens the file) or as `str` / `bytes` that
+/// `convert_body_to_file_like_object` wraps (`PutObject`, `UploadPart`).
 fn add_expect_header(operation: &Operation<'_>, params: &Value, request: &mut HttpRequest) {
     if !matches!(operation.http_method(), "PUT" | "POST") {
         return;
@@ -218,10 +232,13 @@ fn add_expect_header(operation: &Operation<'_>, params: &Value, request: &mut Ht
     let Some(payload) = input.get_str("payload") else {
         return;
     };
+    let wrapped =
+        matches!(operation.name, "PutObject" | "UploadPart") || !BYTES_PAYLOAD.with(|b| b.get());
     let file_like = input
         .member_shape(payload)
         .is_some_and(|s| s.type_name() == "blob" && s.is_streaming())
-        && params.get(payload).is_some();
+        && params.get(payload).is_some()
+        && wrapped;
     if file_like {
         super::set_header(&mut request.headers, "Expect", "100-continue");
     }

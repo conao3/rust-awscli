@@ -129,7 +129,7 @@ pub struct Stream<'a> {
 }
 
 impl Stream<'_> {
-    fn write(&mut self, text: &str) {
+    pub fn write(&mut self, text: &str) {
         self.out.push_str(text);
         if self.autoreset {
             self.out.push_str(RESET_ALL);

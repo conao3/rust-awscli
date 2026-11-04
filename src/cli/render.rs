@@ -101,6 +101,7 @@ fn param_validation(message: &str, format: &str, color: &str) -> String {
                 _ => std::io::stdout().is_terminal(),
             };
             let styler = if colorized {
+                crate::output::colorama::init();
                 table::Styler::Colorized
             } else {
                 table::Styler::Plain

@@ -10,6 +10,7 @@ use crate::paginate::{LazyPages, PaginatedResponse};
 use crate::pyfmt;
 use crate::value::{Map, Value};
 
+pub mod colorama;
 pub mod errors;
 pub mod stdout;
 pub mod table;
@@ -138,14 +139,13 @@ fn format_response(
             }
         },
         Format::Table => {
-            let data = transformed(full(response)?, query)?;
             let (styler, autoreset) = table_styler(options.color, options.stdout_is_tty);
+            if styler == table::Styler::Colorized {
+                colorama::init();
+            }
+            let data = transformed(full(response)?, query)?;
             let width = options.terminal_width.unwrap_or(80);
             render_table(command_name, &data, styler, autoreset, width, buf)?;
-            if styler == table::Styler::Colorized && options.stdout_is_tty {
-                // colorama's atexit `reset_all` on a tty stdout.
-                buf.push_str("\x1b[0m");
-            }
         }
         Format::Text => format_text_response(response, query, buf)?,
         Format::Off => {
@@ -417,8 +417,12 @@ mod tests {
                 terminal_width: Some(width),
                 stdout_is_tty: tty,
             };
+            colorama::reset();
             let mut out = Vec::new();
             let result = write_response(command, response, &options, &mut out);
+            if colorama::initialized() && tty {
+                out.extend_from_slice(b"\x1b[0m");
+            }
             let actual = String::from_utf8(out).expect("UTF-8 output");
             let actual_error = result.err().map(|e| e.to_string());
             if actual != expected || actual_error.as_deref() != error {

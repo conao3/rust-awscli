@@ -108,6 +108,7 @@ fn client_call(cmd: &Command, config: &HashMap<String, String>) -> Result<(), Fa
 }
 
 fn run(golden: &Golden, dir: &str) -> (i32, String, String, Option<String>) {
+    crate::output::colorama::reset();
     let args: Vec<String> = golden
         .args
         .iter()

@@ -31,6 +31,11 @@ use crate::waiter;
 pub fn run(args: Vec<String>) -> i32 {
     let result = run_inner(args);
     crate::output::stdout::flush();
+    if crate::output::colorama::initialized() && std::io::stdout().is_terminal() {
+        let mut stdout = std::io::stdout().lock();
+        let _ = stdout.write_all(b"\x1b[0m");
+        let _ = stdout.flush();
+    }
     match result {
         Ok(code) => code,
         Err(e) => {

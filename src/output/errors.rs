@@ -4,7 +4,7 @@
 use crate::pyfmt::{self, py_str};
 use crate::value::{Map, Value};
 
-use super::{Color, table, text, yaml};
+use super::{Color, colorama, table, text, yaml};
 
 /// A service error to report (`botocore.exceptions.ClientError`).
 #[derive(Debug, Clone)]
@@ -131,8 +131,10 @@ fn display_structured_error(
         error_format = "enhanced".to_string();
     }
     if error_format == "enhanced" {
-        let mut out = render_general_error(formatted_message);
-        format_enhanced(error_info, &mut out);
+        let mut out = String::new();
+        let mut stream = stderr_stream(&mut out);
+        write_error(&mut stream, formatted_message);
+        format_enhanced(error_info, &mut stream);
         return Some(out);
     }
     let data = Value::Map(error_info.clone());
@@ -161,13 +163,18 @@ fn display_structured_error(
             } else {
                 table::Styler::Plain
             };
-            // The handler's stderr is not the colorama wrapper, so writes
-            // are not followed by resets.
+            // The handler took `sys.stderr` before this formatter wrapped
+            // it, so writes are followed by resets only when an earlier
+            // formatter did.
+            let autoreset = colorama::initialized();
+            if colorized {
+                colorama::init();
+            }
             super::render_table(
                 "error",
                 &data,
                 styler,
-                false,
+                autoreset,
                 options.terminal_width.unwrap_or(80),
                 &mut out,
             )
@@ -188,7 +195,7 @@ fn is_simple_value(v: &Value) -> bool {
 }
 
 /// `EnhancedErrorFormatter.format_error`.
-fn format_enhanced(error_info: &Map, out: &mut String) {
+fn format_enhanced(error_info: &Map, out: &mut table::Stream<'_>) {
     let additional: Vec<(&String, &Value)> = error_info
         .iter()
         .filter(|(k, _)| !matches!(k.to_lowercase().as_str(), "code" | "message"))
@@ -196,20 +203,20 @@ fn format_enhanced(error_info: &Map, out: &mut String) {
     if additional.is_empty() {
         return;
     }
-    out.push_str("\nAdditional error details:\n");
+    out.write("\nAdditional error details:\n");
     let mut has_complex_value = false;
     for (key, value) in additional {
         if is_simple_value(value) {
-            out.push_str(&format!("{key}: {}\n", py_str(value)));
+            out.write(&format!("{key}: {}\n", py_str(value)));
         } else if is_small_collection(value) {
-            out.push_str(&format!("{key}: {}\n", format_inline(value)));
+            out.write(&format!("{key}: {}\n", format_inline(value)));
         } else {
-            out.push_str(&format!("{key}: <complex value>\n"));
+            out.write(&format!("{key}: <complex value>\n"));
             has_complex_value = true;
         }
     }
     if has_complex_value {
-        out.push_str(
+        out.write(
             "Use \"--cli-error-format json\" or another error format to see the full details.\n",
         );
     }
@@ -240,7 +247,25 @@ fn format_inline(v: &Value) -> String {
 /// `errorformat.write_error`: `"\naws: [ERROR]: <message>\n"` (with the
 /// exact surrounding newlines of the AWS CLI).
 pub fn render_general_error(message: &str) -> String {
-    format!("\n{}\n", format_error_message(message))
+    let mut out = String::new();
+    write_error(&mut stderr_stream(&mut out), message);
+    out
+}
+
+/// `sys.stderr` at the time the handler runs: colorama's wrapper once a
+/// colorized table formatter has been created.
+fn stderr_stream(out: &mut String) -> table::Stream<'_> {
+    table::Stream {
+        out,
+        autoreset: colorama::initialized(),
+    }
+}
+
+/// `errorformat.write_error`.
+fn write_error(stream: &mut table::Stream<'_>, message: &str) {
+    stream.write("\n");
+    stream.write(&format_error_message(message));
+    stream.write("\n");
 }
 
 /// `errorformat.format_error_message` (`str.strip()` of the message).
@@ -306,6 +331,7 @@ mod tests {
         for &(op, code, message, retries, parsed, modeled, fmt, color, tty, width, expected) in
             goldens::CLIENT_ERROR
         {
+            colorama::reset();
             let info = ClientErrorInfo {
                 operation_name: op.to_string(),
                 code: code.to_string(),

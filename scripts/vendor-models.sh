@@ -44,6 +44,8 @@ done
 for f in partitions.json endpoints.json; do
   jq -c . "$data/$f" | zstd -19 -q -o "$out/$f.zst"
 done
+jq -c '.partitions |= map(.services |= with_entries(select([.value | .. | objects | .credentialScope?.service? // empty] | length > 0)))' "$data/endpoints.json" \
+  | zstd -19 -q -o "$out/credential-scopes.json.zst"
 jq -c . "$src/awscli/data/cli.json" | zstd -19 -q -o "$out/cli.json.zst"
 sed -n "s/^__version__ = .\(.*\).$/\1/p" "$src/awscli/__init__.py" > "$out/VERSION"
 

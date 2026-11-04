@@ -7,7 +7,8 @@
 //! `paginators-1.json`), `waiters` (the `waiters` object of
 //! `waiters-2.json`), and `ruleset` (`endpoint-rule-set-1.json`).
 
-use std::sync::OnceLock;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, OnceLock};
 
 use anyhow::{Context, Result, anyhow};
 use serde_json::{Map as JsonMap, Value as Json};
@@ -18,6 +19,7 @@ mod embedded {
 
 static PARTITIONS: &[u8] = include_bytes!("../models/partitions.json.zst");
 static ENDPOINTS: &[u8] = include_bytes!("../models/endpoints.json.zst");
+static CREDENTIAL_SCOPES: &[u8] = include_bytes!("../models/credential-scopes.json.zst");
 static CLI: &[u8] = include_bytes!("../models/cli.json.zst");
 
 /// The version of the AWS CLI whose models are embedded.
@@ -47,12 +49,23 @@ pub fn endpoints() -> &'static Json {
     P.get_or_init(|| decompress(ENDPOINTS).expect("embedded endpoints.json"))
 }
 
+fn credential_scopes() -> &'static Json {
+    static P: OnceLock<Json> = OnceLock::new();
+    P.get_or_init(|| decompress(CREDENTIAL_SCOPES).expect("embedded credential-scopes.json"))
+}
+
 /// `credentialScope.service` of the endpoint
 /// `EndpointResolver.construct_endpoint` resolves in `endpoints.json`
 /// (the service's endpoint for `region`, or its `partitionEndpoint` when
 /// it is not regionalized or no region is given).
 fn legacy_credential_scope_service(service: &str, region: Option<&str>) -> Option<String> {
-    let partitions = endpoints()["partitions"].as_array()?;
+    let partitions = credential_scopes()["partitions"].as_array()?;
+    if !partitions
+        .iter()
+        .any(|p| p["services"].get(service).is_some())
+    {
+        return None;
+    }
     let resolve = |partition: &Json, force: bool| -> Option<Option<String>> {
         let service_data = partition["services"].get(service);
         let endpoints = service_data.and_then(|s| s.get("endpoints"));
@@ -116,16 +129,25 @@ pub struct ServiceModel {
     /// The botocore service name (the data directory name, e.g. `s3`).
     pub name: String,
     pub api_version: String,
-    doc: Json,
+    doc: Arc<Json>,
 }
 
 impl ServiceModel {
     pub fn load(name: &str) -> Result<ServiceModel> {
-        let (_, bytes) = embedded::SERVICES
+        let (key, bytes) = embedded::SERVICES
             .iter()
             .find(|(n, _)| *n == name)
             .ok_or_else(|| anyhow!("unknown service: {name}"))?;
-        let doc = decompress(bytes)?;
+        static LOADED: OnceLock<Mutex<HashMap<&'static str, Arc<Json>>>> = OnceLock::new();
+        let mut loaded = LOADED.get_or_init(Default::default).lock().unwrap();
+        let doc = match loaded.get(name) {
+            Some(doc) => doc.clone(),
+            None => {
+                let doc = Arc::new(decompress(bytes)?);
+                loaded.insert(key, doc.clone());
+                doc
+            }
+        };
         let api_version = doc["api_version"].as_str().unwrap_or_default().to_string();
         Ok(ServiceModel {
             name: name.to_string(),
@@ -140,9 +162,9 @@ impl ServiceModel {
         ServiceModel {
             name: name.to_string(),
             api_version: String::new(),
-            doc: serde_json::json!({
+            doc: Arc::new(serde_json::json!({
                 "service": {"metadata": {}, "operations": {}, "shapes": shapes}
-            }),
+            })),
         }
     }
 
@@ -474,7 +496,11 @@ impl ServiceModel {
     /// `remove_accid_host_prefix_from_model` (`botocore/handlers.py`).
     pub fn apply_endpoint_ruleset_customizations(&mut self) {
         let name = self.name.clone();
-        let Some(ops) = self.doc["service"]["operations"].as_object_mut() else {
+        if name != "s3" && name != "s3control" {
+            return;
+        }
+        let Some(ops) = Arc::make_mut(&mut self.doc)["service"]["operations"].as_object_mut()
+        else {
             return;
         };
         for op in ops.values_mut() {

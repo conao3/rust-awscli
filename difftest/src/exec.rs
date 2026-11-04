@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use crate::case::{self, Case, DIR_MARK, ENDPOINT_MARK, Prepared, Skip};
 use crate::compare::{self, Side};
+use crate::refcache::{RefCache, Site};
 use crate::run::{self, Env, RunOut};
 use crate::server::Stub;
 use crate::table::Table;
@@ -19,6 +20,7 @@ pub struct Config {
     pub endpoint_host: String,
     pub work_dir: PathBuf,
     pub keep_dirs: bool,
+    pub ref_cache: Option<RefCache>,
 }
 
 #[derive(Debug)]
@@ -85,16 +87,38 @@ async fn run_prepared(case: &Case, p: &Prepared, cfg: &Config) -> anyhow::Result
         })
         .collect();
 
-    let reference = run::run(
-        &cfg.reference,
-        &argv,
-        &dir,
-        &cfg.env,
-        case.pty,
-        p.outfile.as_deref(),
-    )
-    .await?;
-    let ref_requests = stub.take_log();
+    let host_port = format!("{host}:{}", stub.port);
+    let site = Site {
+        dir: &dir_text,
+        host_port: &host_port,
+    };
+    let key = cfg
+        .ref_cache
+        .as_ref()
+        .map(|c| c.key(case, p, &cfg.env, host));
+    let cached = match (&cfg.ref_cache, &key) {
+        (Some(c), Some(k)) => c.load(k, &site),
+        _ => None,
+    };
+    let (reference, ref_requests) = match cached {
+        Some(hit) => hit,
+        None => {
+            let run = run::run(
+                &cfg.reference,
+                &argv,
+                &dir,
+                &cfg.env,
+                case.pty,
+                p.outfile.as_deref(),
+            )
+            .await?;
+            let requests = stub.take_log();
+            if let (Some(c), Some(k)) = (&cfg.ref_cache, &key) {
+                c.store(k, &site, &run, &requests)?;
+            }
+            (run, requests)
+        }
+    };
 
     let mut detail = header(case, p, &argv);
     let _ = writeln!(detail, "== reference exit: {:?}", reference.code);

@@ -9,6 +9,7 @@
 mod case;
 mod compare;
 mod exec;
+mod refcache;
 mod response;
 mod rng;
 mod run;
@@ -163,6 +164,10 @@ struct Common {
     #[arg(long)]
     cli_table: Option<PathBuf>,
     /// Keep each case's working directory.
+    /// Run the reference CLI for every case instead of replaying
+    /// stored runs (`target/difftest/refcache`).
+    #[arg(long)]
+    no_ref_cache: bool,
     #[arg(long)]
     keep_dirs: bool,
 }
@@ -476,6 +481,8 @@ async fn run_cases(common: &Common, cases: Vec<Case>) -> Result<()> {
         endpoint_host: common.endpoint_host.clone(),
         work_dir: target.join("work"),
         keep_dirs: common.keep_dirs,
+        ref_cache: (!common.no_ref_cache)
+            .then(|| refcache::RefCache::new(target.join("refcache"), &common.reference)),
     });
 
     let started = Instant::now();

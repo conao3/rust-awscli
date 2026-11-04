@@ -20,7 +20,7 @@ use tokio::task::JoinHandle;
 
 use crate::response::Resp;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Recorded {
     pub method: String,
     /// Path and query exactly as received.

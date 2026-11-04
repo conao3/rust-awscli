@@ -18,7 +18,7 @@ pub struct Env {
     pub timeout: Duration,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct RunOut {
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,

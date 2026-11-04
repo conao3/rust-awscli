@@ -19,5 +19,5 @@ difftest:
 
 .PHONY: difftest-full
 difftest-full:
-	cargo build
-	cargo run -q --release -p awsr-difftest -- corpus --seeds 4 --formats json,text,table
+	cargo build --release
+	cargo run -q --release -p awsr-difftest -- corpus --awsr-bin target/release/awsr --seeds 4 --formats json,text,table

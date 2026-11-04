@@ -21,9 +21,8 @@ trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/home"
 
 compare() {
-  local line="$1" id
-  id="$(printf '%s' "$line" | md5sum | cut -c1-16)"
-  local out="$work/$id"
+  local line="$1" out
+  out="$(mktemp -p "$work")"
   # shellcheck disable=SC2086
   env -i PATH="$PATH" HOME="$work/home" TERM=dumb "$ref" $line >"$out.ref.out" 2>"$out.ref.err" </dev/null && echo 0 >"$out.ref.rc" || echo $? >"$out.ref.rc"
   # shellcheck disable=SC2086
@@ -33,7 +32,7 @@ compare() {
   else
     echo "DIFF $line"
   fi
-  rm -f "$out".*
+  rm -f "$out" "$out".*
 }
 export -f compare
 export work awsr ref

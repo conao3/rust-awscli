@@ -57,8 +57,6 @@ def main():
     w('#[allow(clippy::type_complexity)]')
     w('pub(crate) static SERVICE_TABLE_DIFFS: &[(&str, &[&str], &[(&str, &str)], &[&str])] = &[')
     for name, _ in services:
-        # A fresh driver per service: the plugins a command table lazily
-        # initializes stay registered for the rest of the process.
         cmd = create_clidriver()._get_command_table()[name]
         model = cmd.service_model
         generic = [xform_name(op, '-') for op in model.operation_names]

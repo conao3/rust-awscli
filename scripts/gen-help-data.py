@@ -169,8 +169,6 @@ def main():
             walk_basic(path + [name], sub)
 
     for name in list(driver._get_command_table()):
-        # A fresh driver per command: the plugins a command lazily
-        # initializes stay registered for the rest of the process.
         cmd = create_clidriver()._get_command_table()[name]
         if not isinstance(cmd, ServiceCommand):
             walk_basic([name], cmd._resolve() if hasattr(cmd, '_resolve') else cmd)

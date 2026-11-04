@@ -31,7 +31,7 @@ flate2 = { version = "1", features = ["zlib"] }
 hex = "0.4"
 http = "1"
 indexmap = "2"
-md-5 = "0.10"
+md-5 = "0.11"
 num-bigint = "0.4"
 num-traits = "0.2"
 percent-encoding = "2"

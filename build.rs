@@ -84,6 +84,11 @@ fn main() {
     let models = Path::new(&manifest_dir).join("models");
     println!("cargo:rerun-if-changed=models");
     println!("cargo:rerun-if-changed=src/bjson/encode.rs");
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux")
+        && env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("gnu")
+    {
+        println!("cargo:rustc-link-arg-bins=-no-pie");
+    }
 
     let services_dir = models.join("services");
     let bin_dir = out_dir.join("services");

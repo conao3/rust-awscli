@@ -518,7 +518,7 @@ dependencies = [
  "aws-sigv4",
  "aws-smithy-runtime-api",
  "aws-types",
- "base64 0.22.1",
+ "base64 0.23.1",
  "chrono",
  "ciborium",
  "crc32c",
@@ -567,7 +567,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "awsr",
- "base64 0.22.1",
+ "base64 0.23.1",
  "bytes",
  "ciborium",
  "clap",

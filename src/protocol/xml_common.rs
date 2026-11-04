@@ -1708,7 +1708,7 @@ impl XmlParser<'_> {
                 out.insert(payload.to_string(), Value::Bytes(response.body.clone()));
             } else if matches!(body_shape.type_name(), "string" | "blob") {
                 let value =
-                    if body_shape.is_streaming() {
+                    if body_shape.type_name() == "blob" || body_shape.is_streaming() {
                         Value::Bytes(response.body.clone())
                     } else {
                         Value::Str(String::from_utf8(response.body.clone()).map_err(|e| {

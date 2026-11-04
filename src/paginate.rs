@@ -758,7 +758,7 @@ impl PageIterator {
         let mut keys = Map::new();
         for expr in &self.non_aggregate_keys {
             let result = expr.search(response)?;
-            jmes::set_value_from_jmespath(&mut keys, &expr.source, result);
+            jmes::set_value_from_jmespath(&mut keys, &expr.source, result).map_err(internal)?;
         }
         self.non_aggregate_part = keys;
         Ok(())
@@ -778,7 +778,7 @@ impl PageIterator {
         let map = parsed
             .as_map_mut()
             .ok_or_else(|| internal("response is not a dict"))?;
-        jmes::set_value_from_jmespath(map, &primary.source, data);
+        jmes::set_value_from_jmespath(map, &primary.source, data).map_err(internal)?;
         for token in self.result_keys.iter().flatten().skip(1) {
             let sample = token.search(parsed)?;
             let empty = match sample {
@@ -788,7 +788,7 @@ impl PageIterator {
                 _ => Value::Null,
             };
             let map = parsed.as_map_mut().unwrap();
-            jmes::set_value_from_jmespath(map, &token.source, empty);
+            jmes::set_value_from_jmespath(map, &token.source, empty).map_err(internal)?;
         }
         Ok(starting_truncation)
     }
@@ -806,7 +806,7 @@ impl PageIterator {
         let map = parsed
             .as_map_mut()
             .ok_or_else(|| internal("response is not a dict"))?;
-        jmes::set_value_from_jmespath(map, &source, truncated);
+        jmes::set_value_from_jmespath(map, &source, truncated).map_err(internal)?;
         let amount = py_add(&Value::int(amount_to_keep), &self.starting_truncation)?;
         let mut next_token = self.next_token.clone();
         next_token.insert("boto_truncate_amount".into(), amount);
@@ -916,7 +916,8 @@ impl PageIterator {
                 }
                 let existing = expr.search(&Value::Map(complete.clone()))?;
                 if existing == Value::Null {
-                    jmes::set_value_from_jmespath(&mut complete, &expr.source, result_value);
+                    jmes::set_value_from_jmespath(&mut complete, &expr.source, result_value)
+                        .map_err(internal)?;
                     continue;
                 }
                 match &result_value {
@@ -927,7 +928,8 @@ impl PageIterator {
                                 &mut complete,
                                 &expr.source,
                                 Value::List(l),
-                            );
+                            )
+                            .map_err(internal)?;
                         }
                         other => {
                             return Err(internal(format!(
@@ -938,7 +940,8 @@ impl PageIterator {
                     },
                     Value::Int(_) | Value::Float(_) | Value::Str(_) | Value::Bool(_) => {
                         let sum = py_add(&existing, &result_value)?;
-                        jmes::set_value_from_jmespath(&mut complete, &expr.source, sum);
+                        jmes::set_value_from_jmespath(&mut complete, &expr.source, sum)
+                            .map_err(internal)?;
                     }
                     _ => {}
                 }
@@ -1002,6 +1005,35 @@ pub fn paginate(
         pages,
         full_result,
     })
+}
+
+/// A `PageIterator` whose pages are requested as the formatter consumes
+/// them, as the CLI's formatters iterate botocore's lazy iterator.
+pub struct LazyPages<'a> {
+    pub iterator: PageIterator,
+    pub call: Box<CallFn<'a>>,
+}
+
+impl LazyPages<'_> {
+    pub fn next_page(&mut self) -> Result<Option<Value>> {
+        self.iterator.next_page(&mut *self.call)
+    }
+
+    /// Consume every remaining page (`build_full_result`).
+    pub fn collect(mut self) -> Result<PaginatedResponse> {
+        let mut pages = Vec::new();
+        while let Some(page) = self.next_page()? {
+            pages.push(page);
+        }
+        let full_result = self.iterator.build_full_result(&pages)?;
+        Ok(PaginatedResponse {
+            result_keys: self.iterator.result_keys(),
+            non_aggregate_part: self.iterator.non_aggregate_part.clone(),
+            resume_token: self.iterator.resume_token.clone(),
+            pages,
+            full_result,
+        })
+    }
 }
 
 #[cfg(test)]

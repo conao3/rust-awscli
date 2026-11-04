@@ -159,6 +159,9 @@ fn indented_write(
 #[derive(Debug, Clone, Default)]
 pub struct Section {
     pub title: String,
+    /// The title is `None` (`new_section(None)`): it renders like an empty
+    /// title but `get_text_length(None)` counts `str(None)`.
+    pub title_is_none: bool,
     pub headers: Vec<String>,
     pub rows: Vec<Vec<String>>,
     pub indent_level: usize,
@@ -220,7 +223,11 @@ impl Section {
             total += border_padding;
         }
         total += (outer_padding + outer_padding) as i64;
-        let title = get_text_length(&self.title) as i64
+        let title = get_text_length(if self.title_is_none {
+            "None"
+        } else {
+            &self.title
+        }) as i64
             + border_padding
             + (outer_padding + outer_padding) as i64;
         title.max(total)
@@ -276,6 +283,7 @@ fn convert_to_vertical_table(sections: &mut [Section]) -> Result<(), String> {
         if section.rows.len() == 1 && !section.headers.is_empty() {
             let mut new_section = Section {
                 title: section.title.clone(),
+                title_is_none: section.title_is_none,
                 indent_level: section.indent_level,
                 ..Section::default()
             };
@@ -331,6 +339,14 @@ impl MultiTable {
             ..Section::default()
         });
         self.current = Some(self.sections.len() - 1);
+    }
+
+    /// `new_section(None, indent_level)`.
+    pub fn new_section_none(&mut self, indent_level: usize) {
+        self.new_section("", indent_level);
+        if let Some(section) = self.sections.last_mut() {
+            section.title_is_none = true;
+        }
     }
 
     /// `MultiTable.render`.
@@ -561,10 +577,10 @@ impl TableBuilder {
         let mut first = true;
         for element in current {
             if !first && !more.is_empty() {
-                let Some(title) = title else {
-                    return Err("'NoneType' object is not iterable".to_string());
-                };
-                self.table.new_section(title, indent_level);
+                match title {
+                    Some(title) => self.table.new_section(title, indent_level),
+                    None => self.table.new_section_none(indent_level),
+                }
                 self.table.add_row_header(headers.clone())?;
             }
             first = false;

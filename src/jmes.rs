@@ -90,21 +90,77 @@ pub fn search(expression: &str, data: &Value) -> Result<Value> {
 
 /// botocore `utils.set_value_from_jmespath`: assign `value` at a dotted
 /// key path, creating intermediate dicts.
-pub fn set_value_from_jmespath(source: &mut Map, expression: &str, value: Value) {
-    match expression.split_once('.') {
-        Some((head, rest)) => {
+pub fn set_value_from_jmespath(
+    source: &mut Map,
+    expression: &str,
+    value: Value,
+) -> Result<(), String> {
+    let (head, rest) = match expression.split_once('.') {
+        Some((h, r)) => (h, Some(r)),
+        None => (expression, None),
+    };
+    match rest {
+        Some(rest) => {
             let entry = source.entry(head.to_string()).or_insert_with(Value::map);
-            if !matches!(entry, Value::Map(_)) {
-                *entry = Value::map();
-            }
-            if let Value::Map(m) = entry {
-                set_value_from_jmespath(m, rest, value);
-            }
+            set_value_in(entry, rest, value)
         }
         None => {
-            source.insert(expression.to_string(), value);
+            source.insert(head.to_string(), value);
+            Ok(())
         }
     }
+}
+
+/// The recursive step of `set_value_from_jmespath` on a value that may not
+/// be a dict, raising the `TypeError` Python raises for it.
+fn set_value_in(source: &mut Value, expression: &str, value: Value) -> Result<(), String> {
+    let (head, rest) = match expression.split_once('.') {
+        Some((h, r)) => (h, Some(r)),
+        None => (expression, None),
+    };
+    if let Value::Map(m) = source {
+        return match rest {
+            Some(rest) => {
+                let entry = m.entry(head.to_string()).or_insert_with(Value::map);
+                set_value_in(entry, rest, value)
+            }
+            None => {
+                m.insert(head.to_string(), value);
+                Ok(())
+            }
+        };
+    }
+    let type_name = match source {
+        Value::Null => "NoneType",
+        Value::Bool(_) => "bool",
+        Value::Int(_) => "int",
+        Value::Float(_) => "float",
+        Value::Str(_) => "str",
+        Value::Bytes(_) => "bytes",
+        Value::List(_) => "list",
+        Value::Map(_) => unreachable!("handled above"),
+    };
+    if rest.is_some() {
+        match source {
+            Value::Null | Value::Bool(_) | Value::Int(_) | Value::Float(_) => {
+                return Err(format!(
+                    "argument of type '{type_name}' is not a container or iterable"
+                ));
+            }
+            Value::Bytes(_) => return Err("a bytes-like object is required, not 'str'".to_string()),
+            Value::Str(s) if s.contains(head) => {
+                return Err("string indices must be integers, not 'str'".to_string());
+            }
+            Value::List(_) => {
+                return Err("list indices must be integers or slices, not str".to_string());
+            }
+            _ => {}
+        }
+    }
+    Err(match source {
+        Value::List(_) => "list indices must be integers or slices, not str".to_string(),
+        _ => format!("'{type_name}' object does not support item assignment"),
+    })
 }
 
 // ---------------------------------------------------------------------------

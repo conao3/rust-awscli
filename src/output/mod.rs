@@ -6,7 +6,7 @@ use std::io::Write;
 use anyhow::{Result, anyhow};
 
 use crate::jmes::{self, Expression};
-use crate::paginate::PaginatedResponse;
+use crate::paginate::{LazyPages, PaginatedResponse};
 use crate::pyfmt;
 use crate::value::{Map, Value};
 
@@ -60,9 +60,11 @@ pub struct OutputOptions {
     pub stdout_is_tty: bool,
 }
 
-pub enum Response {
+pub enum Response<'a> {
     Single(Value),
     Paginated(PaginatedResponse),
+    /// Pages fetched while formatting.
+    Lazy(LazyPages<'a>),
 }
 
 /// Format `response` like the AWS CLI formatter for
@@ -74,7 +76,7 @@ pub enum Response {
 /// the Python formatter writes before failing is written first.
 pub fn write_response(
     command_name: &str,
-    response: Response,
+    response: Response<'_>,
     options: &OutputOptions,
     out: &mut dyn Write,
 ) -> Result<()> {
@@ -96,21 +98,21 @@ pub fn write_response(
 
 fn format_response(
     command_name: &str,
-    response: Response,
+    response: Response<'_>,
     options: &OutputOptions,
     query: Option<&Expression>,
     buf: &mut String,
 ) -> Result<()> {
     match options.format {
         Format::Json => {
-            let data = transformed(full(response), query)?;
+            let data = transformed(full(response)?, query)?;
             if !is_empty_dict(&data) {
                 buf.push_str(&pyfmt::json_dumps_pretty(&data));
                 buf.push('\n');
             }
         }
         Format::Yaml => {
-            let data = transformed(full(response), query)?;
+            let data = transformed(full(response)?, query)?;
             if !is_empty_dict(&data) {
                 yaml::dump(&data, buf);
             }
@@ -118,6 +120,12 @@ fn format_response(
         Format::YamlStream => match response {
             Response::Paginated(p) => {
                 for page in p.pages {
+                    let page = transformed(page, query)?;
+                    yaml::dump(&Value::List(vec![page]), buf);
+                }
+            }
+            Response::Lazy(mut l) => {
+                while let Some(page) = l.next_page()? {
                     let page = transformed(page, query)?;
                     yaml::dump(&Value::List(vec![page]), buf);
                 }
@@ -130,7 +138,7 @@ fn format_response(
             }
         },
         Format::Table => {
-            let data = transformed(full(response), query)?;
+            let data = transformed(full(response)?, query)?;
             let (styler, autoreset) = table_styler(options.color, options.stdout_is_tty);
             let width = options.terminal_width.unwrap_or(80);
             render_table(command_name, &data, styler, autoreset, width, buf)?;
@@ -140,16 +148,21 @@ fn format_response(
             }
         }
         Format::Text => format_text_response(response, query, buf)?,
-        Format::Off => {}
+        Format::Off => {
+            if let Response::Lazy(l) = response {
+                l.collect()?;
+            }
+        }
     }
     Ok(())
 }
 
-fn full(response: Response) -> Value {
-    match response {
+fn full(response: Response<'_>) -> Result<Value> {
+    Ok(match response {
         Response::Single(v) => v,
         Response::Paginated(p) => p.full_result,
-    }
+        Response::Lazy(l) => l.collect()?.full_result,
+    })
 }
 
 fn is_empty_dict(v: &Value) -> bool {
@@ -232,7 +245,7 @@ pub(crate) fn render_table(
 
 /// `TextFormatter.__call__`.
 fn format_text_response(
-    response: Response,
+    response: Response<'_>,
     query: Option<&Expression>,
     buf: &mut String,
 ) -> Result<()> {
@@ -251,13 +264,44 @@ fn format_text_response(
                 };
                 for result_key in &result_keys {
                     let data = result_key.search(page)?;
-                    jmes::set_value_from_jmespath(&mut current, result_key.source(), data);
+                    jmes::set_value_from_jmespath(&mut current, result_key.source(), data)
+                        .map_err(|e| anyhow::anyhow!(e))?;
                 }
                 text_format(Value::Map(current), query, buf)?;
             }
             if let Some(token) = &p.resume_token {
                 let mut inner = Map::new();
                 inner.insert("NextToken".to_string(), Value::str(token.clone()));
+                let mut outer = Map::new();
+                outer.insert("NextToken".to_string(), Value::Map(inner));
+                text_format(Value::Map(outer), query, buf)?;
+            }
+        }
+        Response::Lazy(mut l) => {
+            let result_keys: Vec<Expression> = l
+                .iterator
+                .result_keys()
+                .iter()
+                .map(|k| Expression::compile(k))
+                .collect::<Result<_>>()?;
+            let mut first = true;
+            while let Some(page) = l.next_page()? {
+                let mut current: Map = if first {
+                    l.iterator.non_aggregate_part().clone()
+                } else {
+                    Map::new()
+                };
+                first = false;
+                for result_key in &result_keys {
+                    let data = result_key.search(&page)?;
+                    jmes::set_value_from_jmespath(&mut current, result_key.source(), data)
+                        .map_err(|e| anyhow::anyhow!(e))?;
+                }
+                text_format(Value::Map(current), query, buf)?;
+            }
+            if let Some(token) = l.iterator.resume_token().map(str::to_string) {
+                let mut inner = Map::new();
+                inner.insert("NextToken".to_string(), Value::str(token));
                 let mut outer = Map::new();
                 outer.insert("NextToken".to_string(), Value::Map(inner));
                 text_format(Value::Map(outer), query, buf)?;

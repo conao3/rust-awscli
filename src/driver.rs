@@ -761,32 +761,39 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
         };
         match paginator {
             Some(paginator) => {
-                let mut service_error: Option<Box<ClientErrorInfo>> = None;
-                let mut call = |params: &Value| -> Result<Value> {
+                let service_error: std::cell::RefCell<Option<Box<ClientErrorInfo>>> =
+                    std::cell::RefCell::new(None);
+                let call = |params: &Value| -> Result<Value> {
                     match caller.call(params)? {
                         CallResult::Ok(v) => Ok(v),
                         CallResult::ServiceError(info) => {
-                            service_error = Some(info);
+                            *service_error.borrow_mut() = Some(info);
                             Err(anyhow::anyhow!("service error"))
                         }
                     }
                 };
-                let result = paginate::paginate(
+                let iterator = paginate::PageIterator::new(
                     paginator,
                     &inv.params,
                     &inv.pagination,
                     paginate::limit_key_type(&operation, paginator),
-                    &mut call,
-                );
-                match result {
-                    Ok(pages) => Response::Paginated(pages),
-                    Err(e) => {
-                        if let Some(info) = service_error {
-                            return Err(client_error(ctx, &info));
-                        }
-                        return Err(ctx.general_error(&e));
-                    }
-                }
+                )
+                .map_err(|e| ctx.general_error(&e))?;
+                let pages = paginate::LazyPages {
+                    iterator,
+                    call: Box::new(call),
+                };
+                return display_response_mapped(
+                    ctx,
+                    &inv.operation,
+                    Response::Lazy(pages),
+                    b"",
+                    &|e| match service_error.borrow().as_ref() {
+                        Some(info) => client_error(ctx, info),
+                        None => ctx.general_error(e),
+                    },
+                )
+                .map(|()| ExitCode::Success);
             }
             None => match caller
                 .call(&inv.params)
@@ -838,7 +845,7 @@ fn save_streaming_output(
 pub(crate) fn display_response(
     ctx: &Context,
     command_name: &str,
-    response: Response,
+    response: Response<'_>,
 ) -> Result<(), CliError> {
     display_response_then(ctx, command_name, response, b"")
 }
@@ -848,8 +855,22 @@ pub(crate) fn display_response(
 pub(crate) fn display_response_then(
     ctx: &Context,
     command_name: &str,
-    response: Response,
+    response: Response<'_>,
     suffix: &[u8],
+) -> Result<(), CliError> {
+    display_response_mapped(ctx, command_name, response, suffix, &|e| {
+        ctx.general_error(e)
+    })
+}
+
+/// [`display_response_then`] with `map_error` turning a formatter error
+/// (raised after the output written so far) into the CLI error.
+fn display_response_mapped(
+    ctx: &Context,
+    command_name: &str,
+    response: Response<'_>,
+    suffix: &[u8],
+    map_error: &dyn Fn(&anyhow::Error) -> CliError,
 ) -> Result<(), CliError> {
     let output = ctx
         .globals
@@ -877,7 +898,7 @@ pub(crate) fn display_response_then(
     }
     write_stdout(ctx, &buf)?;
     if let Err(e) = result {
-        return Err(ctx.general_error(&e));
+        return Err(map_error(&e));
     }
     Ok(())
 }

@@ -214,12 +214,23 @@ fn display_account(account: &Value) -> String {
     }
 }
 
-/// `select_menu` without a terminal: the first entry.
-fn select(items: &[Value], display: impl Fn(&Value) -> String) -> &Value {
-    for item in items {
-        let _ = display(item);
+/// What ends the account and role selection.
+enum StepError {
+    Api(ApiError),
+    Prompt(prompt::PromptError),
+}
+
+impl From<ApiError> for StepError {
+    fn from(e: ApiError) -> StepError {
+        StepError::Api(e)
     }
-    &items[0]
+}
+
+/// `select_menu(items, display_format=...)`.
+fn select(items: &[Value], display: impl Fn(&Value) -> String) -> Result<&Value, StepError> {
+    let shown: Vec<String> = items.iter().map(display).collect();
+    let index = prompt::select_menu(&shown).map_err(StepError::Prompt)?;
+    Ok(&items[index])
 }
 
 async fn paginate(
@@ -354,14 +365,16 @@ pub(crate) fn configure_sso(ctx: &Context, args: &[String]) -> Result<ExitCode, 
         .map_err(|e| ctx.session_error(&e))?;
     let mut account_id: Option<String> = None;
     let mut role_name: Option<String> = None;
-    let result: Result<(), ApiError> = block_on(&ctx.runtime, async {
+    let result: Result<(), StepError> = block_on(&ctx.runtime, async {
         let mut params = Map::new();
         params.insert("accessToken".into(), access_token.clone());
         let accounts = paginate(&client, "ListAccounts", params, "accountList").await?;
         if accounts.is_empty() {
-            return Err(ApiError::Session(crate::session::error::SessionError::new(
-                crate::session::error::ErrorKind::General,
-                "No AWS accounts are available to you.",
+            return Err(StepError::Api(ApiError::Session(
+                crate::session::error::SessionError::new(
+                    crate::session::error::ErrorKind::General,
+                    "No AWS accounts are available to you.",
+                ),
             )));
         }
         let id = if accounts.len() == 1 {
@@ -386,7 +399,7 @@ pub(crate) fn configure_sso(ctx: &Context, args: &[String]) -> Result<ExitCode, 
                     .map(str::to_lowercase);
                 (only_id, key)
             });
-            select(&sorted, display_account)
+            select(&sorted, display_account)?
                 .get("accountId")
                 .and_then(Value::as_str)
                 .unwrap_or_default()
@@ -399,9 +412,11 @@ pub(crate) fn configure_sso(ctx: &Context, args: &[String]) -> Result<ExitCode, 
         params.insert("accessToken".into(), access_token.clone());
         let roles = paginate(&client, "ListAccountRoles", params, "roleList").await?;
         if roles.is_empty() {
-            return Err(ApiError::Session(crate::session::error::SessionError::new(
-                crate::session::error::ErrorKind::General,
-                format!("No roles are available for the account {id}"),
+            return Err(StepError::Api(ApiError::Session(
+                crate::session::error::SessionError::new(
+                    crate::session::error::ErrorKind::General,
+                    format!("No roles are available for the account {id}"),
+                ),
             )));
         }
         let name = if roles.len() == 1 {
@@ -428,7 +443,7 @@ pub(crate) fn configure_sso(ctx: &Context, args: &[String]) -> Result<ExitCode, 
                     .and_then(Value::as_str)
                     .unwrap_or_default()
                     .to_string()
-            })
+            })?
             .get("roleName")
             .and_then(Value::as_str)
             .unwrap_or_default()
@@ -440,12 +455,16 @@ pub(crate) fn configure_sso(ctx: &Context, args: &[String]) -> Result<ExitCode, 
     });
     match result {
         Ok(()) => {}
-        Err(ApiError::Service(f)) if f.code == "UnauthorizedException" => {
+        Err(StepError::Api(ApiError::Service(f))) if f.code == "UnauthorizedException" => {
             out(
                 "Unable to list AWS accounts and/or roles. Skipping configuring AWS credential provider for profile.\n",
             );
         }
-        Err(e) => return Err(ctx.session_error(&e.into_session_error())),
+        Err(StepError::Prompt(prompt::PromptError::Interrupted)) => {
+            return Err(CliError::new(ExitCode::Interrupted, ""));
+        }
+        Err(StepError::Prompt(e)) => return Err(prompt_error(e)),
+        Err(StepError::Api(e)) => return Err(ctx.session_error(&e.into_session_error())),
     }
     if let Some(id) = &account_id {
         new_values.insert("sso_account_id".into(), id.clone());

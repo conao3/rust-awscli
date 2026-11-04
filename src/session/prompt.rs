@@ -55,17 +55,120 @@ pub fn input(prompt: &str) -> Result<String, PromptError> {
     read_line().ok_or(PromptError::InputEof)
 }
 
-/// `prompt_toolkit.prompt(prompt_string)` followed by `.strip()`. With
-/// stdin not a terminal, `prompt_toolkit` warns once on stderr, renders
-/// the prompt and the answer on stdout, and ends the line with `\r\n`.
-pub fn ptk_prompt(prompt: &str) -> Result<String, PromptError> {
+/// `prompt_toolkit`'s warning, once per process, when stdin is not a
+/// terminal.
+fn warn_not_terminal(stdin_tty: bool) {
     static WARNED: AtomicBool = AtomicBool::new(false);
-    let stdin_tty = std::io::stdin().is_terminal();
     if !stdin_tty && !WARNED.swap(true, Ordering::SeqCst) {
         let mut err = std::io::stderr().lock();
         let _ = err.write_all(b"Warning: Input is not a terminal (fd=0).\n");
         let _ = err.flush();
     }
+}
+
+/// `select_menu` (`awscli/customizations/wizard/ui/selectmenu.py`) with
+/// stdin not a terminal: the application reads stdin as keys up to an
+/// Enter (Down / Up move the selection and wrap, other keys do nothing,
+/// Ctrl-C interrupts) and its last frame stays on stdout: up to ten
+/// items, the selected one marked with `> `, each padded to the widest
+/// item plus the margins. Without an Enter the input ends with `EOFError`
+/// after the renderer's closing rows; an interrupt clears the 80-column
+/// line.
+pub fn select_menu(items: &[String]) -> Result<usize, PromptError> {
+    const MAX_HEIGHT: usize = 10;
+    let stdin_tty = std::io::stdin().is_terminal();
+    warn_not_terminal(stdin_tty);
+    let mut input = Vec::new();
+    {
+        let mut stdin = std::io::stdin().lock();
+        loop {
+            let buf = match stdin.fill_buf() {
+                Ok(b) if !b.is_empty() => b,
+                _ => break,
+            };
+            match buf.iter().position(|b| *b == b'\r' || *b == 0x03) {
+                Some(p) => {
+                    input.extend_from_slice(&buf[..=p]);
+                    stdin.consume(p + 1);
+                    break;
+                }
+                None => {
+                    let n = buf.len();
+                    input.extend_from_slice(buf);
+                    stdin.consume(n);
+                }
+            }
+        }
+    }
+    let n = items.len();
+    let mut selected = 0usize;
+    let mut chosen = None;
+    let mut interrupted = false;
+    let mut i = 0;
+    while i < input.len() {
+        let rest = &input[i..];
+        if rest.starts_with(b"\x1b[B") || rest.starts_with(b"\x1bOB") {
+            selected = (selected + 1) % n;
+            i += 3;
+        } else if rest.starts_with(b"\x1b[A") || rest.starts_with(b"\x1bOA") {
+            selected = (selected + n - 1) % n;
+            i += 3;
+        } else if rest[0] == b'\r' {
+            chosen = Some(selected);
+            break;
+        } else if rest[0] == 0x03 {
+            interrupted = true;
+            break;
+        } else {
+            i += 1;
+        }
+    }
+    let visible = n.min(MAX_HEIGHT);
+    let first = selected.saturating_sub(visible - 1);
+    let width = items
+        .iter()
+        .map(|t| crate::output::table::get_text_length(t))
+        .max()
+        .unwrap_or(0);
+    let lines: Vec<String> = items[first..first + visible]
+        .iter()
+        .enumerate()
+        .map(|(k, text)| {
+            let mark = if first + k == selected { "> " } else { "  " };
+            let pad = width - crate::output::table::get_text_length(text) + 3;
+            format!("{mark}{text}{}", " ".repeat(pad))
+        })
+        .collect();
+    let mut frame = lines.join("\r\n");
+    let result = match (chosen, interrupted) {
+        (Some(index), _) => Ok(index),
+        (None, true) => {
+            let last = frame.rsplit("\r\n").next().unwrap_or_default();
+            let fill = 79usize.saturating_sub(crate::output::table::get_text_length(last));
+            frame.push_str(&" ".repeat(fill));
+            frame.push('\r');
+            frame.push_str(&" ".repeat(80));
+            frame.push_str("\r\n");
+            Err(PromptError::Interrupted)
+        }
+        (None, false) => {
+            if visible < 8 {
+                frame.push_str(&"\r\n".repeat(8 - visible));
+                frame.push(' ');
+            }
+            Err(PromptError::PtkEof)
+        }
+    };
+    write_stdout(&frame);
+    result
+}
+
+/// `prompt_toolkit.prompt(prompt_string)` followed by `.strip()`. With
+/// stdin not a terminal, `prompt_toolkit` warns once on stderr, renders
+/// the prompt and the answer on stdout, and ends the line with `\r\n`.
+pub fn ptk_prompt(prompt: &str) -> Result<String, PromptError> {
+    let stdin_tty = std::io::stdin().is_terminal();
+    warn_not_terminal(stdin_tty);
     write_stdout(prompt);
     match read_line() {
         Some(line) => {

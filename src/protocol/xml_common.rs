@@ -12,7 +12,6 @@ use indexmap::IndexMap;
 use num_bigint::BigInt;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
-use serde_json::Value as Json;
 
 use crate::model::{ServiceModel, Shape};
 use crate::protocol::timestamp::{self, WireTimestamp};
@@ -996,7 +995,7 @@ pub(crate) fn expand_host_prefix(
     let Some(prefix) = operation
         .get("endpoint")
         .and_then(|e| e.get("hostPrefix"))
-        .and_then(Json::as_str)
+        .and_then(crate::bjson::Node::as_str)
     else {
         return Ok(None);
     };
@@ -1295,7 +1294,7 @@ pub(crate) struct XmlParser<'m> {
 fn is_exception(shape: &Shape<'_>) -> bool {
     shape
         .shape_get("exception")
-        .and_then(Json::as_bool)
+        .and_then(crate::bjson::Node::as_bool)
         .unwrap_or(false)
 }
 
@@ -1904,7 +1903,7 @@ fn shape_for_error_code<'m>(model: &'m ServiceModel, code: &str) -> Option<Shape
         let shape_code = shape
             .shape_get("error")
             .and_then(|e| e.get("code"))
-            .and_then(Json::as_str)
+            .and_then(crate::bjson::Node::as_str)
             .filter(|c| !c.is_empty())
             .unwrap_or(shape.name);
         if shape_code == code {
@@ -1939,6 +1938,7 @@ pub(crate) mod test_support {
 
     use super::*;
     use crate::model::ServiceModel;
+    use serde_json::Value as Json;
 
     /// A type-preserving dump matching the Python golden generator: `str`
     /// as `"s:<text>"`, `int` as `"i:<n>"`, `float` as `"f:<repr>"`,
@@ -1998,7 +1998,7 @@ pub(crate) mod test_support {
     ) -> Result<Value>;
 
     pub fn check_serialize(f: Serializer, service: &str, op: &str, params: &str, expected: &str) {
-        let model = ServiceModel::load(service).unwrap();
+        let model = ServiceModel::load_source(service);
         let operation = model.operation(op).unwrap();
         let params = Value::parse_json(params).unwrap();
         let req = f(&model, &operation, &params).unwrap();

@@ -1,8 +1,8 @@
 //! The `rest-xml` protocol: `RestXMLSerializer` (`botocore/serialize.py`)
 //! and `RestXMLParser` (`botocore/parsers.py`).
 
+use crate::bjson::Node;
 use anyhow::{Result, anyhow};
-use serde_json::Value as Json;
 
 use crate::model::{Operation, ServiceModel, Shape};
 use crate::protocol::xml_common::{
@@ -13,21 +13,24 @@ use crate::value::{Map, Value};
 
 /// `RestXMLSerializer._add_xml_namespace`.
 fn add_xml_namespace(shape: &Shape<'_>, node: &mut XmlNode) {
-    match shape.get("xmlNamespace") {
-        Some(Json::Object(ns)) => {
+    let Some(ns) = shape.get("xmlNamespace") else {
+        return;
+    };
+    match (ns.as_object(), ns.as_str()) {
+        (Some(ns), _) => {
             let mut attribute = String::from("xmlns");
             if let Some(prefix) = ns
                 .get("prefix")
-                .and_then(Json::as_str)
+                .and_then(Node::as_str)
                 .filter(|p| !p.is_empty())
             {
                 attribute.push(':');
                 attribute.push_str(prefix);
             }
-            let uri = ns.get("uri").and_then(Json::as_str).unwrap_or_default();
+            let uri = ns.get("uri").and_then(Node::as_str).unwrap_or_default();
             node.set_attr(&attribute, uri.to_string());
         }
-        Some(Json::String(uri)) => node.set_attr("xmlns", uri.clone()),
+        (_, Some(uri)) => node.set_attr("xmlns", uri.to_string()),
         _ => {}
     }
 }

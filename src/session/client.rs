@@ -101,9 +101,8 @@ impl<'a> ApiClient<'a> {
         endpoint_url: Option<String>,
         credentials: Option<Credentials>,
     ) -> Result<ApiClient<'a>, SessionError> {
-        let mut model = ServiceModel::load(service)
+        let model = ServiceModel::load(service)
             .map_err(|e| SessionError::new(ErrorKind::General, e.to_string()))?;
-        model.apply_endpoint_ruleset_customizations();
         let endpoint_url = match endpoint_url {
             Some(u) => Some(u),
             None => configured_endpoint_url(config, service)?,
@@ -218,7 +217,7 @@ impl<'a> ApiClient<'a> {
         };
         if let Some(creds) = &self.credentials {
             let sid = super::hyphenize(model.metadata_str("serviceId").unwrap_or(&model.name));
-            let str_list = |v: Option<&serde_json::Value>| -> Option<Vec<String>> {
+            let str_list = |v: Option<&crate::bjson::Node>| -> Option<Vec<String>> {
                 v?.as_array().map(|a| {
                     a.iter()
                         .filter_map(|x| x.as_str().map(str::to_string))

@@ -12,6 +12,8 @@ use indexmap::IndexMap;
 use regex::Regex;
 use serde_json::Value as Json;
 
+use crate::bjson::Node;
+
 use crate::model::{Operation, ServiceModel};
 use crate::value::Value;
 use stdlib::{Scope, Val};
@@ -53,8 +55,8 @@ impl ParamValue {
         }
     }
 
-    fn from_json(v: &Json) -> Option<ParamValue> {
-        ParamValue::from_value(&Value::from_json(v))
+    fn from_node(v: &Node) -> Option<ParamValue> {
+        ParamValue::from_value(&Value::from_node(v))
     }
 }
 
@@ -126,16 +128,13 @@ impl EndpointError {
 /// message is the rule's error string. The error is an [`EndpointError`].
 ///
 /// Ports `EndpointProvider.resolve_endpoint` / `RuleSet.evaluate`.
-pub fn resolve(
-    ruleset: &serde_json::Value,
-    params: &IndexMap<String, ParamValue>,
-) -> Result<Endpoint> {
+pub fn resolve(ruleset: &Node, params: &IndexMap<String, ParamValue>) -> Result<Endpoint> {
     Ok(resolve_endpoint(ruleset, params)?)
 }
 
 /// [`resolve`] with the typed error.
 pub fn resolve_endpoint(
-    ruleset: &Json,
+    ruleset: &Node,
     params: &IndexMap<String, ParamValue>,
 ) -> Result<Endpoint, EndpointError> {
     let mut scope: Scope = params
@@ -143,12 +142,8 @@ pub fn resolve_endpoint(
         .map(|(k, v)| (k.clone(), v.to_val()))
         .collect();
     process_input_parameters(ruleset, &mut scope)?;
-    let rules = ruleset
-        .get("rules")
-        .and_then(Json::as_array)
-        .map(Vec::as_slice)
-        .unwrap_or_default();
-    for rule in rules {
+    let rules = ruleset.get("rules").and_then(Node::as_array);
+    for rule in rules.into_iter().flat_map(|r| r.iter()) {
         if let Some(endpoint) = evaluate_rule(rule, scope.clone())? {
             return Ok(endpoint);
         }
@@ -165,12 +160,12 @@ pub fn resolve_endpoint(
 
 /// `RuleSet.process_input_parameters` with
 /// `ParameterDefinition.process_input` / `validate_input`.
-fn process_input_parameters(ruleset: &Json, scope: &mut Scope) -> Result<(), EndpointError> {
-    let Some(specs) = ruleset.get("parameters").and_then(Json::as_object) else {
+fn process_input_parameters(ruleset: &Node, scope: &mut Scope) -> Result<(), EndpointError> {
+    let Some(specs) = ruleset.get("parameters").and_then(Node::as_object) else {
         return Ok(());
     };
-    for (name, spec) in specs {
-        let ty = spec.get("type").and_then(Json::as_str).unwrap_or_default();
+    for (name, spec) in specs.iter() {
+        let ty = spec.get("type").and_then(Node::as_str).unwrap_or_default();
         let (type_repr, ok): (&str, fn(&Val) -> bool) = match ty.to_lowercase().as_str() {
             "string" => ("<class 'str'>", |v| matches!(v, Val::Str(_))),
             "boolean" => ("<class 'bool'>", |v| matches!(v, Val::Bool(_))),
@@ -183,10 +178,10 @@ fn process_input_parameters(ruleset: &Json, scope: &mut Scope) -> Result<(), End
         };
         match scope.get(name) {
             None | Some(Val::None) => {
-                let default = spec.get("default").unwrap_or(&Json::Null);
+                let default = spec.get("default").unwrap_or(Node::null());
                 if !default.is_null() {
-                    scope.insert(name.clone(), Val::from_json(default));
-                } else if spec.get("required").and_then(Json::as_bool) == Some(true) {
+                    scope.insert(name.to_string(), Val::from_node(default));
+                } else if spec.get("required").and_then(Node::as_bool) == Some(true) {
                     return Err(EndpointError::Internal(
                         "BotoCoreError.__init__() takes 1 positional argument but 2 were given"
                             .into(),
@@ -206,15 +201,15 @@ fn process_input_parameters(ruleset: &Json, scope: &mut Scope) -> Result<(), End
 }
 
 /// `TreeRule` / `EndpointRule` / `ErrorRule` `.evaluate`.
-fn evaluate_rule(rule: &Json, mut scope: Scope) -> Result<Option<Endpoint>, EndpointError> {
-    let rule_type = rule.get("type").and_then(Json::as_str).unwrap_or_default();
+fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, EndpointError> {
+    let rule_type = rule.get("type").and_then(Node::as_str).unwrap_or_default();
     if !matches!(rule_type, "endpoint" | "error" | "tree") {
         return Err(EndpointError::Resolution(format!(
             "Unknown rule type: {rule_type}. A rule must be of type tree, endpoint or error."
         )));
     }
-    if let Some(conditions) = rule.get("conditions").and_then(Json::as_array) {
-        for condition in conditions {
+    if let Some(conditions) = rule.get("conditions").and_then(Node::as_array) {
+        for condition in conditions.iter() {
             let sig = condition.as_object().ok_or_else(|| {
                 EndpointError::Internal("string indices must be integers, not 'str'".into())
             })?;
@@ -237,13 +232,13 @@ fn evaluate_rule(rule: &Json, mut scope: Scope) -> Result<Option<Endpoint>, Endp
                 _ => Default::default(),
             };
             let mut headers = IndexMap::new();
-            if let Some(h) = endpoint.get("headers").and_then(Json::as_object) {
-                for (name, values) in h {
+            if let Some(h) = endpoint.get("headers").and_then(Node::as_object) {
+                for (name, values) in h.iter() {
                     let mut resolved = Vec::new();
-                    for item in values.as_array().map(Vec::as_slice).unwrap_or_default() {
+                    for item in values.as_array().into_iter().flat_map(|a| a.iter()) {
                         resolved.push(stdlib::resolve_value(item, &mut scope)?.py_str());
                     }
-                    headers.insert(name.clone(), resolved);
+                    headers.insert(name.to_string(), resolved);
                 }
             }
             Ok(Some(Endpoint {
@@ -259,9 +254,9 @@ fn evaluate_rule(rule: &Json, mut scope: Scope) -> Result<Option<Endpoint>, Endp
         _ => {
             for sub in rule
                 .get("rules")
-                .and_then(Json::as_array)
-                .map(Vec::as_slice)
-                .unwrap_or_default()
+                .and_then(Node::as_array)
+                .into_iter()
+                .flat_map(|r| r.iter())
             {
                 if let Some(endpoint) = evaluate_rule(sub, scope.clone())? {
                     return Ok(Some(endpoint));
@@ -273,23 +268,27 @@ fn evaluate_rule(rule: &Json, mut scope: Scope) -> Result<Option<Endpoint>, Endp
 }
 
 /// `EndpointRule.resolve_properties`.
-fn resolve_properties(properties: &Json, scope: &Scope) -> Result<Json, EndpointError> {
-    Ok(match properties {
-        Json::Array(a) => Json::Array(
+fn resolve_properties(properties: &Node, scope: &Scope) -> Result<Json, EndpointError> {
+    if let Some(a) = properties.as_array() {
+        return Ok(Json::Array(
             a.iter()
                 .map(|p| resolve_properties(p, scope))
                 .collect::<Result<_, _>>()?,
-        ),
-        Json::Object(o) => Json::Object(
+        ));
+    }
+    if let Some(o) = properties.as_object() {
+        return Ok(Json::Object(
             o.iter()
-                .map(|(k, v)| Ok((k.clone(), resolve_properties(v, scope)?)))
+                .map(|(k, v)| Ok((k.to_string(), resolve_properties(v, scope)?)))
                 .collect::<Result<_, EndpointError>>()?,
-        ),
-        Json::String(s) if stdlib::is_template(s) => {
-            Json::String(stdlib::resolve_template_string(s, scope)?)
-        }
-        other => other.clone(),
-    })
+        ));
+    }
+    if let Some(s) = properties.as_str()
+        && stdlib::is_template(s)
+    {
+        return Ok(Json::String(stdlib::resolve_template_string(s, scope)?));
+    }
+    Ok(properties.to_json())
 }
 
 /// botocore `xform_name` (without the pre-populated cache, which only
@@ -638,12 +637,12 @@ fn provider_params(
     let Some(ruleset) = model.ruleset() else {
         return out;
     };
-    let Some(specs) = ruleset.get("parameters").and_then(Json::as_object) else {
+    let Some(specs) = ruleset.get("parameters").and_then(Node::as_object) else {
         return out;
     };
     let static_params = operation
         .get("staticContextParams")
-        .and_then(Json::as_object);
+        .and_then(Node::as_object);
     let dynamic_params: Vec<(String, String)> = operation
         .input()
         .map(|input| {
@@ -659,13 +658,13 @@ fn provider_params(
         .unwrap_or_default();
     let op_context = operation
         .get("operationContextParams")
-        .and_then(Json::as_object);
+        .and_then(Node::as_object);
     let client_context_names = model.client_context_params();
-    for (name, spec) in specs {
+    for (name, spec) in specs.iter() {
         let mut value = static_params
             .and_then(|s| s.get(name))
             .and_then(|p| p.get("value"))
-            .and_then(ParamValue::from_json);
+            .and_then(ParamValue::from_node);
         if value.is_none()
             && let Some((_, member)) = dynamic_params.iter().find(|(n, _)| n == name)
         {
@@ -675,7 +674,7 @@ fn provider_params(
             && let Some(path) = op_context
                 .and_then(|o| o.get(name))
                 .and_then(|p| p.get("path"))
-                .and_then(Json::as_str)
+                .and_then(Node::as_str)
         {
             let args = if call_params.as_map().is_some() {
                 call_params.clone()
@@ -691,12 +690,12 @@ fn provider_params(
             value = builtins.client_context.get(&xform_name(name, "_")).cloned();
         }
         if value.is_none()
-            && let Some(builtin) = spec.get("builtIn").and_then(Json::as_str)
+            && let Some(builtin) = spec.get("builtIn").and_then(Node::as_str)
         {
             value = builtins.get(builtin).ok().flatten();
         }
         if let Some(v) = value {
-            out.insert(name.clone(), v);
+            out.insert(name.to_string(), v);
         }
     }
     if model.name == "s3" {

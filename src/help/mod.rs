@@ -12,6 +12,8 @@ mod restdoc;
 
 use serde_json::{Map, Value as Json};
 
+use crate::bjson::{Node, Obj};
+
 use crate::cli::arguments::xform_name;
 use crate::cli::commands::{
     MainCommand, ServiceEntry, find_main, main_commands, service_commands, waiter_commands,
@@ -95,10 +97,10 @@ pub fn custom_request(path: &[String], args: &[String]) -> Option<HelpRequest> {
 #[derive(Default)]
 struct Owned {
     models: Vec<ServiceModel>,
-    members: Vec<Map<String, Json>>,
+    members: Vec<&'static Obj>,
     /// Shape definitions with members a customization removed:
     /// (name, definition).
-    defs: Vec<(String, Map<String, Json>)>,
+    defs: Vec<(String, &'static Obj)>,
 }
 
 struct ModelRef {
@@ -113,6 +115,10 @@ enum Source {
     Input,
     Svc,
     Own(usize),
+}
+
+fn leak_obj(map: Map<String, Json>) -> &'static Obj {
+    Node::leak(&Json::Object(map)).as_object().expect("object")
 }
 
 /// The owned parts of the argument models of `records`.
@@ -131,7 +137,7 @@ fn collect_models(records: &[Json], data: &HelpData, owned: &mut Owned) -> Vec<O
             let s = data.model(r.get("s")?)?;
             let top = s.get("top")?.as_str()?.to_string();
             let member = s.get("member").and_then(Json::as_object).map(|m| {
-                owned.members.push(m.clone());
+                owned.members.push(leak_obj(m.clone()));
                 owned.members.len() - 1
             });
             let members = s.get("members").and_then(Json::as_array).map(|a| {
@@ -174,11 +180,11 @@ fn collect_defs(
                 Source::Svc => svc?,
                 Source::Own(i) => &owned.models[i],
             };
-            let mut def = model.shape_def(&r.top)?.clone();
+            let mut def = model.shape_def(&r.top)?.to_map();
             if let Some(Json::Object(members)) = def.get_mut("members") {
                 members.retain(|k, _| keep.contains(k));
             }
-            owned.defs.push((r.top.clone(), def));
+            owned.defs.push((r.top.clone(), leak_obj(def)));
             Some(owned.defs.len() - 1)
         })
         .collect()
@@ -196,10 +202,10 @@ fn resolve<'a>(
         Source::Svc => svc?.shape(&r.top)?,
         Source::Own(i) => owned.models[i].shape(&r.top)?,
     };
-    s.member = r.member.map(|i| &owned.members[i]);
+    s.member = r.member.map(|i| owned.members[i]);
     if let Some(d) = def {
         s.name = &owned.defs[d].0;
-        s.def = &owned.defs[d].1;
+        s.def = owned.defs[d].1;
     }
     Some(s)
 }
@@ -342,7 +348,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
             let cli = crate::model::cli_data();
             let s = |k: &str| {
                 cli.get(k)
-                    .and_then(Json::as_str)
+                    .and_then(Node::as_str)
                     .unwrap_or_default()
                     .to_string()
             };
@@ -426,7 +432,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
             );
             let documentation = op
                 .get("documentation")
-                .and_then(Json::as_str)
+                .and_then(Node::as_str)
                 .unwrap_or_default()
                 .to_string();
             let no_output = data.json["no_output"]
@@ -464,7 +470,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                     .waiters()
                     .and_then(|w| w.get(waiter))
                     .and_then(|c| c.get("operation"))
-                    .and_then(Json::as_str)
+                    .and_then(Node::as_str)
                     .and_then(|op| model.operation(op))
                     .is_some_and(|op| op.is_deprecated())
             };
@@ -490,11 +496,11 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
             let config = model
                 .waiters()
                 .and_then(|w| w.get(&waiter))
-                .and_then(Json::as_object)
+                .and_then(Node::as_object)
                 .ok_or("unknown waiter")?;
             let op_name = config
                 .get("operation")
-                .and_then(Json::as_str)
+                .and_then(Node::as_str)
                 .ok_or("unknown waiter")?;
             let op = model.operation(op_name).ok_or("unknown operation")?;
             let records = data.args("waiters", name).ok_or("missing help data")?;
@@ -516,7 +522,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 &format!("{service}.wait.{name}"),
                 Kind::Operation {
                     op,
-                    documentation: waiter_description(config),
+                    documentation: waiter_description(&config.to_map()),
                     output: None,
                 },
                 args,

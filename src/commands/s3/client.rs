@@ -52,8 +52,7 @@ pub(crate) fn s3_model() -> anyhow::Result<&'static ServiceModel> {
     if let Some(m) = MODEL.get() {
         return Ok(m);
     }
-    let mut m = ServiceModel::load("s3")?;
-    m.apply_endpoint_ruleset_customizations();
+    let m = ServiceModel::load("s3")?;
     Ok(MODEL.get_or_init(|| m))
 }
 

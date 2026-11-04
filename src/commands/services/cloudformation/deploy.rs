@@ -481,7 +481,7 @@ impl Deployer<'_> {
             .waiters()
             .and_then(|w| w.get(name))
             .and_then(|w| w.as_object())
-            .cloned()
+            .map(crate::bjson::Obj::to_map)
             .ok_or_else(|| CfnError::General(format!("Waiter does not exist: {name}")))?;
         config.insert("delay".to_string(), json!(delay));
         if let Some(m) = max_attempts {

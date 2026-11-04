@@ -95,6 +95,29 @@ impl Value {
     /// Convert a `serde_json::Value` the way Python's `json.loads` does:
     /// a number with a fraction or exponent becomes a float, any other
     /// number an arbitrary-precision int.
+    pub fn from_node(v: &crate::bjson::Node) -> Value {
+        if let Some(a) = v.as_array() {
+            return Value::List(a.iter().map(Value::from_node).collect());
+        }
+        if let Some(o) = v.as_object() {
+            return Value::Map(
+                o.iter()
+                    .map(|(k, v)| (k.to_string(), Value::from_node(v)))
+                    .collect(),
+            );
+        }
+        if let Some(s) = v.as_str() {
+            return Value::Str(s.to_string());
+        }
+        if let Some(b) = v.as_bool() {
+            return Value::Bool(b);
+        }
+        match v.as_number_text() {
+            Some(text) => number_from_lexeme(text),
+            None => Value::Null,
+        }
+    }
+
     pub fn from_json(v: &serde_json::Value) -> Value {
         match v {
             serde_json::Value::Null => Value::Null,

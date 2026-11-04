@@ -347,7 +347,7 @@ fn wait_for_deployment(
         .waiters()
         .and_then(|w| w.get("DeploymentSuccessful"))
         .and_then(|w| w.as_object())
-        .cloned()
+        .map(crate::bjson::Obj::to_map)
         .ok_or_else(|| ecs_error(ctx, "Waiter does not exist: deployment_successful"))?;
     config.insert("delay".to_string(), serde_json::json!(DEFAULT_DELAY_SEC));
     config.insert(

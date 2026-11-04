@@ -6,6 +6,8 @@ use std::sync::OnceLock;
 use indexmap::IndexMap;
 use regex::Regex;
 
+use crate::bjson::{Node, Obj};
+
 use super::EndpointError;
 use super::pyurl;
 
@@ -26,6 +28,32 @@ pub enum Val {
 }
 
 impl Val {
+    pub fn from_node(v: &Node) -> Val {
+        if let Some(a) = v.as_array() {
+            return Val::List(a.iter().map(Val::from_node).collect());
+        }
+        if let Some(o) = v.as_object() {
+            return Val::Dict(
+                o.iter()
+                    .map(|(k, v)| (k.to_string(), Val::from_node(v)))
+                    .collect(),
+            );
+        }
+        if let Some(s) = v.as_str() {
+            return Val::Str(s.to_string());
+        }
+        if let Some(b) = v.as_bool() {
+            return Val::Bool(b);
+        }
+        if v.is_number() {
+            return match v.as_i64() {
+                Some(i) => Val::Int(i),
+                None => Val::Float(v.as_f64().unwrap_or(f64::NAN)),
+            };
+        }
+        Val::None
+    }
+
     pub fn from_json(v: &serde_json::Value) -> Val {
         match v {
             serde_json::Value::Null => Val::None,
@@ -250,7 +278,7 @@ fn subscript<'a>(value: &'a Val, key: &str) -> Result<&'a Val, EndpointError> {
 }
 
 /// `RuleSetStandardLibary.resolve_value`.
-pub fn resolve_value(value: &serde_json::Value, scope: &mut Scope) -> Result<Val, EndpointError> {
+pub fn resolve_value(value: &Node, scope: &mut Scope) -> Result<Val, EndpointError> {
     if let Some(obj) = value.as_object() {
         if obj.contains_key("fn") {
             return call_function(obj, scope);
@@ -265,17 +293,14 @@ pub fn resolve_value(value: &serde_json::Value, scope: &mut Scope) -> Result<Val
     {
         return Ok(Val::Str(resolve_template_string(s, scope)?));
     }
-    Ok(Val::from_json(value))
+    Ok(Val::from_node(value))
 }
 
 /// `RuleSetStandardLibary.call_function`.
-pub fn call_function(
-    sig: &serde_json::Map<String, serde_json::Value>,
-    scope: &mut Scope,
-) -> Result<Val, EndpointError> {
+pub fn call_function(sig: &Obj, scope: &mut Scope) -> Result<Val, EndpointError> {
     let mut args = Vec::new();
     if let Some(argv) = sig.get("argv").and_then(|a| a.as_array()) {
-        for arg in argv {
+        for arg in argv.iter() {
             args.push(resolve_value(arg, scope)?);
         }
     }
@@ -618,7 +643,7 @@ fn partitions() -> &'static Vec<Partition> {
             .expect("partitions")
             .iter()
             .map(|p| {
-                let mut output = match Val::from_json(&p["outputs"]) {
+                let mut output = match Val::from_node(&p["outputs"]) {
                     Val::Dict(d) => d,
                     _ => IndexMap::new(),
                 };
@@ -630,7 +655,7 @@ fn partitions() -> &'static Vec<Partition> {
                     regex: python_match_regex(p["regionRegex"].as_str().unwrap_or_default()),
                     regions: p["regions"]
                         .as_object()
-                        .map(|r| r.keys().cloned().collect())
+                        .map(|r| r.keys().map(str::to_string).collect())
                         .unwrap_or_default(),
                     output,
                 }

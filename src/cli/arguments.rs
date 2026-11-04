@@ -11,6 +11,8 @@ use indexmap::IndexMap;
 use regex::Regex;
 use serde_json::Value as Json;
 
+use crate::bjson::{Node, Obj};
+
 use super::argparse::{Action, Kind, Nargs, NsVal, Parser, TypeFn};
 use super::tables::XFORM_CACHE;
 use crate::model::{Operation, Shape};
@@ -631,17 +633,20 @@ fn pull_up_bool(table: &mut ArgTable<'_>) -> Vec<(String, String)> {
 
 /// `paginate._get_input_tokens` plus the `limit_key`, in the API
 /// namespace.
-pub(crate) fn paginator_input_tokens(config: &serde_json::Map<String, Json>) -> Vec<String> {
-    let mut out: Vec<String> = match config.get("input_token") {
-        Some(Json::Array(a)) => a
+pub(crate) fn paginator_input_tokens(config: &Obj) -> Vec<String> {
+    let token = config.get("input_token");
+    let mut out: Vec<String> = match token.and_then(Node::as_array) {
+        Some(a) => a
             .iter()
             .filter_map(|v| v.as_str().map(String::from))
             .collect(),
-        Some(Json::String(s)) => vec![s.clone()],
-        _ => Vec::new(),
+        None => token
+            .and_then(Node::as_str)
+            .map(|s| vec![s.to_string()])
+            .unwrap_or_default(),
     };
-    if let Some(Json::String(k)) = config.get("limit_key") {
-        out.push(k.clone());
+    if let Some(k) = config.get("limit_key").and_then(Node::as_str) {
+        out.push(k.to_string());
     }
     out
 }
@@ -654,7 +659,7 @@ pub(crate) struct TableExtras<'m> {
     /// `paginate` shadowed arguments.
     pub shadowed: IndexMap<String, Arg<'m>>,
     /// The paginator config, when the operation can paginate.
-    pub paginator: Option<&'m serde_json::Map<String, Json>>,
+    pub paginator: Option<&'m Obj>,
 }
 
 /// Where an operation command sits: its parent command name (the CLI
@@ -807,7 +812,7 @@ fn has_streaming_output(output: &Shape<'_>) -> bool {
     output
         .def
         .get("payload")
-        .and_then(Json::as_str)
+        .and_then(Node::as_str)
         .and_then(|p| output.member_shape(p))
         .is_some_and(|m| m.type_name() == "blob")
 }
@@ -817,7 +822,7 @@ fn unify_paging_params<'m>(
     table: &mut ArgTable<'m>,
     shadowed: &mut IndexMap<String, Arg<'m>>,
     operation: &Operation<'m>,
-    config: &serde_json::Map<String, Json>,
+    config: &Obj,
 ) {
     for token in paginator_input_tokens(config) {
         let cli = xform_name(&token, '-');
@@ -850,14 +855,14 @@ fn unify_paging_params<'m>(
         page("starting-token", "string", "StartingToken", None, None),
     );
     let mut type_name = "integer".to_string();
-    if let Some(limit_key) = config.get("limit_key").and_then(Json::as_str) {
+    if let Some(limit_key) = config.get("limit_key").and_then(Node::as_str) {
         let limit_shape = operation
             .input()
             .and_then(|i| i.member_shape(limit_key))
             .expect("limit_key member");
         type_name = limit_shape.type_name().to_string();
-        let min = limit_shape.get("min").cloned();
-        let max = limit_shape.get("max").cloned();
+        let min = limit_shape.get("min").map(Node::to_json);
+        let max = limit_shape.get("max").map(Node::to_json);
         add(
             table,
             "page-size",

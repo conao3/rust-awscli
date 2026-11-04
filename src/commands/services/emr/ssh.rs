@@ -65,6 +65,7 @@ fn master_dns(ctx: &Context, cluster_id: &str) -> Result<String, CliError> {
         .waiters()
         .and_then(|w| w.get("ClusterRunning"))
         .and_then(|w| w.as_object())
+        .map(crate::bjson::Obj::to_map)
         .ok_or_else(|| general_error(ctx, "Waiter does not exist: ClusterRunning"))?;
     let mut params = Map::new();
     params.insert("ClusterId".to_string(), Value::str(cluster_id));
@@ -77,7 +78,7 @@ fn master_dns(ctx: &Context, cluster_id: &str) -> Result<String, CliError> {
     };
     let outcome = crate::driver::block_on(
         &ctx.runtime,
-        crate::waiter::wait("ClusterRunning", config, &Value::Map(params), &mut poll),
+        crate::waiter::wait("ClusterRunning", &config, &Value::Map(params), &mut poll),
     )
     .map_err(|e| ctx.general_error(&e))?;
     if outcome.stderr().is_some() {

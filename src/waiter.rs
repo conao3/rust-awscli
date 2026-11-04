@@ -409,10 +409,12 @@ mod tests {
             let Some(waiters) = model.waiters() else {
                 continue;
             };
-            let mut keys: Vec<&String> = waiters.keys().collect();
+            let mut keys: Vec<&str> = waiters.keys().collect();
             keys.sort();
             for k in keys {
-                descs.push(waiter_state_description(waiters[k].as_object().unwrap()));
+                descs.push(waiter_state_description(
+                    &waiters.get(k).unwrap().as_object().unwrap().to_map(),
+                ));
             }
         }
         assert_eq!(descs.len() as u64, golden["desc_count"].as_u64().unwrap());
@@ -420,7 +422,15 @@ mod tests {
         assert_eq!(digest, golden["desc_sha256"].as_str().unwrap());
         let ec2 = crate::model::ServiceModel::load("s3").unwrap();
         assert_eq!(
-            waiter_state_description(ec2.waiters().unwrap()["BucketExists"].as_object().unwrap()),
+            waiter_state_description(
+                &ec2.waiters()
+                    .unwrap()
+                    .get("BucketExists")
+                    .unwrap()
+                    .as_object()
+                    .unwrap()
+                    .to_map()
+            ),
             golden["desc_sample"][1].as_str().unwrap()
         );
     }

@@ -1,34 +1,23 @@
 //! Access to the embedded botocore models.
 //!
-//! Each service is stored as one zstd-compressed JSON document
-//! (`models/services/<service>.json.zst`, produced by
-//! `scripts/vendor-models.sh`) with the keys `api_version`, `service`
-//! (`service-2.json`), `paginators` (the `pagination` object of
+//! Each service is one JSON document (`models/services/<service>.json.zst`,
+//! produced by `scripts/vendor-models.sh`) with the keys `api_version`,
+//! `service` (`service-2.json`), `paginators` (the `pagination` object of
 //! `paginators-1.json`), `waiters` (the `waiters` object of
-//! `waiters-2.json`), and `ruleset` (`endpoint-rule-set-1.json`).
+//! `waiters-2.json`), and `ruleset` (`endpoint-rule-set-1.json`), which
+//! `build.rs` embeds in the binary as a [`crate::bjson`] document read in
+//! place.
 
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, OnceLock};
+use anyhow::{Result, anyhow};
 
-use anyhow::{Context, Result, anyhow};
-use serde_json::{Map as JsonMap, Value as Json};
+use crate::bjson::{Node, Obj};
 
 mod embedded {
     include!(concat!(env!("OUT_DIR"), "/models.rs"));
 }
 
-static PARTITIONS: &[u8] = include_bytes!("../models/partitions.json.zst");
-static ENDPOINTS: &[u8] = include_bytes!("../models/endpoints.json.zst");
-static CREDENTIAL_SCOPES: &[u8] = include_bytes!("../models/credential-scopes.json.zst");
-static CLI: &[u8] = include_bytes!("../models/cli.json.zst");
-
 /// The version of the AWS CLI whose models are embedded.
 pub const REFERENCE_VERSION: &str = include_str!("../models/VERSION");
-
-fn decompress(bytes: &[u8]) -> Result<Json> {
-    let raw = zstd::decode_all(bytes).context("decompress embedded model")?;
-    serde_json::from_slice(&raw).context("parse embedded model")
-}
 
 /// Names of every embedded botocore service, sorted.
 pub fn service_names() -> impl Iterator<Item = &'static str> {
@@ -39,19 +28,16 @@ pub fn has_service(name: &str) -> bool {
     embedded::SERVICES.iter().any(|(n, _)| *n == name)
 }
 
-pub fn partitions() -> &'static Json {
-    static P: OnceLock<Json> = OnceLock::new();
-    P.get_or_init(|| decompress(PARTITIONS).expect("embedded partitions.json"))
+pub fn partitions() -> &'static Node {
+    Node::from_bytes(embedded::PARTITIONS)
 }
 
-pub fn endpoints() -> &'static Json {
-    static P: OnceLock<Json> = OnceLock::new();
-    P.get_or_init(|| decompress(ENDPOINTS).expect("embedded endpoints.json"))
+pub fn endpoints() -> &'static Node {
+    Node::from_bytes(embedded::ENDPOINTS)
 }
 
-fn credential_scopes() -> &'static Json {
-    static P: OnceLock<Json> = OnceLock::new();
-    P.get_or_init(|| decompress(CREDENTIAL_SCOPES).expect("embedded credential-scopes.json"))
+fn credential_scopes() -> &'static Node {
+    Node::from_bytes(embedded::CREDENTIAL_SCOPES)
 }
 
 /// `credentialScope.service` of the endpoint
@@ -66,7 +52,7 @@ fn legacy_credential_scope_service(service: &str, region: Option<&str>) -> Optio
     {
         return None;
     }
-    let resolve = |partition: &Json, force: bool| -> Option<Option<String>> {
+    let resolve = |partition: &Node, force: bool| -> Option<Option<String>> {
         let service_data = partition["services"].get(service);
         let endpoints = service_data.and_then(|s| s.get("endpoints"));
         let partition_endpoint = service_data
@@ -96,7 +82,7 @@ fn legacy_credential_scope_service(service: &str, region: Option<&str>) -> Optio
                 _ => region,
             }
         };
-        let scope = |data: Option<&Json>| {
+        let scope = |data: Option<&Node>| {
             data.and_then(|d| d["credentialScope"]["service"].as_str())
                 .map(str::to_string)
         };
@@ -118,9 +104,8 @@ fn legacy_credential_scope_service(service: &str, region: Option<&str>) -> Optio
 }
 
 /// `awscli/data/cli.json` (the global options).
-pub fn cli_data() -> &'static Json {
-    static P: OnceLock<Json> = OnceLock::new();
-    P.get_or_init(|| decompress(CLI).expect("embedded cli.json"))
+pub fn cli_data() -> &'static Node {
+    Node::from_bytes(embedded::CLI)
 }
 
 /// One botocore service model.
@@ -129,25 +114,16 @@ pub struct ServiceModel {
     /// The botocore service name (the data directory name, e.g. `s3`).
     pub name: String,
     pub api_version: String,
-    doc: Arc<Json>,
+    doc: &'static Node,
 }
 
 impl ServiceModel {
     pub fn load(name: &str) -> Result<ServiceModel> {
-        let (key, bytes) = embedded::SERVICES
+        let (_, bytes) = embedded::SERVICES
             .iter()
             .find(|(n, _)| *n == name)
             .ok_or_else(|| anyhow!("unknown service: {name}"))?;
-        static LOADED: OnceLock<Mutex<HashMap<&'static str, Arc<Json>>>> = OnceLock::new();
-        let mut loaded = LOADED.get_or_init(Default::default).lock().unwrap();
-        let doc = match loaded.get(name) {
-            Some(doc) => doc.clone(),
-            None => {
-                let doc = Arc::new(decompress(bytes)?);
-                loaded.insert(key, doc.clone());
-                doc
-            }
-        };
+        let doc = Node::from_bytes(bytes);
         let api_version = doc["api_version"].as_str().unwrap_or_default().to_string();
         Ok(ServiceModel {
             name: name.to_string(),
@@ -156,19 +132,34 @@ impl ServiceModel {
         })
     }
 
+    #[cfg(test)]
+    pub fn load_source(name: &str) -> ServiceModel {
+        let path = format!(
+            "{}/models/services/{name}.json.zst",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let raw = zstd::decode_all(std::fs::File::open(path).unwrap()).unwrap();
+        let doc: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        ServiceModel {
+            name: name.to_string(),
+            api_version: doc["api_version"].as_str().unwrap_or_default().to_string(),
+            doc: Node::leak(&doc),
+        }
+    }
+
     /// A model with only `shapes` (the argument models
     /// `awscli.arguments.create_argument_model_from_schema` resolves).
-    pub fn from_shapes(name: &str, shapes: Json) -> ServiceModel {
+    pub fn from_shapes(name: &str, shapes: serde_json::Value) -> ServiceModel {
         ServiceModel {
             name: name.to_string(),
             api_version: String::new(),
-            doc: Arc::new(serde_json::json!({
+            doc: Node::leak(&serde_json::json!({
                 "service": {"metadata": {}, "operations": {}, "shapes": shapes}
             })),
         }
     }
 
-    fn service(&self) -> &Json {
+    fn service(&self) -> &'static Node {
         &self.doc["service"]
     }
 
@@ -176,16 +167,16 @@ impl ServiceModel {
     pub fn documentation(&self) -> &str {
         self.service()
             .get("documentation")
-            .and_then(Json::as_str)
+            .and_then(Node::as_str)
             .unwrap_or_default()
     }
 
-    pub fn metadata(&self) -> &JsonMap<String, Json> {
+    pub fn metadata(&self) -> &Obj {
         self.service()["metadata"].as_object().expect("metadata")
     }
 
     pub fn metadata_str(&self, key: &str) -> Option<&str> {
-        self.metadata().get(key).and_then(Json::as_str)
+        self.metadata().get(key).and_then(Node::as_str)
     }
 
     /// The protocol botocore uses for this service: the first entry of
@@ -200,7 +191,7 @@ impl ServiceModel {
             "query",
             "ec2",
         ];
-        if let Some(list) = self.metadata().get("protocols").and_then(Json::as_array) {
+        if let Some(list) = self.metadata().get("protocols").and_then(Node::as_array) {
             for p in PRIORITY {
                 if list.iter().any(|v| v.as_str() == Some(p)) {
                     return p;
@@ -231,7 +222,7 @@ impl ServiceModel {
     pub fn operation_names(&self) -> Vec<&str> {
         self.service()["operations"]
             .as_object()
-            .map(|o| o.keys().map(String::as_str).collect())
+            .map(|o| o.keys().collect())
             .unwrap_or_default()
     }
 
@@ -242,23 +233,18 @@ impl ServiceModel {
             name: self.service()["operations"]
                 .as_object()?
                 .get_key_value(name)?
-                .0
-                .as_str(),
+                .0,
             def,
         })
     }
 
-    pub fn shape_def(&self, name: &str) -> Option<&JsonMap<String, Json>> {
+    pub fn shape_def(&self, name: &str) -> Option<&Obj> {
         self.service()["shapes"].get(name)?.as_object()
     }
 
     pub fn shape(&self, name: &str) -> Option<Shape<'_>> {
         let def = self.shape_def(name)?;
-        let name = self.service()["shapes"]
-            .as_object()?
-            .get_key_value(name)?
-            .0
-            .as_str();
+        let name = self.service()["shapes"].as_object()?.get_key_value(name)?.0;
         Some(Shape {
             model: self,
             name,
@@ -268,23 +254,23 @@ impl ServiceModel {
     }
 
     /// The `pagination` entry for an operation (`paginators-1.json`).
-    pub fn paginator(&self, operation: &str) -> Option<&JsonMap<String, Json>> {
+    pub fn paginator(&self, operation: &str) -> Option<&Obj> {
         self.doc["paginators"].get(operation)?.as_object()
     }
 
     /// The `waiters` object (`waiters-2.json`), if any.
-    pub fn waiters(&self) -> Option<&JsonMap<String, Json>> {
+    pub fn waiters(&self) -> Option<&Obj> {
         self.doc["waiters"].as_object()
     }
 
     /// `endpoint-rule-set-1.json`, if any.
-    pub fn ruleset(&self) -> Option<&Json> {
+    pub fn ruleset(&self) -> Option<&Node> {
         let r = &self.doc["ruleset"];
         (!r.is_null()).then_some(r)
     }
 
     /// The `clientContextParams` of the service.
-    pub fn client_context_params(&self) -> Option<&JsonMap<String, Json>> {
+    pub fn client_context_params(&self) -> Option<&Obj> {
         self.service().get("clientContextParams")?.as_object()
     }
 }
@@ -294,11 +280,11 @@ impl ServiceModel {
 pub struct Operation<'a> {
     pub model: &'a ServiceModel,
     pub name: &'a str,
-    pub def: &'a JsonMap<String, Json>,
+    pub def: &'a Obj,
 }
 
 impl<'a> Operation<'a> {
-    pub fn get(&self, key: &str) -> Option<&'a Json> {
+    pub fn get(&self, key: &str) -> Option<&'a Node> {
         self.def.get(key)
     }
 
@@ -322,7 +308,7 @@ impl<'a> Operation<'a> {
     pub fn errors(&self) -> Vec<Shape<'a>> {
         self.def
             .get("errors")
-            .and_then(Json::as_array)
+            .and_then(Node::as_array)
             .map(|errs| {
                 errs.iter()
                     .filter_map(|e| {
@@ -334,28 +320,28 @@ impl<'a> Operation<'a> {
             .unwrap_or_default()
     }
 
-    pub fn http(&self) -> Option<&'a JsonMap<String, Json>> {
+    pub fn http(&self) -> Option<&'a Obj> {
         self.def.get("http")?.as_object()
     }
 
     pub fn http_method(&self) -> &'a str {
         self.http()
             .and_then(|h| h.get("method"))
-            .and_then(Json::as_str)
+            .and_then(Node::as_str)
             .unwrap_or("POST")
     }
 
     pub fn request_uri(&self) -> &'a str {
         self.http()
             .and_then(|h| h.get("requestUri"))
-            .and_then(Json::as_str)
+            .and_then(Node::as_str)
             .unwrap_or("/")
     }
 
     pub fn is_deprecated(&self) -> bool {
         self.def
             .get("deprecated")
-            .and_then(Json::as_bool)
+            .and_then(Node::as_bool)
             .unwrap_or(false)
     }
 }
@@ -369,46 +355,46 @@ impl<'a> Operation<'a> {
 pub struct Shape<'a> {
     pub model: &'a ServiceModel,
     pub name: &'a str,
-    pub def: &'a JsonMap<String, Json>,
+    pub def: &'a Obj,
     /// The member reference (`{"shape": ..., "location": ...}`) this shape
     /// was reached through, if any.
-    pub member: Option<&'a JsonMap<String, Json>>,
+    pub member: Option<&'a Obj>,
 }
 
 impl<'a> Shape<'a> {
     pub fn type_name(&self) -> &'a str {
         self.def
             .get("type")
-            .and_then(Json::as_str)
+            .and_then(Node::as_str)
             .unwrap_or("structure")
     }
 
     /// A trait looked up on the member reference first, then on the shape.
-    pub fn get(&self, key: &str) -> Option<&'a Json> {
+    pub fn get(&self, key: &str) -> Option<&'a Node> {
         self.member
             .and_then(|m| m.get(key))
             .or_else(|| self.def.get(key))
     }
 
     pub fn get_str(&self, key: &str) -> Option<&'a str> {
-        self.get(key).and_then(Json::as_str)
+        self.get(key).and_then(Node::as_str)
     }
 
     pub fn get_bool(&self, key: &str) -> bool {
-        self.get(key).and_then(Json::as_bool).unwrap_or(false)
+        self.get(key).and_then(Node::as_bool).unwrap_or(false)
     }
 
     /// A trait on the member reference only.
-    pub fn member_get(&self, key: &str) -> Option<&'a Json> {
+    pub fn member_get(&self, key: &str) -> Option<&'a Node> {
         self.member.and_then(|m| m.get(key))
     }
 
     /// A trait on the shape definition only.
-    pub fn shape_get(&self, key: &str) -> Option<&'a Json> {
+    pub fn shape_get(&self, key: &str) -> Option<&'a Node> {
         self.def.get(key)
     }
 
-    fn resolve_ref(&self, r: &'a Json) -> Option<Shape<'a>> {
+    fn resolve_ref(&self, r: &'a Node) -> Option<Shape<'a>> {
         let r = r.as_object()?;
         let target = r.get("shape")?.as_str()?;
         let mut s = self.model.shape(target)?;
@@ -420,10 +406,10 @@ impl<'a> Shape<'a> {
     pub fn members(&self) -> Vec<(&'a str, Shape<'a>)> {
         self.def
             .get("members")
-            .and_then(Json::as_object)
+            .and_then(Node::as_object)
             .map(|m| {
                 m.iter()
-                    .filter_map(|(k, r)| Some((k.as_str(), self.resolve_ref(r)?)))
+                    .filter_map(|(k, r)| Some((k, self.resolve_ref(r)?)))
                     .collect()
             })
             .unwrap_or_default()
@@ -450,29 +436,29 @@ impl<'a> Shape<'a> {
     pub fn required(&self) -> Vec<&'a str> {
         self.def
             .get("required")
-            .and_then(Json::as_array)
-            .map(|r| r.iter().filter_map(Json::as_str).collect())
+            .and_then(Node::as_array)
+            .map(|r| r.iter().filter_map(Node::as_str).collect())
             .unwrap_or_default()
     }
 
     pub fn is_document(&self) -> bool {
         self.def
             .get("document")
-            .and_then(Json::as_bool)
+            .and_then(Node::as_bool)
             .unwrap_or(false)
     }
 
     pub fn is_union(&self) -> bool {
         self.def
             .get("union")
-            .and_then(Json::as_bool)
+            .and_then(Node::as_bool)
             .unwrap_or(false)
     }
 
     pub fn is_event_stream(&self) -> bool {
         self.def
             .get("eventstream")
-            .and_then(Json::as_bool)
+            .and_then(Node::as_bool)
             .unwrap_or(false)
     }
 
@@ -483,56 +469,19 @@ impl<'a> Shape<'a> {
     pub fn enum_values(&self) -> Vec<&'a str> {
         self.def
             .get("enum")
-            .and_then(Json::as_array)
-            .map(|r| r.iter().filter_map(Json::as_str).collect())
+            .and_then(Node::as_array)
+            .map(|r| r.iter().filter_map(Node::as_str).collect())
             .unwrap_or_default()
     }
 }
 
 impl ServiceModel {
-    /// The operation model changes botocore makes before the first call
-    /// when endpoint rule sets are in effect: s3
-    /// `remove_bucket_from_url_paths_from_model` and s3control
-    /// `remove_accid_host_prefix_from_model` (`botocore/handlers.py`).
-    pub fn apply_endpoint_ruleset_customizations(&mut self) {
-        let name = self.name.clone();
-        if name != "s3" && name != "s3control" {
-            return;
-        }
-        let Some(ops) = Arc::make_mut(&mut self.doc)["service"]["operations"].as_object_mut()
-        else {
-            return;
-        };
-        for op in ops.values_mut() {
-            if name == "s3" {
-                if let Some(uri) = op.get_mut("http").and_then(|h| h.get_mut("requestUri"))
-                    && let Some(rest) = uri.as_str().and_then(|u| u.strip_prefix("/{Bucket}"))
-                {
-                    *uri = Json::String(rest.to_string());
-                }
-            } else if name == "s3control" {
-                let requires_account_id = op
-                    .get("staticContextParams")
-                    .and_then(|p| p.get("RequiresAccountId"))
-                    .and_then(|p| p.get("value"))
-                    .and_then(Json::as_bool)
-                    == Some(true);
-                if requires_account_id
-                    && let Some(endpoint) = op.get_mut("endpoint").and_then(Json::as_object_mut)
-                    && endpoint.get("hostPrefix").and_then(Json::as_str) == Some("{AccountId}.")
-                {
-                    endpoint.remove("hostPrefix");
-                }
-            }
-        }
-    }
-
     /// Shape names in model order (`botocore/model.py`
     /// `ServiceModel.shape_names`).
     pub fn shape_names(&self) -> Vec<&str> {
         self.service()["shapes"]
             .as_object()
-            .map(|o| o.keys().map(String::as_str).collect())
+            .map(|o| o.keys().collect())
             .unwrap_or_default()
     }
 }

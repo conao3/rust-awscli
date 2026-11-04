@@ -217,8 +217,7 @@ pub(crate) fn resolve_endpoint(
     endpoint_url: Option<String>,
 ) -> Result<String, CliError> {
     use crate::endpoint::{self, BuiltinInputs, Builtins};
-    let mut model = crate::model::ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
-    model.apply_endpoint_ruleset_customizations();
+    let model = crate::model::ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
     let op = model
         .operation(operation)
         .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown operation {operation}")))?;

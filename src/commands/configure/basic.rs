@@ -263,7 +263,7 @@ pub(crate) fn parse_args(
             .map(|s| s.name.to_string())
             .collect();
         if let Some(options) = crate::model::cli_data()["options"].as_object() {
-            candidates.extend(options.keys().cloned());
+            candidates.extend(options.keys().map(str::to_string));
         }
         return Err(Fail::ParamValidation(format_unknown_options_error(
             &extras,

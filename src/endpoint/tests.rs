@@ -130,7 +130,9 @@ fn reference_endpoint_suites() {
                 let mut builtins = Builtins::default();
                 if let Some(b) = inputs.get("builtInParams").and_then(Json::as_object) {
                     for (k, v) in b {
-                        builtins.set(k, ParamValue::from_json(v)).unwrap();
+                        builtins
+                            .set(k, ParamValue::from_node(Node::leak(v)))
+                            .unwrap();
                     }
                 }
                 let params = provider_params(&model, &op, &op_params, &builtins);
@@ -160,8 +162,8 @@ fn reference_endpoint_suites() {
     );
 }
 
-fn ruleset(rules: Json, parameters: Json) -> Json {
-    json!({"version": "1.0", "parameters": parameters, "rules": rules})
+fn ruleset(rules: Json, parameters: Json) -> &'static Node {
+    Node::leak(&json!({"version": "1.0", "parameters": parameters, "rules": rules}))
 }
 
 #[test]
@@ -175,7 +177,7 @@ fn error_messages_match_python() {
     let mut p = IndexMap::new();
     p.insert("Flag".into(), ParamValue::Bool(true));
     p.insert("Arr".into(), ParamValue::StringArray(vec!["a".into()]));
-    let err = resolve_endpoint(&rs, &p).unwrap_err();
+    let err = resolve_endpoint(rs, &p).unwrap_err();
     assert_eq!(
         err.to_string(),
         "No endpoint found for parameters:\nFlag: True\nArr: ('a',)"
@@ -183,7 +185,7 @@ fn error_messages_match_python() {
     let mut p = IndexMap::new();
     p.insert("Region".into(), ParamValue::Bool(true));
     assert_eq!(
-        resolve_endpoint(&rs, &p).unwrap_err().to_string(),
+        resolve_endpoint(rs, &p).unwrap_err().to_string(),
         "Value (Region) is the wrong type. Must be <class 'str'>."
     );
 }
@@ -196,7 +198,7 @@ fn string_equals_type_error() {
         json!({"Region": {"type": "String"}}),
     );
     assert_eq!(
-        resolve_endpoint(&rs, &IndexMap::new())
+        resolve_endpoint(rs, &IndexMap::new())
             .unwrap_err()
             .to_string(),
         "Both values must be strings, not <class 'NoneType'> and <class 'str'>."

@@ -5,6 +5,7 @@ use base64::Engine;
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
+use crate::bjson::{Node, Obj};
 use crate::jmes;
 use crate::model::Operation;
 use crate::pyfmt;
@@ -513,15 +514,17 @@ fn py_int(s: &str) -> Option<i64> {
     Some(if neg { -n } else { n })
 }
 
-fn as_str_or_list(v: Option<&serde_json::Value>) -> Vec<String> {
-    match v {
-        Some(serde_json::Value::Array(a)) => a
+fn as_str_or_list(v: Option<&Node>) -> Vec<String> {
+    let Some(v) = v else {
+        return Vec::new();
+    };
+    if let Some(a) = v.as_array() {
+        return a
             .iter()
             .map(|x| x.as_str().unwrap_or_default().to_string())
-            .collect(),
-        Some(serde_json::Value::String(s)) => vec![s.clone()],
-        _ => Vec::new(),
+            .collect();
     }
+    v.as_str().map(|s| vec![s.to_string()]).unwrap_or_default()
 }
 
 /// botocore `PageIterator`, driven one page at a time. The work Python
@@ -559,7 +562,7 @@ impl PageIterator {
     /// [`limit_key_type`]); a `string` limit key sends `PageSize` as a
     /// string.
     pub fn new(
-        paginator: &serde_json::Map<String, serde_json::Value>,
+        paginator: &Obj,
         params: &Value,
         config: &PaginationConfig,
         limit_key_type: Option<&str>,
@@ -579,7 +582,8 @@ impl PageIterator {
             .map(|s| Expr::compile(s))
             .collect::<Result<_>>()?;
         let result_keys = match paginator.get("result_key") {
-            None | Some(serde_json::Value::Null) => None,
+            None => None,
+            Some(v) if v.is_null() => None,
             v => Some(
                 as_str_or_list(v)
                     .iter()
@@ -974,10 +978,7 @@ fn merge_dicts(dict1: &mut Map, dict2: &Map) {
 /// `limit_key` (`awscli/customizations/paginate.py` types `--page-size`
 /// and `--max-items` by it; botocore sends a `string` page size as a
 /// string).
-pub fn limit_key_type<'a>(
-    operation: &Operation<'a>,
-    paginator: &serde_json::Map<String, serde_json::Value>,
-) -> Option<&'a str> {
+pub fn limit_key_type<'a>(operation: &Operation<'a>, paginator: &Obj) -> Option<&'a str> {
     let key = paginator.get("limit_key")?.as_str()?;
     Some(operation.input()?.member_shape(key)?.type_name())
 }
@@ -986,7 +987,7 @@ pub fn limit_key_type<'a>(
 /// `pagination` entry of `paginators-1.json` and `config`, and consume
 /// every page. `limit_key_type` is [`limit_key_type`] of the operation.
 pub fn paginate(
-    paginator: &serde_json::Map<String, serde_json::Value>,
+    paginator: &Obj,
     params: &Value,
     config: &PaginationConfig,
     limit_key_type: Option<&str>,
@@ -1081,7 +1082,7 @@ mod tests {
         for sc in golden["scenarios"].as_array().unwrap() {
             let name = sc["name"].as_str().unwrap();
             let input = &sc["input"];
-            let paginator = input["paginator"].as_object().unwrap();
+            let paginator = Node::leak(&input["paginator"]).as_object().unwrap();
             let params = dec(input.get("params").unwrap_or(&serde_json::json!({})));
             let cfg = input
                 .get("config")

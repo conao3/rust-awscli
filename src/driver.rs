@@ -741,8 +741,7 @@ pub(crate) fn client_error(ctx: &Context, info: &ClientErrorInfo) -> CliError {
 }
 
 fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, CliError> {
-    let mut model = ServiceModel::load(&inv.service).map_err(|e| ctx.general_error(&e))?;
-    model.apply_endpoint_ruleset_customizations();
+    let model = ServiceModel::load(&inv.service).map_err(|e| ctx.general_error(&e))?;
     let operation = model
         .operation(&inv.operation)
         .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown operation")))?;
@@ -945,12 +944,12 @@ pub(crate) fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> 
 }
 
 fn run_wait(ctx: &Context, inv: WaitInvocation) -> Result<ExitCode, CliError> {
-    let mut model = ServiceModel::load(&inv.service).map_err(|e| ctx.general_error(&e))?;
-    model.apply_endpoint_ruleset_customizations();
+    let model = ServiceModel::load(&inv.service).map_err(|e| ctx.general_error(&e))?;
     let config = model
         .waiters()
         .and_then(|w| w.get(&inv.waiter))
         .and_then(|w| w.as_object())
+        .map(crate::bjson::Obj::to_map)
         .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown waiter {}", inv.waiter)))?;
     let operation_name = config
         .get("operation")
@@ -971,7 +970,7 @@ fn run_wait(ctx: &Context, inv: WaitInvocation) -> Result<ExitCode, CliError> {
     };
     let outcome = ctx
         .runtime
-        .block_on(waiter::wait(&inv.waiter, config, &inv.params, &mut poll))
+        .block_on(waiter::wait(&inv.waiter, &config, &inv.params, &mut poll))
         .map_err(|e| ctx.general_error(&e))?;
     if let Some(stderr) = outcome.stderr() {
         return Err(CliError::new(

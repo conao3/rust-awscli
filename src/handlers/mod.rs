@@ -294,9 +294,7 @@ pub fn after_call(
     }
     Ok(())
 }
-fn http_checksum<'a>(
-    operation: &Operation<'a>,
-) -> Option<&'a serde_json::Map<String, serde_json::Value>> {
+fn http_checksum<'a>(operation: &Operation<'a>) -> Option<&'a crate::bjson::Obj> {
     operation.get("httpChecksum")?.as_object()
 }
 
@@ -465,12 +463,8 @@ pub fn maybe_compress_request(
     if request.body.len() < min_size {
         return Ok(());
     }
-    let encodings = compression
-        .get("encodings")
-        .and_then(|v| v.as_array())
-        .cloned()
-        .unwrap_or_default();
-    for encoding in encodings {
+    let encodings = compression.get("encodings").and_then(|v| v.as_array());
+    for encoding in encodings.into_iter().flat_map(|a| a.iter()) {
         if encoding.as_str() == Some("gzip") {
             let mut enc = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::new(9));
             enc.write_all(&request.body)?;

@@ -32,10 +32,11 @@ fn service_fingerprints(cli: &str, service: &str) -> Vec<String> {
             }
             ServiceEntry::Wait => {
                 for (wname, waiter) in waiter_commands(&model) {
-                    let op_name = model.waiters().expect("waiters")[&waiter]["operation"]
-                        .as_str()
-                        .expect("waiter operation")
-                        .to_string();
+                    let op_name =
+                        model.waiters().expect("waiters").as_node()[waiter.as_str()]["operation"]
+                            .as_str()
+                            .expect("waiter operation")
+                            .to_string();
                     let op = model.operation(&op_name).expect("operation");
                     let (table, _) = build_argument_table(
                         &op,

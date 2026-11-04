@@ -95,7 +95,7 @@ fn ensure_ascii(s: &str) -> String {
 pub(crate) fn enum_values<'a>(shape: &Shape<'a>) -> Vec<&'a str> {
     shape
         .get("enum")
-        .and_then(serde_json::Value::as_array)
-        .map(|v| v.iter().filter_map(serde_json::Value::as_str).collect())
+        .and_then(crate::bjson::Node::as_array)
+        .map(|v| v.iter().filter_map(crate::bjson::Node::as_str).collect())
         .unwrap_or_default()
 }

@@ -84,11 +84,11 @@ pub(crate) fn waiter_commands(model: &ServiceModel) -> Vec<(String, String)> {
     model
         .waiters()
         .map(|w| {
-            let mut names: Vec<&String> = w.keys().collect();
+            let mut names: Vec<&str> = w.keys().collect();
             names.sort();
             names
                 .into_iter()
-                .map(|n| (xform_name(n, '-'), n.clone()))
+                .map(|n| (xform_name(n, '-'), n.to_string()))
                 .collect()
         })
         .unwrap_or_default()

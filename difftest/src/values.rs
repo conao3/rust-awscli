@@ -8,6 +8,7 @@
 //! several textual forms, East-Asian wide and ambiguous-width characters,
 //! empty strings, empty lists and maps, and arbitrary blobs.
 
+use awsr::bjson::Node;
 use awsr::model::Shape;
 use serde_json::{Map as JsonMap, Value as Json};
 
@@ -239,13 +240,13 @@ impl Generator<'_> {
         }
         match self.dir {
             Dir::Input => {
-                let content_length = m.member_get("location").and_then(Json::as_str)
+                let content_length = m.member_get("location").and_then(Node::as_str)
                     == Some("header")
                     && m.get_str("locationName")
                         .is_some_and(|n| n.eq_ignore_ascii_case("content-length"));
                 !m.get_bool("idempotencyToken") && !m.is_streaming() && !content_length
             }
-            Dir::Output => match m.member_get("location").and_then(Json::as_str) {
+            Dir::Output => match m.member_get("location").and_then(Node::as_str) {
                 Some("header") => {
                     let name = m.get_str("locationName").unwrap_or_default();
                     if reserved_header(name) {
@@ -263,7 +264,7 @@ impl Generator<'_> {
     }
 
     pub fn member(&mut self, name: &str, m: &Shape<'_>, depth: usize) -> G {
-        let location = m.member_get("location").and_then(Json::as_str);
+        let location = m.member_get("location").and_then(Node::as_str);
         let mut ctx = Ctx {
             header: matches!(location, Some("header") | Some("headers")),
             ..Ctx::default()
@@ -620,7 +621,7 @@ pub fn type_of<'a>(s: &Shape<'a>) -> &'a str {
     s.type_name()
 }
 
-fn as_i64(v: &Json) -> Option<i64> {
+fn as_i64(v: &Node) -> Option<i64> {
     v.as_i64().or_else(|| v.as_f64().map(|f| f as i64))
 }
 
@@ -631,8 +632,8 @@ fn bounds(s: &Shape<'_>) -> (Option<i64>, Option<i64>) {
 
 fn float_bounds(s: &Shape<'_>) -> (Option<f64>, Option<f64>) {
     (
-        s.get("min").and_then(Json::as_f64),
-        s.get("max").and_then(Json::as_f64),
+        s.get("min").and_then(Node::as_f64),
+        s.get("max").and_then(Node::as_f64),
     )
 }
 

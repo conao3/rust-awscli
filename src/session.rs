@@ -114,7 +114,7 @@ pub fn has_streaming_input(operation: &Operation<'_>) -> bool {
         .is_some_and(|s| s.type_name() == "blob")
 }
 
-fn str_list(v: Option<&serde_json::Value>) -> Option<Vec<String>> {
+fn str_list(v: Option<&crate::bjson::Node>) -> Option<Vec<String>> {
     v?.as_array().map(|a| {
         a.iter()
             .filter_map(|x| x.as_str().map(str::to_string))

@@ -3,7 +3,7 @@
 //! `MainArgParser`, `awscli/data/cli.json`,
 //! `awscli/customizations/globalargs.py`).
 
-use serde_json::Value as Json;
+use crate::bjson::{Node, Obj};
 
 use super::argparse::{Action, Kind, Nargs, NsVal, Parsed, Parser};
 use super::commands::main_choices;
@@ -15,32 +15,32 @@ use crate::error::CliError;
 use crate::pyfmt::str_repr;
 
 /// The global options of `cli.json` in order (option name, data).
-pub(crate) fn cli_options() -> Vec<(String, &'static serde_json::Map<String, Json>)> {
+pub(crate) fn cli_options() -> Vec<(String, &'static Obj)> {
     crate::model::cli_data()["options"]
         .as_object()
         .expect("cli.json options")
         .iter()
-        .map(|(k, v)| (k.clone(), v.as_object().expect("option")))
+        .map(|(k, v)| (k.to_string(), v.as_object().expect("option")))
         .collect()
 }
 
 /// `CustomArgument(...).add_to_parser` for a `cli.json` option.
-fn option_action(name: &str, data: &serde_json::Map<String, Json>) -> Action {
+fn option_action(name: &str, data: &Obj) -> Action {
     let cli_name = format!("--{name}");
-    let action = data.get("action").and_then(Json::as_str);
+    let action = data.get("action").and_then(Node::as_str);
     let mut a = match action {
         Some("store_true") => Action::flag(&cli_name, Kind::StoreTrue),
         Some("store_false") => Action::flag(&cli_name, Kind::StoreFalse),
         Some("version") => Action::flag(&cli_name, Kind::Version),
         _ => Action::option(&cli_name),
     };
-    if let Some(dest) = data.get("dest").and_then(Json::as_str) {
+    if let Some(dest) = data.get("dest").and_then(Node::as_str) {
         a.dest = dest.to_string();
     }
-    if let Some(default) = data.get("default").and_then(Json::as_str) {
+    if let Some(default) = data.get("default").and_then(Node::as_str) {
         a.default = NsVal::Str(default.to_string());
     }
-    if let Some(choices) = data.get("choices").and_then(Json::as_array) {
+    if let Some(choices) = data.get("choices").and_then(Node::as_array) {
         a.choices = Some(
             choices
                 .iter()
@@ -48,7 +48,7 @@ fn option_action(name: &str, data: &serde_json::Map<String, Json>) -> Action {
                 .collect(),
         );
     }
-    if let Some(required) = data.get("required").and_then(Json::as_bool) {
+    if let Some(required) = data.get("required").and_then(Node::as_bool) {
         a.required = required;
     }
     a

@@ -112,8 +112,8 @@ fn available_regions() -> Vec<String> {
         .as_object()
         .map(|e| {
             e.keys()
-                .filter(|k| regions.get(k.as_str()).is_some())
-                .cloned()
+                .filter(|k| regions.get(k).is_some())
+                .map(str::to_string)
                 .collect()
         })
         .unwrap_or_default()

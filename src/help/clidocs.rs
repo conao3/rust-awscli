@@ -10,6 +10,8 @@
 use indexmap::IndexMap;
 use serde_json::{Map, Value as Json};
 
+use crate::bjson::Node;
+
 use super::data;
 use super::restdoc::{ReSTDocument, py_readlines};
 use crate::model::{Operation, Shape};
@@ -168,8 +170,8 @@ fn is_string(shape: &Shape<'_>) -> bool {
 fn enum_values<'a>(shape: &Shape<'a>) -> Vec<&'a str> {
     shape
         .get("enum")
-        .and_then(Json::as_array)
-        .map(|a| a.iter().filter_map(Json::as_str).collect())
+        .and_then(Node::as_array)
+        .map(|a| a.iter().filter_map(Node::as_str).collect())
         .unwrap_or_default()
 }
 
@@ -272,20 +274,20 @@ fn supports_shorthand(shape: &Shape<'_>) -> bool {
 }
 
 /// Python's `str()` of a JSON scalar from a model.
-fn py_str(v: &Json) -> String {
-    match v {
-        Json::String(s) => s.clone(),
-        Json::Bool(true) => "True".to_string(),
-        Json::Bool(false) => "False".to_string(),
-        Json::Null => "None".to_string(),
-        Json::Number(n) => {
-            if n.is_i64() || n.is_u64() {
-                n.to_string()
-            } else {
-                crate::pyfmt::float_repr(n.as_f64().unwrap_or_default())
-            }
-        }
-        other => other.to_string(),
+fn py_str(v: &Node) -> String {
+    if let Some(s) = v.as_str() {
+        return s.to_string();
+    }
+    if let Some(b) = v.as_bool() {
+        return if b { "True" } else { "False" }.to_string();
+    }
+    if v.is_null() {
+        return "None".to_string();
+    }
+    match v.as_number_text() {
+        Some(text) if v.is_i64() || v.is_u64() => text.to_string(),
+        Some(_) => crate::pyfmt::float_repr(v.as_f64().unwrap_or_default()),
+        None => v.to_string(),
     }
 }
 
@@ -348,8 +350,8 @@ mod shorthand {
             && uses_old_list_case(service, operation, &arg.name)
         {
             let member_name = member.members()[0].0;
-            if model.get("min").and_then(Json::as_i64) == Some(1)
-                && model.get("max").and_then(Json::as_i64) == Some(1)
+            if model.get("min").and_then(Node::as_i64) == Some(1)
+                && model.get("max").and_then(Node::as_i64) == Some(1)
             {
                 return Example::Text(format!("{} {member_name}1", arg.cli_name));
             }
@@ -676,9 +678,13 @@ impl<'a> Page<'a> {
             "``{}`` is a paginated operation. Multiple API calls may be issued in order to retrieve the entire data set of results. You can disable pagination by providing the ``--no-paginate`` argument.",
             self.name
         ));
-        let queries: Vec<String> = match config.get("result_key") {
-            Some(Json::Array(a)) if !a.is_empty() => a.iter().map(py_str).collect(),
-            Some(Json::String(s)) if !s.is_empty() => vec![s.clone()],
+        let result_key = config.get("result_key");
+        let queries: Vec<String> = match (
+            result_key.and_then(Node::as_array),
+            result_key.and_then(Node::as_str),
+        ) {
+            (Some(a), _) if !a.is_empty() => a.iter().map(py_str).collect(),
+            (_, Some(s)) if !s.is_empty() => vec![s.to_string()],
             _ => return,
         };
         let queries = queries

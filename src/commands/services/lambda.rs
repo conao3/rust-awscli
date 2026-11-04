@@ -5,6 +5,8 @@
 
 use serde_json::{Map as JsonMap, Value as Json};
 
+use crate::bjson::{Node, Obj};
+
 use super::exec;
 use crate::cli::argprocess::{ArgContext, unpack_argument};
 use crate::cli::{Arg, ArgTable, CustomSpec, Fail, OperationHooks};
@@ -33,31 +35,39 @@ pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode
 /// shapes it references (`copy.deepcopy(argument_model)` +
 /// `del model.members[member]`).
 pub(crate) fn shape_without_member(shape: &Shape<'_>, member: &str) -> ServiceModel {
-    fn collect(model: &ServiceModel, def: &JsonMap<String, Json>, out: &mut JsonMap<String, Json>) {
+    fn refs<'d>(def: &'d Obj, skip: Option<&str>) -> Vec<&'d str> {
         let mut refs: Vec<&str> = Vec::new();
-        if let Some(Json::Object(members)) = def.get("members") {
-            refs.extend(members.values().filter_map(|r| r.get("shape")?.as_str()));
+        if let Some(members) = def.get("members").and_then(Node::as_object) {
+            refs.extend(
+                members
+                    .iter()
+                    .filter(|(k, _)| Some(*k) != skip)
+                    .filter_map(|(_, r)| r.get("shape")?.as_str()),
+            );
         }
         for key in ["member", "key", "value"] {
             if let Some(r) = def
                 .get(key)
                 .and_then(|r| r.get("shape"))
-                .and_then(Json::as_str)
+                .and_then(Node::as_str)
             {
                 refs.push(r);
             }
         }
-        for name in refs {
+        refs
+    }
+    fn collect(model: &ServiceModel, names: Vec<&str>, out: &mut JsonMap<String, Json>) {
+        for name in names {
             if out.contains_key(name) {
                 continue;
             }
             if let Some(d) = model.shape_def(name) {
-                out.insert(name.to_string(), Json::Object(d.clone()));
-                collect(model, d, out);
+                out.insert(name.to_string(), d.to_json());
+                collect(model, refs(d, None), out);
             }
         }
     }
-    let mut def = shape.def.clone();
+    let mut def = shape.def.to_map();
     if let Some(Json::Object(members)) = def.get_mut("members") {
         members.shift_remove(member);
     }
@@ -65,7 +75,7 @@ pub(crate) fn shape_without_member(shape: &Shape<'_>, member: &str) -> ServiceMo
         required.retain(|r| r.as_str() != Some(member));
     }
     let mut shapes = JsonMap::new();
-    collect(shape.model, &def, &mut shapes);
+    collect(shape.model, refs(shape.def, Some(member)), &mut shapes);
     shapes.insert("InputShape".to_string(), Json::Object(def));
     ServiceModel::from_shapes(&shape.model.name, Json::Object(shapes))
 }

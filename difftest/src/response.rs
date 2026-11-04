@@ -1,8 +1,8 @@
 //! Server-side serialization of generated values and errors in each
 //! protocol, the inverse of botocore's `parsers.py`.
 
+use awsr::bjson::Node;
 use awsr::model::{Operation, ServiceModel, Shape};
-use serde_json::Value as Json;
 
 use crate::rng::Rng;
 use crate::values::{G, Proto};
@@ -24,7 +24,7 @@ pub struct Ser<'a> {
 const S3_NS: &str = "http://s3.amazonaws.com/doc/2006-03-01/";
 
 fn location<'a>(m: &Shape<'a>) -> Option<&'a str> {
-    m.member_get("location").and_then(Json::as_str)
+    m.member_get("location").and_then(Node::as_str)
 }
 
 fn xml_name<'a>(m: &Shape<'a>, fallback: &'a str) -> &'a str {
@@ -144,10 +144,10 @@ impl Ser<'_> {
     // ------------------------------------------------------------- XML
 
     fn namespace_attr(el: &mut El, s: &Shape<'_>) {
-        if let Some(ns) = s.get("xmlNamespace").and_then(Json::as_object)
-            && let Some(uri) = ns.get("uri").and_then(Json::as_str)
+        if let Some(ns) = s.get("xmlNamespace").and_then(Node::as_object)
+            && let Some(uri) = ns.get("uri").and_then(Node::as_str)
         {
-            match ns.get("prefix").and_then(Json::as_str) {
+            match ns.get("prefix").and_then(Node::as_str) {
                 Some(p) => el.attrs.push((format!("xmlns:{p}"), uri.to_string())),
                 None => el.attrs.push(("xmlns".to_string(), uri.to_string())),
             }
@@ -234,7 +234,7 @@ impl Ser<'_> {
                     && let Some(uri) = m
                         .get("xmlNamespace")
                         .and_then(|n| n.get("uri"))
-                        .and_then(Json::as_str)
+                        .and_then(Node::as_str)
                 {
                     let decl = format!("xmlns:{prefix}");
                     if !parent.attrs.iter().any(|(k, _)| *k == decl) {
@@ -411,7 +411,7 @@ impl Ser<'_> {
             status: op
                 .http()
                 .and_then(|h| h.get("responseCode"))
-                .and_then(Json::as_u64)
+                .and_then(Node::as_u64)
                 .unwrap_or(200) as u16,
             headers: vec![],
             body: vec![],
@@ -461,7 +461,7 @@ impl Ser<'_> {
                     root.attrs.push(("xmlns".into(), ns.to_string()));
                 }
                 if let Some(s) = &out_shape {
-                    match s.member_get("resultWrapper").and_then(Json::as_str) {
+                    match s.member_get("resultWrapper").and_then(Node::as_str) {
                         Some(w) => {
                             let mut result = El::new(w);
                             self.xml_content(&mut result, s, g);
@@ -527,8 +527,8 @@ impl Ser<'_> {
                     let target = pm.name;
                     let tag = pm
                         .member_get("locationName")
-                        .and_then(Json::as_str)
-                        .or_else(|| pm.shape_get("locationName").and_then(Json::as_str))
+                        .and_then(Node::as_str)
+                        .or_else(|| pm.shape_get("locationName").and_then(Node::as_str))
                         .unwrap_or(target)
                         .to_string();
                     let mut root = El::new(tag);
@@ -568,7 +568,7 @@ impl Ser<'_> {
         }
         let tag = s
             .shape_get("locationName")
-            .and_then(Json::as_str)
+            .and_then(Node::as_str)
             .unwrap_or(s.name);
         let mut root = El::new(tag);
         Self::namespace_attr(&mut root, s);
@@ -633,7 +633,7 @@ impl Ser<'_> {
                         && let Some(qcode) = s
                             .shape_get("error")
                             .and_then(|e| e.get("code"))
-                            .and_then(Json::as_str)
+                            .and_then(Node::as_str)
                     {
                         resp.headers
                             .push(("x-amzn-query-error".into(), format!("{qcode};Sender")));

@@ -63,6 +63,10 @@ rsa = { version = "0.9", features = ["sha1", "sha2"] }
 p256 = { version = "0.13", features = ["ecdsa", "pem", "pkcs8"] }
 xxhash-rust = { version = "0.8.19", features = ["xxh64", "xxh3"] }
 
+[build-dependencies]
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+zstd = "0.13"
+
 [dev-dependencies]
 tempfile = "3"
 tokio = { version = "1", features = ["test-util"] }
@@ -71,3 +75,9 @@ tokio = { version = "1", features = ["test-util"] }
 lto = "thin"
 codegen-units = 1
 strip = true
+
+[profile.release.build-override]
+opt-level = 3
+
+[profile.dev.build-override]
+opt-level = 3

@@ -409,7 +409,7 @@ fn wait_command(
         .find(|(n, _)| n == sub)
         .map(|(_, w)| w.clone())
         .expect("choice");
-    let op_name = model.waiters().expect("waiters")[&waiter]["operation"]
+    let op_name = model.waiters().expect("waiters").as_node()[waiter.as_str()]["operation"]
         .as_str()
         .expect("waiter operation")
         .to_string();

@@ -6,8 +6,8 @@ use std::fmt;
 use std::sync::{Arc, Mutex, Weak};
 
 use anyhow::{Result, anyhow, bail};
+use awsr::bjson::{Node, Obj};
 use awsr::model::{Operation, ServiceModel, Shape};
-use serde_json::Value as Json;
 
 use crate::response::{Resp, Ser};
 use crate::rng::Rng;
@@ -185,15 +185,20 @@ fn has_event_stream(shape: Option<Shape<'_>>) -> bool {
     shape.is_some_and(|s| s.members().iter().any(|(_, m)| m.is_event_stream()))
 }
 
-fn token_list(v: Option<&Json>) -> Vec<String> {
-    match v {
-        Some(Json::String(s)) => vec![s.clone()],
-        Some(Json::Array(a)) => a
-            .iter()
-            .filter_map(|x| x.as_str().map(str::to_string))
-            .collect(),
-        _ => vec![],
+fn token_list(v: Option<&Node>) -> Vec<String> {
+    let Some(v) = v else {
+        return vec![];
+    };
+    if let Some(s) = v.as_str() {
+        return vec![s.to_string()];
     }
+    v.as_array()
+        .map(|a| {
+            a.iter()
+                .filter_map(|x| x.as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn simple_path(p: &str) -> Option<Vec<&str>> {
@@ -545,7 +550,7 @@ fn gen_pages(model: &ServiceModel, op: &Operation<'_>, proto: Proto, root: &Rng)
         let shape = op.output().zip(first.as_deref().and_then(simple_path));
         !shape
             .and_then(|(s, path)| shape_at(&s, &path))
-            .is_some_and(|t| t.get("max").and_then(Json::as_u64) == Some(0))
+            .is_some_and(|t| t.get("max").and_then(Node::as_u64) == Some(0))
     });
     let pages = if token_can_page {
         1 + rng.below(3) as usize
@@ -570,7 +575,7 @@ fn gen_pages(model: &ServiceModel, op: &Operation<'_>, proto: Proto, root: &Rng)
 }
 
 fn paginate(
-    p: &serde_json::Map<String, Json>,
+    p: &Obj,
     g: &mut G,
     shape: &Shape<'_>,
     page: usize,
@@ -592,8 +597,8 @@ fn paginate(
                     continue;
                 };
                 let value = if ts.type_name() == "string" {
-                    let min = ts.get("min").and_then(Json::as_u64).unwrap_or(0) as usize;
-                    let max = ts.get("max").and_then(Json::as_u64).unwrap_or(1024) as usize;
+                    let min = ts.get("min").and_then(Node::as_u64).unwrap_or(0) as usize;
+                    let max = ts.get("max").and_then(Node::as_u64).unwrap_or(1024) as usize;
                     let mut t = format!("token-{page}-{}", rng.below(1_000_000));
                     while t.len() < min {
                         t.push('x');
@@ -671,13 +676,13 @@ fn gen_error(
         let info = shape.shape_get("error");
         let code = info
             .and_then(|e| e.get("code"))
-            .and_then(Json::as_str)
+            .and_then(Node::as_str)
             .filter(|_| matches!(proto, Proto::Query | Proto::Ec2 | Proto::RestXml))
             .unwrap_or(shape.name)
             .to_string();
         let status = info
             .and_then(|e| e.get("httpStatusCode"))
-            .and_then(Json::as_u64)
+            .and_then(Node::as_u64)
             .unwrap_or(400) as u16;
         let mut generator = Generator {
             rng: &mut rng,

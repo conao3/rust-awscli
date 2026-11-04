@@ -1,7 +1,7 @@
 //! Parameter validation against the input shape (`botocore/validate.py`
 //! `ParamValidator`), with the report text botocore renders.
 
-use serde_json::Value as Json;
+use crate::bjson::Node;
 
 use super::shorthand::py_type_name;
 use crate::model::Shape;
@@ -58,23 +58,17 @@ fn invalid_type(errors: &mut Vec<String>, name: &str, param: &Value, valid: &[St
 }
 
 /// `str()` of a model `min` value.
-fn json_number_str(v: &Json) -> String {
-    match v {
-        Json::Number(n) => {
-            let s = n.to_string();
-            if s.contains(['.', 'e', 'E']) {
-                float_repr(s.parse::<f64>().unwrap_or(f64::NAN))
-            } else {
-                s
-            }
-        }
-        other => other.to_string(),
+fn json_number_str(v: &Node) -> String {
+    match v.as_number_text() {
+        Some(s) if s.contains(['.', 'e', 'E']) => float_repr(s.parse::<f64>().unwrap_or(f64::NAN)),
+        Some(s) => s.to_string(),
+        None => v.to_string(),
     }
 }
 
 /// Python `value < min_allowed` for numbers.
-fn less_than(value: &Value, min: &Json) -> bool {
-    let Some(min) = min.as_f64() else {
+fn less_than(value: &Value, min: Option<f64>) -> bool {
+    let Some(min) = min else {
         return false;
     };
     match value {
@@ -108,13 +102,13 @@ fn range_check(
     errors: &mut Vec<String>,
 ) {
     let (failed, min_str) = if let Some(min) = shape.shape_get("min") {
-        (less_than(value, min), json_number_str(min))
+        (less_than(value, min.as_f64()), json_number_str(min))
     } else if shape
         .member_get("hostLabel")
-        .and_then(Json::as_bool)
+        .and_then(Node::as_bool)
         .unwrap_or(false)
     {
-        (less_than(value, &Json::from(1)), "1".to_string())
+        (less_than(value, Some(1.0)), "1".to_string())
     } else {
         (false, String::new())
     };

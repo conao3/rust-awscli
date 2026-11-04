@@ -36,8 +36,7 @@ impl<'c> Client<'c> {
         service: &str,
         config: ClientConfig,
     ) -> Result<Client<'c>, CliError> {
-        let mut model = ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
-        model.apply_endpoint_ruleset_customizations();
+        let model = ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
         Ok(Client { ctx, model, config })
     }
 
@@ -133,8 +132,7 @@ pub(crate) fn invoke(
     inv: OperationInvocation,
     after: &mut dyn FnMut(&mut Value) -> Result<After, CliError>,
 ) -> Result<ExitCode, CliError> {
-    let mut model = ServiceModel::load(&inv.service).map_err(|e| ctx.general_error(&e))?;
-    model.apply_endpoint_ruleset_customizations();
+    let model = ServiceModel::load(&inv.service).map_err(|e| ctx.general_error(&e))?;
     let operation = model
         .operation(&inv.operation)
         .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown operation")))?;

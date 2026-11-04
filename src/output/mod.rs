@@ -64,7 +64,7 @@ pub enum Response<'a> {
     Single(Value),
     Paginated(PaginatedResponse),
     /// Pages fetched while formatting.
-    Lazy(LazyPages<'a>),
+    Lazy(Box<LazyPages<'a>>),
 }
 
 /// Format `response` like the AWS CLI formatter for

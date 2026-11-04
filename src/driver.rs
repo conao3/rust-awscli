@@ -786,7 +786,7 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
                 return display_response_mapped(
                     ctx,
                     &inv.operation,
-                    Response::Lazy(pages),
+                    Response::Lazy(Box::new(pages)),
                     b"",
                     &|e| match service_error.borrow().as_ref() {
                         Some(info) => client_error(ctx, info),

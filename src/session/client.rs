@@ -225,10 +225,11 @@ impl<'a> ApiClient<'a> {
                         .collect()
                 })
             };
+            let signing_name = model.client_signing_name(self.region.as_deref());
             let inputs = AuthInputs {
                 service_name: &model.name,
                 endpoint_prefix: model.endpoint_prefix(),
-                signing_name: model.signing_name(),
+                signing_name: &signing_name,
                 service_id: &sid,
                 operation_name: op.name,
                 service_auth: str_list(model.metadata().get("auth")),

@@ -45,8 +45,8 @@ pub use error::{ErrorKind, SessionError};
 use http::{HttpClient, HttpConfig, Verify};
 use retry::{AttemptOutcome, RetryMode, RetryPolicy, RetryState};
 use sign::{
-    AuthInputs, Credentials, PayloadContext, SigV4, SigV4a, SignableRequest, SignatureVersion,
-    headers,
+    AuthInputs, Credentials, PayloadContext, SigV2, SigV4, SigV4a, SignableRequest,
+    SignatureVersion, headers,
 };
 use useragent::{Feature, UserAgent};
 
@@ -604,10 +604,11 @@ impl Session {
         let mut endpoint = endpoint.clone();
         let mut redirected = false;
         'endpoint: loop {
+            let signing_name = model.client_signing_name(settings.region.as_deref());
             let auth_inputs = AuthInputs {
                 service_name: &model.name,
                 endpoint_prefix: model.endpoint_prefix(),
-                signing_name: model.signing_name(),
+                signing_name: &signing_name,
                 service_id: &sid,
                 operation_name: operation.name,
                 service_auth: str_list(model.metadata().get("auth")),
@@ -877,6 +878,10 @@ impl Session {
                             s3: *s3,
                         }
                         .add_auth(req, ctx, Utc::now());
+                        Ok(())
+                    }
+                    SignatureVersion::V2 => {
+                        SigV2 { credentials: creds }.add_auth(req, Utc::now());
                         Ok(())
                     }
                     SignatureVersion::Other(name) => {

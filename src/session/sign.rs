@@ -169,6 +169,65 @@ pub fn normalize_url_path(path: &str) -> String {
 
 /// `SigV4Auth` (`s3 == false`) and `S3SigV4Auth` (`s3 == true`).
 #[derive(Debug, Clone)]
+/// `auth.SigV2Auth`, for a request whose parameters are in the body.
+pub struct SigV2 {
+    pub credentials: Credentials,
+}
+
+impl SigV2 {
+    pub fn add_auth(&self, req: &mut SignableRequest, now: DateTime<Utc>) {
+        let mut params = crate::handlers::presign::parse_body(&req.body);
+        fn set(params: &mut Vec<(String, String)>, key: &str, value: String) {
+            match params.iter_mut().find(|(k, _)| k == key) {
+                Some((_, v)) => *v = value,
+                None => params.push((key.to_string(), value)),
+            }
+        }
+        set(
+            &mut params,
+            "AWSAccessKeyId",
+            self.credentials.access_key.clone(),
+        );
+        set(&mut params, "SignatureVersion", "2".to_string());
+        set(&mut params, "SignatureMethod", "HmacSHA256".to_string());
+        set(
+            &mut params,
+            "Timestamp",
+            now.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        );
+        if let Some(token) = &self.credentials.token {
+            set(&mut params, "SecurityToken", token.clone());
+        }
+        let signature = self.calc_signature(req, &params);
+        set(&mut params, "Signature", signature);
+        req.body = crate::handlers::presign::encode_body(&params);
+    }
+
+    /// `SigV2Auth.calc_signature`.
+    fn calc_signature(&self, req: &SignableRequest, params: &[(String, String)]) -> String {
+        use base64::Engine as _;
+        let split = urlsplit(&req.url);
+        let path = if split.path.is_empty() {
+            "/"
+        } else {
+            split.path.as_str()
+        };
+        let mut sorted: Vec<&(String, String)> =
+            params.iter().filter(|(k, _)| k != "Signature").collect();
+        sorted.sort_by(|a, b| a.0.cmp(&b.0));
+        let qs = sorted
+            .iter()
+            .map(|(k, v)| format!("{}={}", quote(k, ""), quote(v, "-_~")))
+            .collect::<Vec<_>>()
+            .join("&");
+        let string_to_sign = format!("{}\n{}\n{path}\n{qs}", req.method, split.netloc);
+        base64::engine::general_purpose::STANDARD.encode(hmac(
+            self.credentials.secret_key.as_bytes(),
+            &string_to_sign,
+        ))
+    }
+}
+
 pub struct SigV4 {
     pub credentials: Credentials,
     pub service_name: String,
@@ -518,16 +577,19 @@ pub enum SignatureVersion {
     V4 { s3: bool },
     /// `v4a`, `s3v4a`.
     V4a { s3: bool },
+    /// `v2`.
+    V2,
     /// `bearer`.
     Bearer,
-    /// Any other name from `AUTH_TYPE_MAPS` (`v2`, `v3`,
-    /// `v4-s3express`, ...), signed as SigV4 here.
+    /// Any other name from `AUTH_TYPE_MAPS` (`v3`, `v4-s3express`, ...),
+    /// signed as SigV4 here.
     Other(String),
 }
 
 impl SignatureVersion {
     pub fn from_name(name: &str) -> SignatureVersion {
         match name {
+            "v2" => SignatureVersion::V2,
             "v4" => SignatureVersion::V4 { s3: false },
             "s3v4" => SignatureVersion::V4 { s3: true },
             "v4a" => SignatureVersion::V4a { s3: false },
@@ -820,7 +882,12 @@ pub fn choose_signer(inputs: &AuthInputs<'_>) -> Result<SignerChoice, SessionErr
         ) | ("sts", "AssumeRoleWithSAML" | "AssumeRoleWithWebIdentity")
     );
     let mut sigv4a_region: Option<String> = None;
-    let handler_response: Option<String> = if disabled {
+    let handler_response: Option<String> = if inputs.service_id == "importexport"
+        && inputs.configured_signature_version.is_none()
+    {
+        // `ClientCreator._set_importexport_signature_version`.
+        Some("v4".to_string())
+    } else if disabled {
         Some("none".to_string())
     } else if let Some(t) = auth_type.as_deref().filter(|t| !t.is_empty()) {
         // `set_operation_specific_signer`.

@@ -26,9 +26,9 @@ pub struct PresignEnv<'a> {
 }
 
 /// The query-protocol body as an ordered dict.
-type Body = Vec<(String, String)>;
+pub(crate) type Body = Vec<(String, String)>;
 
-fn parse_body(body: &[u8]) -> Body {
+pub(crate) fn parse_body(body: &[u8]) -> Body {
     let text = String::from_utf8_lossy(body);
     if text.is_empty() {
         return Vec::new();
@@ -46,7 +46,7 @@ fn unquote_plus(s: &str) -> String {
 }
 
 /// `urlencode(body)` as `AWSRequest` prepares a dict body.
-fn encode_body(body: &Body) -> Vec<u8> {
+pub(crate) fn encode_body(body: &Body) -> Vec<u8> {
     body.iter()
         .map(|(k, v)| {
             format!(

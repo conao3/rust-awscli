@@ -47,6 +47,63 @@ pub fn endpoints() -> &'static Json {
     P.get_or_init(|| decompress(ENDPOINTS).expect("embedded endpoints.json"))
 }
 
+/// `credentialScope.service` of the endpoint
+/// `EndpointResolver.construct_endpoint` resolves in `endpoints.json`
+/// (the service's endpoint for `region`, or its `partitionEndpoint` when
+/// it is not regionalized or no region is given).
+fn legacy_credential_scope_service(service: &str, region: Option<&str>) -> Option<String> {
+    let partitions = endpoints()["partitions"].as_array()?;
+    let resolve = |partition: &Json, force: bool| -> Option<Option<String>> {
+        let service_data = partition["services"].get(service);
+        let endpoints = service_data.and_then(|s| s.get("endpoints"));
+        let partition_endpoint = service_data
+            .and_then(|s| s.get("partitionEndpoint"))
+            .and_then(|e| e.as_str());
+        let region = match region {
+            Some(r) => r,
+            None => partition_endpoint?,
+        };
+        let endpoint_name = if endpoints.and_then(|e| e.get(region)).is_some() {
+            region
+        } else {
+            let matches = partition["regions"].get(region).is_some()
+                || partition["regionRegex"]
+                    .as_str()
+                    .and_then(|re| regex::Regex::new(re).ok())
+                    .is_some_and(|re| re.is_match(region));
+            if !matches && !force {
+                return None;
+            }
+            let regionalized = service_data
+                .and_then(|s| s.get("isRegionalized"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
+            match partition_endpoint {
+                Some(e) if !regionalized => e,
+                _ => region,
+            }
+        };
+        let scope = |data: Option<&Json>| {
+            data.and_then(|d| d["credentialScope"]["service"].as_str())
+                .map(str::to_string)
+        };
+        Some(
+            scope(endpoints.and_then(|e| e.get(endpoint_name)))
+                .or_else(|| scope(service_data.and_then(|s| s.get("defaults")))),
+        )
+    };
+    partitions
+        .iter()
+        .find_map(|p| resolve(p, false))
+        .or_else(|| {
+            partitions
+                .iter()
+                .find(|p| p["partition"] == "aws")
+                .and_then(|p| resolve(p, true))
+        })
+        .flatten()
+}
+
 /// `awscli/data/cli.json` (the global options).
 pub fn cli_data() -> &'static Json {
     static P: OnceLock<Json> = OnceLock::new();
@@ -138,6 +195,14 @@ impl ServiceModel {
     pub fn signing_name(&self) -> &str {
         self.metadata_str("signingName")
             .unwrap_or_else(|| self.endpoint_prefix())
+    }
+
+    /// The client's signing name (`ClientEndpointBridge._resolve_signing_name`):
+    /// the `credentialScope` service of the `endpoints.json` endpoint for
+    /// `region`, else [`ServiceModel::signing_name`].
+    pub fn client_signing_name(&self, region: Option<&str>) -> String {
+        legacy_credential_scope_service(self.endpoint_prefix(), region)
+            .unwrap_or_else(|| self.signing_name().to_string())
     }
 
     /// Operation names in model order.

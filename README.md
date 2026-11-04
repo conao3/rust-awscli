@@ -4,6 +4,15 @@ A fast Rust reimplementation of the [AWS CLI v2](https://github.com/aws/aws-cli)
 
 `awsr` embeds the botocore service models of a pinned AWS CLI release (`models/VERSION`) and interprets them at run time, so every service and operation of that release is available as `awsr <service> <operation>`.
 
+## Install
+
+Prebuilt binaries for Linux (x86_64, x86_64 musl, aarch64) and macOS (x86_64, aarch64) are attached to the [GitHub releases](https://github.com/conao3/rust-awscli/releases).
+
+```console
+$ nix profile install github:conao3/rust-awscli
+$ cargo install --git https://github.com/conao3/rust-awscli awsr
+```
+
 ## Usage
 
 ```console

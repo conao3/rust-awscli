@@ -73,7 +73,7 @@ pub async fn run(
     cmd.args(argv)
         .current_dir(dir)
         .env_clear()
-        .env("PATH", std::env::var_os("PATH").unwrap_or_default())
+        .env("PATH", child_path())
         .env("HOME", &home)
         .env("AWS_CONFIG_FILE", home.join(".aws/config"))
         .env("AWS_SHARED_CREDENTIALS_FILE", home.join(".aws/credentials"))
@@ -184,4 +184,15 @@ fn open_pty(cols: u16) -> Result<(OwnedFd, OwnedFd)> {
     t.output_flags.remove(OutputFlags::OPOST);
     tcsetattr(&pair.slave, SetArg::TCSANOW, &t).context("tcsetattr")?;
     Ok((pair.master, pair.slave))
+}
+
+/// `PATH` for the CLIs under test: `difftest/fakebin` (stand-ins for
+/// `session-manager-plugin` and `ssh`) first, then the harness's `PATH`.
+fn child_path() -> std::ffi::OsString {
+    let fakebin = Path::new(env!("CARGO_MANIFEST_DIR")).join("fakebin");
+    let mut paths = vec![fakebin];
+    if let Some(p) = std::env::var_os("PATH") {
+        paths.extend(std::env::split_paths(&p));
+    }
+    std::env::join_paths(paths).unwrap_or_default()
 }

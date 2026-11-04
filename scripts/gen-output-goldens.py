@@ -22,7 +22,7 @@ import struct
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.environ.get("AWSR_REFERENCE_SRC", "/tmp/awsr-ref/aws-cli-2.39.3"))
+sys.path.insert(0, os.environ["AWSR_REFERENCE_SRC"])
 
 import colorama  # noqa: E402
 import jmespath  # noqa: E402

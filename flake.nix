@@ -20,6 +20,12 @@
       perSystem =
         { pkgs, lib, ... }:
         let
+          awscliReferenceSrc = pkgs.fetchFromGitHub {
+            owner = "aws";
+            repo = "aws-cli";
+            rev = "2.39.3";
+            hash = "sha256-HEQ73GYAi/MS24mNYoC3Cth4fZcLw5Q8hV7/ZF0GByU=";
+          };
           awscliReference = pkgs.stdenv.mkDerivation rec {
             pname = "awscli-reference";
             version = "2.39.3";
@@ -96,7 +102,7 @@
                 ))
               ]
               ++ lib.optional stdenv.hostPlatform.isLinux awscliReference;
-            AWSR_REFERENCE_SRC = "/tmp/awsr-ref/aws-cli-2.39.3";
+            AWSR_REFERENCE_SRC = "${awscliReferenceSrc}";
             AWSR_REFERENCE_AWS = lib.optionalString pkgs.stdenv.hostPlatform.isLinux "${awscliReference}/bin/aws";
           };
 

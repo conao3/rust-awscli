@@ -1,6 +1,6 @@
 [
  {
-  "name": "eic ssh direct public (PATH=/tmp/fakeplugin:$PATH)",
+  "name": "eic ssh direct public",
   "argv": [
    "ec2-instance-connect",
    "ssh",
@@ -27,7 +27,7 @@
   ]
  },
  {
-  "name": "eic ssh direct ipv6 (PATH=/tmp/fakeplugin:$PATH)",
+  "name": "eic ssh direct ipv6",
   "argv": [
    "ec2-instance-connect",
    "ssh",
@@ -50,7 +50,7 @@
   ]
  },
  {
-  "name": "eic ssh instance-ip (PATH=/tmp/fakeplugin:$PATH)",
+  "name": "eic ssh instance-ip",
   "argv": [
    "ec2-instance-connect",
    "ssh",

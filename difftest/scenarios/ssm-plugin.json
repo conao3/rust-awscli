@@ -1,6 +1,6 @@
 [
   {
-    "name": "ssm start-session with plugin (PATH=/tmp/fakeplugin:$PATH)",
+    "name": "ssm start-session with plugin",
     "argv": [
       "ssm",
       "start-session",

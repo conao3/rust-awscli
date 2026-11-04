@@ -164,7 +164,6 @@ struct Common {
     print_passing: bool,
     #[arg(long)]
     cli_table: Option<PathBuf>,
-    /// Keep each case's working directory.
     /// Run the reference CLI for every case instead of replaying
     /// stored runs (`target/difftest/refcache`).
     #[arg(long)]
@@ -176,6 +175,7 @@ struct Common {
     /// from one reference process that has loaded the CLI.
     #[arg(long)]
     no_refserver: bool,
+    /// Keep each case's working directory.
     #[arg(long)]
     keep_dirs: bool,
 }

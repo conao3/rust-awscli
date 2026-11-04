@@ -73,17 +73,7 @@ pub async fn run(
     cmd.args(argv)
         .current_dir(dir)
         .env_clear()
-        .env("PATH", child_path())
-        .env("HOME", &home)
-        .env("AWS_CONFIG_FILE", home.join(".aws/config"))
-        .env("AWS_SHARED_CREDENTIALS_FILE", home.join(".aws/credentials"))
-        .env("AWS_PAGER", "")
-        .env("LC_ALL", "C.UTF-8")
-        .env("TZ", "UTC")
-        .env("AWS_EC2_METADATA_DISABLED", "true")
-        .env("AWS_MAX_ATTEMPTS", env.max_attempts.to_string())
-        .env("NO_PROXY", "*")
-        .env("no_proxy", "*")
+        .envs(child_env(&home, env))
         .stdin(Stdio::null())
         .stderr(Stdio::piped())
         .process_group(0)
@@ -161,9 +151,29 @@ pub async fn run(
     Ok(result)
 }
 
+/// The whole environment of a CLI run with `home` as its home directory.
+pub fn child_env(home: &Path, env: &Env) -> Vec<(&'static str, std::ffi::OsString)> {
+    vec![
+        ("PATH", child_path()),
+        ("HOME", home.into()),
+        ("AWS_CONFIG_FILE", home.join(".aws/config").into()),
+        (
+            "AWS_SHARED_CREDENTIALS_FILE",
+            home.join(".aws/credentials").into(),
+        ),
+        ("AWS_PAGER", "".into()),
+        ("LC_ALL", "C.UTF-8".into()),
+        ("TZ", "UTC".into()),
+        ("AWS_EC2_METADATA_DISABLED", "true".into()),
+        ("AWS_MAX_ATTEMPTS", env.max_attempts.to_string().into()),
+        ("NO_PROXY", "*".into()),
+        ("no_proxy", "*".into()),
+    ]
+}
+
 /// Open a pty pair of `cols` columns with output post-processing off, so
 /// the bytes read from the master are exactly what the child wrote.
-fn open_pty(cols: u16) -> Result<(OwnedFd, OwnedFd)> {
+pub fn open_pty(cols: u16) -> Result<(OwnedFd, OwnedFd)> {
     use nix::pty::{Winsize, openpty};
     use nix::sys::termios::{OutputFlags, SetArg, tcgetattr, tcsetattr};
     let ws = Winsize {

@@ -10,6 +10,7 @@ mod case;
 mod compare;
 mod exec;
 mod refcache;
+mod refserver;
 mod response;
 mod rng;
 mod run;
@@ -168,6 +169,10 @@ struct Common {
     /// stored runs (`target/difftest/refcache`).
     #[arg(long)]
     no_ref_cache: bool,
+    /// Start the reference CLI for every run instead of forking runs
+    /// from one reference process that has loaded the CLI.
+    #[arg(long)]
+    no_refserver: bool,
     #[arg(long)]
     keep_dirs: bool,
 }
@@ -470,19 +475,28 @@ async fn run_cases(common: &Common, cases: Vec<Case>) -> Result<()> {
             candidate.display()
         );
     }
+    let env = run::Env {
+        max_attempts: common.max_attempts,
+        timeout: Duration::from_secs(common.timeout),
+    };
+    let refserver = if common.no_refserver {
+        None
+    } else {
+        Some(Arc::new(
+            refserver::RefServer::start(&common.reference, &target.join("work"), &env).await?,
+        ))
+    };
     let cfg = Arc::new(Config {
         reference: common.reference.clone(),
         candidate,
         reference_only: common.reference_only,
-        env: run::Env {
-            max_attempts: common.max_attempts,
-            timeout: Duration::from_secs(common.timeout),
-        },
+        env,
         endpoint_host: common.endpoint_host.clone(),
         work_dir: target.join("work"),
         keep_dirs: common.keep_dirs,
         ref_cache: (!common.no_ref_cache)
             .then(|| refcache::RefCache::new(target.join("refcache"), &common.reference)),
+        refserver,
     });
 
     let started = Instant::now();

@@ -7,6 +7,7 @@ use std::sync::Arc;
 use crate::case::{self, Case, DIR_MARK, ENDPOINT_MARK, Prepared, Skip};
 use crate::compare::{self, Side};
 use crate::refcache::{RefCache, Site};
+use crate::refserver::RefServer;
 use crate::run::{self, Env, RunOut};
 use crate::server::Stub;
 use crate::table::Table;
@@ -21,6 +22,7 @@ pub struct Config {
     pub work_dir: PathBuf,
     pub keep_dirs: bool,
     pub ref_cache: Option<RefCache>,
+    pub refserver: Option<Arc<RefServer>>,
 }
 
 #[derive(Debug)]
@@ -103,15 +105,24 @@ async fn run_prepared(case: &Case, p: &Prepared, cfg: &Config) -> anyhow::Result
     let (reference, ref_requests) = match cached {
         Some(hit) => hit,
         None => {
-            let run = run::run(
-                &cfg.reference,
-                &argv,
-                &dir,
-                &cfg.env,
-                case.pty,
-                p.outfile.as_deref(),
-            )
-            .await?;
+            let run = match &cfg.refserver {
+                Some(server) => {
+                    server
+                        .run(&argv, &dir, &cfg.env, case.pty, p.outfile.as_deref())
+                        .await?
+                }
+                None => {
+                    run::run(
+                        &cfg.reference,
+                        &argv,
+                        &dir,
+                        &cfg.env,
+                        case.pty,
+                        p.outfile.as_deref(),
+                    )
+                    .await?
+                }
+            };
             let requests = stub.take_log();
             if let (Some(c), Some(k)) = (&cfg.ref_cache, &key) {
                 c.store(k, &site, &run, &requests)?;

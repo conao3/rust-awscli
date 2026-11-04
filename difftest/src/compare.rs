@@ -32,11 +32,11 @@ fn uuid_re() -> &'static Regex {
 
 /// The time-dependent parts of presigned URLs in request bodies (the
 /// cross-region `PresignedUrl` / `PreSignedUrl` of ec2 and rds), plain or
-/// percent-encoded.
+/// percent-encoded, and of SigV2-signed query bodies (sdb).
 fn presigned_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
-        Regex::new("(X-Amz-Date(?:=|%3D))[0-9]{8}T[0-9]{6}Z|(X-Amz-Signature(?:=|%3D))[0-9a-f]{64}")
+        Regex::new("(X-Amz-Date(?:=|%3D))[0-9]{8}T[0-9]{6}Z|(X-Amz-Signature(?:=|%3D))[0-9a-f]{64}|(&Timestamp=)[^&\\s]*|(&Signature=)[^&\\s]*")
             .unwrap()
     })
 }
@@ -103,7 +103,9 @@ pub fn render_request(r: &Recorded) -> String {
     let mut out = format!("{} {}\n", r.method, r.target);
     // A generated idempotency token in the body makes its checksums
     // differ between runs.
-    let body_has_uuid = uuid_re().is_match(&String::from_utf8_lossy(&r.body));
+    let body_text_lossy = String::from_utf8_lossy(&r.body);
+    let body_has_uuid = uuid_re().is_match(&body_text_lossy);
+    let sigv2 = body_text_lossy.contains("SignatureVersion=2");
     let mut headers: Vec<(String, String)> = r
         .headers
         .iter()
@@ -112,7 +114,10 @@ pub fn render_request(r: &Recorded) -> String {
             let body_digest = k.starts_with("x-amz-checksum-") || k == "content-md5";
             let v = if k == "authorization" {
                 masked_authorization(&String::from_utf8_lossy(v))
-            } else if MASKED_HEADERS.contains(&k.as_str()) || (body_has_uuid && body_digest) {
+            } else if MASKED_HEADERS.contains(&k.as_str())
+                || (body_has_uuid && body_digest)
+                || (sigv2 && k == "content-length")
+            {
                 "<masked>".to_string()
             } else {
                 String::from_utf8_lossy(v).into_owned()
@@ -133,7 +138,7 @@ pub fn render_request(r: &Recorded) -> String {
     out.push_str(&body_text(&content_type, &r.body));
     let out = uuid_re().replace_all(&out, "<uuid>");
     presigned_re()
-        .replace_all(&out, "${1}${2}<masked>")
+        .replace_all(&out, "${1}${2}${3}${4}<masked>")
         .into_owned()
 }
 

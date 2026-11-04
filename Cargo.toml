@@ -36,7 +36,7 @@ num-bigint = "0.4"
 num-traits = "0.2"
 percent-encoding = "2"
 quick-xml = "0.38"
-rand = "0.9"
+rand = "0.10"
 regex = "1"
 ring = "0.17"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-native-roots", "rustls-tls", "http2", "gzip"] }

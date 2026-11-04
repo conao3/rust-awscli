@@ -836,6 +836,17 @@ pub(crate) fn display_response(
     command_name: &str,
     response: Response,
 ) -> Result<(), CliError> {
+    display_response_then(ctx, command_name, response, b"")
+}
+
+/// [`display_response`] with `suffix` written to the same stream after
+/// the formatter.
+pub(crate) fn display_response_then(
+    ctx: &Context,
+    command_name: &str,
+    response: Response,
+    suffix: &[u8],
+) -> Result<(), CliError> {
     let output = ctx
         .globals
         .output
@@ -857,6 +868,9 @@ pub(crate) fn display_response(
     };
     let mut buf = Vec::new();
     let result = output::write_response(command_name, response, &options, &mut buf);
+    if result.is_ok() {
+        buf.extend_from_slice(suffix);
+    }
     write_stdout(ctx, &buf)?;
     if let Err(e) = result {
         return Err(ctx.general_error(&e));

@@ -8,11 +8,13 @@ use anyhow::Result;
 
 use crate::cli::{self, Command, OperationHooks, OperationInvocation};
 use crate::driver::{
-    CallResult, Caller, ClientConfig, Context, client_error, display_response, write_stdout,
+    CallResult, Caller, ClientConfig, Context, client_error, display_response,
+    display_response_mapped, write_stdout,
 };
 use crate::error::{CliError, ExitCode};
 use crate::model::ServiceModel;
 use crate::output::Response;
+use crate::output::errors::ClientErrorInfo;
 use crate::paginate::{self, PaginationConfig};
 use crate::value::Value;
 
@@ -151,32 +153,39 @@ pub(crate) fn invoke(
         };
         match paginator {
             Some(paginator) => {
-                let mut service_error = None;
-                let mut call = |params: &Value| -> Result<Value> {
+                let service_error: std::cell::RefCell<Option<Box<ClientErrorInfo>>> =
+                    std::cell::RefCell::new(None);
+                let call = |params: &Value| -> Result<Value> {
                     match caller.call(params)? {
                         CallResult::Ok(v) => Ok(v),
                         CallResult::ServiceError(info) => {
-                            service_error = Some(info);
+                            *service_error.borrow_mut() = Some(info);
                             Err(anyhow::anyhow!("service error"))
                         }
                     }
                 };
-                let result = paginate::paginate(
+                let iterator = paginate::PageIterator::new(
                     paginator,
                     &inv.params,
                     &inv.pagination,
                     paginate::limit_key_type(&operation, paginator),
-                    &mut call,
-                );
-                match result {
-                    Ok(pages) => Response::Paginated(pages),
-                    Err(e) => {
-                        return Err(match service_error {
-                            Some(info) => client_error(ctx, &info),
-                            None => ctx.general_error(&e),
-                        });
-                    }
-                }
+                )
+                .map_err(|e| ctx.general_error(&e))?;
+                let pages = paginate::LazyPages {
+                    iterator,
+                    call: Box::new(call),
+                };
+                display_response_mapped(
+                    ctx,
+                    &inv.operation,
+                    Response::Lazy(Box::new(pages)),
+                    b"",
+                    &|e| match service_error.borrow().as_ref() {
+                        Some(info) => client_error(ctx, info),
+                        None => ctx.general_error(e),
+                    },
+                )?;
+                return Ok(ExitCode::Success);
             }
             None => match caller
                 .call(&inv.params)

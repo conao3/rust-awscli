@@ -550,7 +550,7 @@ impl TableBuilder {
         let Value::Map(map) = current else {
             return Ok(());
         };
-        let (headers, more) = group_scalar_keys(current)?;
+        let (headers, more, _) = group_scalar_keys(current)?;
         if headers.len() == 1 {
             self.table
                 .add_row(vec![headers[0].clone(), py_str(&map[headers[0].as_str()])])?;
@@ -612,22 +612,69 @@ fn group_scalar_keys_from_list(
 ) -> Result<(Vec<String>, Vec<String>), String> {
     let mut headers = std::collections::BTreeSet::new();
     let mut more = std::collections::BTreeSet::new();
+    let mut int_headers = false;
+    let mut int_more = false;
     for item in list_of_dicts {
-        let (h, m) = group_scalar_keys(item)?;
+        let (h, m, ints) = group_scalar_keys(item)?;
+        int_headers |= ints.headers;
+        int_more |= ints.more;
         headers.extend(h);
         more.extend(m);
+    }
+    // `sorted` of a set holding the `int` keys of a list element and
+    // `str` keys of a dict.
+    if (int_headers && !headers.is_empty()) || (int_more && !more.is_empty()) {
+        return Err("'<' not supported between instances of 'int' and 'str'".to_string());
     }
     Ok((headers.into_iter().collect(), more.into_iter().collect()))
 }
 
-/// `TableFormatter._group_scalar_keys`.
-fn group_scalar_keys(current: &Value) -> Result<(Vec<String>, Vec<String>), String> {
-    let Value::Map(map) = current else {
-        return Err(match current {
-            Value::List(_) => "list indices must be integers or slices, not str".to_string(),
-            Value::Str(_) => "string indices must be integers, not 'str'".to_string(),
-            other => format!("'{}' object is not iterable", type_name(other)),
-        });
+/// Whether `_group_scalar_keys` of a list element found `int` keys.
+#[derive(Default)]
+struct IntKeys {
+    headers: bool,
+    more: bool,
+}
+
+/// `TableFormatter._group_scalar_keys`. A list element is iterated like
+/// a dict: its items index the list (`current[element]`), so a list of
+/// in-range integers yields `int` keys and anything else raises.
+fn group_scalar_keys(current: &Value) -> Result<(Vec<String>, Vec<String>, IntKeys), String> {
+    let map = match current {
+        Value::Map(map) => map,
+        Value::List(items) => {
+            let mut ints = IntKeys::default();
+            for element in items {
+                let index = match element {
+                    Value::Int(i) => num_traits::ToPrimitive::to_i64(i),
+                    Value::Bool(b) => Some(i64::from(*b)),
+                    other => {
+                        return Err(format!(
+                            "list indices must be integers or slices, not {}",
+                            type_name(other)
+                        ));
+                    }
+                };
+                let len = items.len() as i64;
+                let value = index
+                    .map(|i| if i < 0 { i + len } else { i })
+                    .filter(|i| (0..len).contains(i))
+                    .map(|i| &items[i as usize])
+                    .ok_or_else(|| "list index out of range".to_string())?;
+                if is_scalar(value) {
+                    ints.headers = true;
+                } else {
+                    ints.more = true;
+                }
+            }
+            return Ok((Vec::new(), Vec::new(), ints));
+        }
+        Value::Str(s) if s.is_empty() => return Ok((Vec::new(), Vec::new(), IntKeys::default())),
+        Value::Str(_) => return Err("string indices must be integers, not 'str'".to_string()),
+        Value::Bytes(b) if b.is_empty() => {
+            return Ok((Vec::new(), Vec::new(), IntKeys::default()));
+        }
+        other => return Err(format!("'{}' object is not iterable", type_name(other))),
     };
     let mut headers = Vec::new();
     let mut more = Vec::new();
@@ -640,5 +687,5 @@ fn group_scalar_keys(current: &Value) -> Result<(Vec<String>, Vec<String>), Stri
     }
     headers.sort();
     more.sort();
-    Ok((headers, more))
+    Ok((headers, more, IntKeys::default()))
 }

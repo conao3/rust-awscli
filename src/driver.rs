@@ -870,7 +870,7 @@ pub(crate) fn display_response_then(
 
 /// [`display_response_then`] with `map_error` turning a formatter error
 /// (raised after the output written so far) into the CLI error.
-fn display_response_mapped(
+pub(crate) fn display_response_mapped(
     ctx: &Context,
     command_name: &str,
     response: Response<'_>,

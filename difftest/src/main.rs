@@ -169,6 +169,9 @@ struct Common {
     /// stored runs (`target/difftest/refcache`).
     #[arg(long)]
     no_ref_cache: bool,
+    /// Run the reference CLI for every case and replace the stored runs.
+    #[arg(long)]
+    refresh_ref_cache: bool,
     /// Start the reference CLI for every run instead of forking runs
     /// from one reference process that has loaded the CLI.
     #[arg(long)]
@@ -494,8 +497,13 @@ async fn run_cases(common: &Common, cases: Vec<Case>) -> Result<()> {
         endpoint_host: common.endpoint_host.clone(),
         work_dir: target.join("work"),
         keep_dirs: common.keep_dirs,
-        ref_cache: (!common.no_ref_cache)
-            .then(|| refcache::RefCache::new(target.join("refcache"), &common.reference)),
+        ref_cache: (!common.no_ref_cache).then(|| {
+            refcache::RefCache::new(
+                target.join("refcache"),
+                &common.reference,
+                common.refresh_ref_cache,
+            )
+        }),
         refserver,
     });
 

@@ -27,6 +27,8 @@ struct Entry {
 #[derive(Debug, Clone)]
 pub struct RefCache {
     dir: PathBuf,
+    /// Run the reference CLI again and replace the stored runs.
+    refresh: bool,
     /// The resolved reference CLI (a Nix store path names its build).
     reference: PathBuf,
 }
@@ -38,11 +40,15 @@ pub struct Site<'a> {
 }
 
 impl RefCache {
-    pub fn new(dir: PathBuf, reference: &Path) -> RefCache {
+    pub fn new(dir: PathBuf, reference: &Path, refresh: bool) -> RefCache {
         let reference = which(reference)
             .and_then(|p| std::fs::canonicalize(p).ok())
             .unwrap_or_else(|| reference.to_path_buf());
-        RefCache { dir, reference }
+        RefCache {
+            dir,
+            refresh,
+            reference,
+        }
     }
 
     pub fn key(&self, case: &Case, p: &Prepared, env: &Env, host: &str) -> String {
@@ -62,6 +68,9 @@ impl RefCache {
     }
 
     pub fn load(&self, key: &str, site: &Site<'_>) -> Option<(RunOut, Vec<Recorded>)> {
+        if self.refresh {
+            return None;
+        }
         let data = std::fs::read(self.path(key)).ok()?;
         let mut entry: Entry = ciborium::de::from_reader(data.as_slice()).ok()?;
         let subst = |b: &mut Vec<u8>| {

@@ -133,5 +133,13 @@ async fn handle(
         }
         out.headers_mut().append(name, value);
     }
+    // A fixed `Date` instead of hyper's current time, so that output
+    // showing the response headers does not depend on when it ran.
+    if !out.headers().contains_key(hyper::header::DATE) {
+        out.headers_mut().insert(
+            hyper::header::DATE,
+            HeaderValue::from_static("Tue, 14 Nov 2023 22:13:20 GMT"),
+        );
+    }
     Ok(out)
 }

@@ -367,6 +367,24 @@ impl HttpClient {
                 Err(SendError::Stale) => {}
             }
         }
+        if crate::debuglog::enabled() {
+            static CONNECTIONS: Mutex<Option<HashMap<String, usize>>> = Mutex::new(None);
+            let mut counts = CONNECTIONS.lock().unwrap();
+            let n = counts
+                .get_or_insert_with(HashMap::new)
+                .entry(key.clone())
+                .or_insert(0);
+            *n += 1;
+            crate::debuglog::debug(
+                "urllib3.connectionpool",
+                &format!(
+                    "Starting new {} connection ({n}): {}:{}",
+                    parts.scheme.to_uppercase(),
+                    parts.hostname,
+                    parts.effective_port()
+                ),
+            );
+        }
         let conn = self.connect(url, &parts, proxy.as_ref()).await?;
         match self
             .exchange(
@@ -605,6 +623,22 @@ impl HttpClient {
                 break (status, hs);
             }
         };
+        if crate::debuglog::enabled() {
+            let length = resp_headers
+                .iter()
+                .find(|(k, _)| k.eq_ignore_ascii_case("content-length"))
+                .map(|(_, v)| v.trim().to_string())
+                .unwrap_or_else(|| "None".to_string());
+            crate::debuglog::debug(
+                "urllib3.connectionpool",
+                &format!(
+                    "{}://{}:{} \"{method} {target} HTTP/1.1\" {status} {length}",
+                    parts.scheme,
+                    parts.hostname,
+                    parts.effective_port()
+                ),
+            );
+        }
         let get = |name: &str| {
             resp_headers
                 .iter()

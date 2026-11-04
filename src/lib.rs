@@ -1,6 +1,7 @@
 pub mod cli;
 pub mod commands;
 pub mod config;
+pub mod debuglog;
 pub mod driver;
 pub mod endpoint;
 pub mod error;

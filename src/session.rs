@@ -717,6 +717,32 @@ impl Session {
                     Err(e) => (None, Some(e)),
                 };
                 let error_code = response.as_ref().and_then(classify);
+                if crate::debuglog::enabled()
+                    && let Some(r) = &response
+                {
+                    // `_add_modeled_error_fields` parses a modeled error
+                    // once more.
+                    let modeled = r.status >= 300
+                        && error_code.as_deref().is_some_and(|c| {
+                            crate::protocol::common::shape_for_error_code(model, c).is_some()
+                        });
+                    for _ in 0..if modeled { 2 } else { 1 } {
+                        crate::debuglog::debug(
+                            "botocore.parsers",
+                            &format!(
+                                "Response headers: {}",
+                                crate::debuglog::headers_repr(&r.headers)
+                            ),
+                        );
+                        crate::debuglog::debug(
+                            "botocore.parsers",
+                            &format!(
+                                "Response body:\n{}",
+                                crate::protocol::xml_common::bytes_repr(&r.body)
+                            ),
+                        );
+                    }
+                }
                 let outcome = AttemptOutcome {
                     attempt,
                     response: response.as_ref(),
@@ -725,6 +751,27 @@ impl Session {
                 };
                 let decision = state.needs_retry(&policy, &outcome, &mut quota_capacity);
                 max_known = true;
+                if crate::debuglog::enabled() && settings.retry_mode == RetryMode::Standard {
+                    if decision.max_attempts_reached {
+                        crate::debuglog::debug(
+                            "botocore.retries.standard",
+                            &format!("Max attempts of {} reached.", policy.max_attempts),
+                        );
+                    }
+                    match decision.delay {
+                        Some(delay) => crate::debuglog::debug(
+                            "botocore.retries.standard",
+                            &format!(
+                                "Retry needed, retrying request after delay of: {}",
+                                crate::protocol::common::py_float_repr(delay.as_secs_f64())
+                            ),
+                        ),
+                        None => crate::debuglog::debug(
+                            "botocore.retries.standard",
+                            "Not retrying request.",
+                        ),
+                    }
+                }
                 match decision.delay {
                     Some(delay) => {
                         tokio::time::sleep(delay).await;

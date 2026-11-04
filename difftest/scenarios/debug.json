@@ -1,0 +1,16 @@
+[
+ {"name": "debug sts get-caller-identity",
+  "argv": ["sts", "get-caller-identity", "--endpoint-url", "{endpoint}", "--debug"],
+  "responses": [{"status": 200, "headers": {"Content-Type": "text/xml"}, "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"}],
+  "masks": ["(?i)'date': '[^']*'", "'Server': '[^']*'", "exe/[^ \\n]*"],
+  "stderr_records": " - (awscli\\.clidriver - DEBUG - (CLI version|Arguments)|urllib3\\.connectionpool|botocore\\.parsers|botocore\\.retries\\.standard) - "},
+ {"name": "debug service error retried",
+  "argv": ["dynamodb", "list-tables", "--endpoint-url", "{endpoint}", "--debug"],
+  "responses": [{"status": 500, "headers": {"Content-Type": "application/x-amz-json-1.0"}, "body": "{\"__type\": \"InternalServerError\", \"message\": \"boom\"}"}],
+  "masks": ["(?i)'date': '[^']*'", "'Server': '[^']*'", "exe/[^ \\n]*", "x-amzn-requestid': '[^']*'"],
+  "stderr_records": " - (awscli\\.clidriver - DEBUG - (CLI version|Arguments)|urllib3\\.connectionpool|botocore\\.parsers|botocore\\.retries\\.standard) - "},
+ {"name": "debug stdout unchanged text output",
+  "argv": ["sts", "get-caller-identity", "--endpoint-url", "{endpoint}", "--debug", "--output", "text"],
+  "responses": [{"status": 200, "headers": {"Content-Type": "text/xml"}, "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult></GetCallerIdentityResponse>"}],
+  "stderr_records": "^$"}
+]

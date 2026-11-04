@@ -168,6 +168,24 @@ fn new_session(globals: &GlobalArgs) -> Result<Session, CliError> {
 
 fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
     let (mut globals, mut rest) = cli::parse_globals(&args)?;
+    if globals.debug {
+        // `create_clidriver` and `_handle_top_level_args` both run
+        // `_set_logging`.
+        crate::debuglog::enable();
+        for _ in 0..2 {
+            crate::debuglog::debug(
+                "awscli.clidriver",
+                &format!("CLI version: {}", version_string()),
+            );
+            crate::debuglog::debug(
+                "awscli.clidriver",
+                &format!(
+                    "Arguments entered to CLI: {}",
+                    crate::debuglog::list_repr(&args)
+                ),
+            );
+        }
+    }
     let mut session = new_session(&globals)?;
     let mut shadow: Vec<Vec<String>> = Vec::new();
     let mut depth = 0;

@@ -36,7 +36,7 @@ fn uuid_re() -> &'static Regex {
 fn presigned_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
-        Regex::new("(X-Amz-Date(?:=|%3D))[0-9]{8}T[0-9]{6}Z|(X-Amz-Signature(?:=|%3D))[0-9a-f]{64}|(&Timestamp=)[^&\\s]*|(&Signature=)[^&\\s]*")
+        Regex::new("(X-Amz-Date(?:=|%3D))[0-9]{8}T[0-9]{6}Z|(X-Amz-Signature(?:=|%3D))[0-9a-f]{64}|(&Timestamp=)[^&\\s]*|(&Signature=)[^&\\s]*|(X-Amz-Credential(?:=|%3D)[^&/%]*(?:/|%2F|%252F))[0-9]{8}")
             .unwrap()
     })
 }
@@ -138,7 +138,7 @@ pub fn render_request(r: &Recorded) -> String {
     out.push_str(&body_text(&content_type, &r.body));
     let out = uuid_re().replace_all(&out, "<uuid>");
     presigned_re()
-        .replace_all(&out, "${1}${2}${3}${4}<masked>")
+        .replace_all(&out, "${1}${2}${3}${4}${5}<masked>")
         .into_owned()
 }
 

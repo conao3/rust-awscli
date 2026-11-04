@@ -190,6 +190,16 @@ fn manifest_dir() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
 }
 
+fn default_candidate() -> PathBuf {
+    manifest_dir().join("../target/debug/awsr")
+}
+
+/// The candidate CLI runs in each case's directory, so a relative path
+/// is resolved against the harness's working directory first.
+fn absolute(path: &Path) -> PathBuf {
+    std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf())
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let rt = tokio::runtime::Builder::new_multi_thread()
@@ -210,7 +220,7 @@ async fn async_main(cli: Cli) -> Result<()> {
         } => {
             let ok = s3scenarios::run(s3scenarios::Options {
                 reference,
-                candidate: awsr_bin.unwrap_or_else(|| manifest_dir().join("../target/debug/awsr")),
+                candidate: awsr_bin.as_deref().map_or_else(default_candidate, absolute),
                 filter: filter.map(|f| regex::Regex::new(&f)).transpose()?,
                 show,
                 report_dir: manifest_dir().join("../target/difftest/s3report"),
@@ -376,8 +386,8 @@ async fn run_scenarios(common: &Common, filter: Option<&str>, files: &[PathBuf])
     let candidate = Arc::new(
         common
             .awsr_bin
-            .clone()
-            .unwrap_or_else(|| manifest_dir().join("../target/debug/awsr")),
+            .as_deref()
+            .map_or_else(default_candidate, absolute),
     );
     let reference = Arc::new(common.reference.clone());
     let env = Arc::new(run::Env {
@@ -470,8 +480,8 @@ async fn run_cases(common: &Common, cases: Vec<Case>) -> Result<()> {
     std::fs::create_dir_all(&report_dir)?;
     let candidate = common
         .awsr_bin
-        .clone()
-        .unwrap_or_else(|| manifest_dir().join("../target/debug/awsr"));
+        .as_deref()
+        .map_or_else(default_candidate, absolute);
     if !common.reference_only && !candidate.exists() {
         bail!(
             "candidate CLI {} does not exist (build awsr or pass --awsr-bin)",

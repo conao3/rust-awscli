@@ -17,6 +17,7 @@ use crate::server::Recorded;
 
 const DIR_PLACEHOLDER: &[u8] = b"\x00casedir\x00";
 const HOST_PLACEHOLDER: &[u8] = b"\x00hostport\x00";
+const ENCODED_HOST_PLACEHOLDER: &[u8] = b"\x00hostport%3A\x00";
 
 #[derive(Serialize, Deserialize)]
 struct Entry {
@@ -37,6 +38,13 @@ pub struct RefCache {
 pub struct Site<'a> {
     pub dir: &'a str,
     pub host_port: &'a str,
+}
+
+impl Site<'_> {
+    /// `host:port` percent-encoded, as in a presigned URL in a query body.
+    fn encoded_host_port(&self) -> String {
+        self.host_port.replace(':', "%3A")
+    }
 }
 
 impl RefCache {
@@ -76,6 +84,11 @@ impl RefCache {
         let subst = |b: &mut Vec<u8>| {
             *b = replace(b, DIR_PLACEHOLDER, site.dir.as_bytes());
             *b = replace(b, HOST_PLACEHOLDER, site.host_port.as_bytes());
+            *b = replace(
+                b,
+                ENCODED_HOST_PLACEHOLDER,
+                site.encoded_host_port().as_bytes(),
+            );
         };
         map_bytes(&mut entry, subst);
         Some((entry.run, entry.requests))
@@ -98,6 +111,11 @@ impl RefCache {
         let subst = |b: &mut Vec<u8>| {
             *b = replace(b, site.dir.as_bytes(), DIR_PLACEHOLDER);
             *b = replace(b, site.host_port.as_bytes(), HOST_PLACEHOLDER);
+            *b = replace(
+                b,
+                site.encoded_host_port().as_bytes(),
+                ENCODED_HOST_PLACEHOLDER,
+            );
         };
         map_bytes(&mut entry, subst);
         let path = self.path(key);

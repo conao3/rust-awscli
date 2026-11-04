@@ -141,7 +141,7 @@ pub fn resolve_endpoint(
     process_input_parameters(ruleset, &mut scope)?;
     let rules = ruleset.get("rules").and_then(Node::as_array);
     for rule in rules.into_iter().flat_map(|r| r.iter()) {
-        if let Some(endpoint) = evaluate_rule(rule, scope.clone())? {
+        if let Some(endpoint) = evaluate_rule(rule, &mut scope)? {
             return Ok(endpoint);
         }
     }
@@ -198,7 +198,14 @@ fn process_input_parameters(ruleset: &Node, scope: &mut Scope) -> Result<(), End
 }
 
 /// `TreeRule` / `EndpointRule` / `ErrorRule` `.evaluate`.
-fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, EndpointError> {
+fn evaluate_rule(rule: &Node, scope: &mut Scope) -> Result<Option<Endpoint>, EndpointError> {
+    let len = scope.len();
+    let result = evaluate_rule_in(rule, scope);
+    scope.truncate(len);
+    result
+}
+
+fn evaluate_rule_in(rule: &Node, scope: &mut Scope) -> Result<Option<Endpoint>, EndpointError> {
     let rule_type = rule.get("type").and_then(Node::as_str).unwrap_or_default();
     if !matches!(rule_type, "endpoint" | "error" | "tree") {
         return Err(EndpointError::Resolution(format!(
@@ -210,7 +217,7 @@ fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, Endp
             let sig = condition.as_object().ok_or_else(|| {
                 EndpointError::Internal("string indices must be integers, not 'str'".into())
             })?;
-            let result = stdlib::call_function(sig, &mut scope)?;
+            let result = stdlib::call_function(sig, scope)?;
             if matches!(result, Val::Bool(false) | Val::None) {
                 return Ok(None);
             }
@@ -219,9 +226,9 @@ fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, Endp
     match rule_type {
         "endpoint" => {
             let endpoint = &rule["endpoint"];
-            let url = stdlib::resolve_value(&endpoint["url"], &mut scope)?.py_str();
+            let url = stdlib::resolve_value(&endpoint["url"], scope)?.py_str();
             let properties = match endpoint.get("properties") {
-                Some(p) => resolve_properties(p, &scope)?,
+                Some(p) => resolve_properties(p, scope)?,
                 None => Json::Object(Default::default()),
             };
             let properties = match properties {
@@ -233,7 +240,7 @@ fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, Endp
                 for (name, values) in h.iter() {
                     let mut resolved = Vec::new();
                     for item in values.as_array().into_iter().flat_map(|a| a.iter()) {
-                        resolved.push(stdlib::resolve_value(item, &mut scope)?.py_str());
+                        resolved.push(stdlib::resolve_value(item, scope)?.py_str());
                     }
                     headers.insert(name.to_string(), resolved);
                 }
@@ -245,7 +252,7 @@ fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, Endp
             }))
         }
         "error" => {
-            let msg = stdlib::resolve_value(&rule["error"], &mut scope)?.py_str();
+            let msg = stdlib::resolve_value(&rule["error"], scope)?.py_str();
             Err(EndpointError::Resolution(msg))
         }
         _ => {
@@ -255,7 +262,7 @@ fn evaluate_rule(rule: &Node, mut scope: Scope) -> Result<Option<Endpoint>, Endp
                 .into_iter()
                 .flat_map(|r| r.iter())
             {
-                if let Some(endpoint) = evaluate_rule(sub, scope.clone())? {
+                if let Some(endpoint) = evaluate_rule(sub, scope)? {
                     return Ok(Some(endpoint));
                 }
             }

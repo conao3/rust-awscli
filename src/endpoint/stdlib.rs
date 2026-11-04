@@ -161,9 +161,17 @@ pub type Scope = IndexMap<String, Val>;
 
 /// `TEMPLATE_STRING_RE.search(value)`.
 pub fn is_template(s: &str) -> bool {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| Regex::new(r"\{[a-zA-Z#]+\}").unwrap())
-        .is_match(s)
+    let b = s.as_bytes();
+    b.iter().enumerate().any(|(i, &c)| {
+        if c != b'{' {
+            return false;
+        }
+        let name = b[i + 1..]
+            .iter()
+            .take_while(|c| c.is_ascii_alphabetic() || **c == b'#')
+            .count();
+        name > 0 && b.get(i + 1 + name) == Some(&b'}')
+    })
 }
 
 /// `string.Formatter().parse(value)`: the literal text and the field

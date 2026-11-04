@@ -1,0 +1,13 @@
+[
+ {"name": "datapipeline get-pipeline-definition translated",
+  "argv": ["datapipeline", "get-pipeline-definition", "--pipeline-id", "df-1", "--pipeline-version", "active", "--endpoint-url", "{endpoint}"],
+  "responses": [{"status": 200, "headers": {"Content-Type": "application/x-amz-json-1.1"},
+   "body": "{\"pipelineObjects\": [{\"id\": \"Default\", \"name\": \"Default\", \"fields\": [{\"key\": \"workerGroup\", \"stringValue\": \"wg\"}, {\"key\": \"schedule\", \"refValue\": \"Sched\"}, {\"key\": \"workerGroup\", \"stringValue\": \"wg2\"}, {\"key\": \"workerGroup\", \"stringValue\": \"wg3\"}]}], \"parameterObjects\": [{\"id\": \"myVar\", \"attributes\": [{\"key\": \"type\", \"stringValue\": \"String\"}]}], \"parameterValues\": [{\"id\": \"myVar\", \"stringValue\": \"a\"}, {\"id\": \"myVar\", \"stringValue\": \"b\"}]}"}]},
+ {"name": "datapipeline get-pipeline-definition text",
+  "argv": ["datapipeline", "get-pipeline-definition", "--pipeline-id", "df-1", "--output", "text", "--endpoint-url", "{endpoint}"],
+  "responses": [{"status": 200, "headers": {"Content-Type": "application/x-amz-json-1.1"},
+   "body": "{\"pipelineObjects\": [{\"id\": \"Default\", \"name\": \"Default\", \"fields\": [{\"key\": \"a\", \"stringValue\": \"1\"}]}]}"}]},
+ {"name": "datapipeline get-pipeline-definition empty",
+  "argv": ["datapipeline", "get-pipeline-definition", "--pipeline-id", "df-1", "--endpoint-url", "{endpoint}"],
+  "responses": [{"status": 200, "headers": {"Content-Type": "application/x-amz-json-1.1"}, "body": "{}"}]}
+]

@@ -28,6 +28,7 @@ pub(crate) fn main_commands() -> impl Iterator<Item = MainCommand> {
 /// (`CLIDriver.create_parser`).
 pub(crate) fn main_choices() -> Vec<String> {
     let mut v: Vec<String> = MAIN_COMMANDS.iter().map(|(n, _)| n.to_string()).collect();
+    let _ = super::alias::extend_choices(&[], &mut v);
     v.push("help".to_string());
     v
 }

@@ -1,0 +1,403 @@
+[
+ {
+  "name": "cloudtrail verify-query-results no source",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": []
+ },
+ {
+  "name": "cloudtrail verify-query-results both sources",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp",
+   "--s3-bucket",
+   "b"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": []
+ },
+ {
+  "name": "cloudtrail verify-query-results local valid",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}, {\"fileName\": \"result_2.csv.gz\", \"fileHashValue\": \"a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"75234c5b82475275f23810437f2675a8971d3a99265c9e4afaee7d53c92ae5f36a6cfd05ee98528d664d1ecb214d5afeb3beb5dac082b9c88432ab1b740457230fc582c92752e1c3255cf114a2719818a90009f7f8e702585b5c7a5dbbe77ac7549c0baa53d35c9cbd5e6aaad80a88b846f54c97251d0ec6af38bcc81c66bc24f55b76b67659eb794add4833aebf414444510e0328e68e1b3cddc06d2efd7ecf10c9b2ce62d54814f430971c9e27dbd9947490ce3a833a19e941c32c160c37362da559a04ef6485588f82c4f3aaa8b68548d7bf34b361c615aaaa703ffb7a2ed0861e446d5afd29ff46c87837b478b23053af35b5bb97799d20c500d1a3483b3\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo=",
+   "exp/result_2.csv.gz": "base64:Ywo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local trailing slash",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp/"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"6bfc1e87477c66d274d6b2e38f7f0d3bbe809a0257a4645be861e6f557a39aa47d3bd88347013afa239c11ce152ad4189ddc41d2a24417156838987ed87e7f98a09f882be7a4cf4c94b02c355796713419da79f394204cf9e86f7f318d27f0aaadc3d8e7d4c4f8f707f02273f0cda4f1d7fba56ebbcdd800e07ac4ca9ca6667cbc69e4ed78e6558dd65167222676fefae35352ccfd7b4a47ecf73d66ec2cec83c0111fbfcd87cec0709058e73fd8abdceee6ce0340f7342c969d9e8619a33724021a1c7ba1828a949445b12ac8b5cec0edc2837dc421886d8ac718ff68ca50def201ec3fd1d1954e7225c1cfb15e7c8671cde205559cc29202e51c3d86fa1d5a\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local hash mismatch",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"0000000000000000000000000000000000000000000000000000000000000000\"}, {\"fileName\": \"result_2.csv.gz\", \"fileHashValue\": \"a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"75234c5b82475275f23810437f2675a8971d3a99265c9e4afaee7d53c92ae5f36a6cfd05ee98528d664d1ecb214d5afeb3beb5dac082b9c88432ab1b740457230fc582c92752e1c3255cf114a2719818a90009f7f8e702585b5c7a5dbbe77ac7549c0baa53d35c9cbd5e6aaad80a88b846f54c97251d0ec6af38bcc81c66bc24f55b76b67659eb794add4833aebf414444510e0328e68e1b3cddc06d2efd7ecf10c9b2ce62d54814f430971c9e27dbd9947490ce3a833a19e941c32c160c37362da559a04ef6485588f82c4f3aaa8b68548d7bf34b361c615aaaa703ffb7a2ed0861e446d5afd29ff46c87837b478b23053af35b5bb97799d20c500d1a3483b3\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo=",
+   "exp/result_2.csv.gz": "base64:Ywo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local missing export",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}, {\"fileName\": \"result_2.csv.gz\", \"fileHashValue\": \"a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"75234c5b82475275f23810437f2675a8971d3a99265c9e4afaee7d53c92ae5f36a6cfd05ee98528d664d1ecb214d5afeb3beb5dac082b9c88432ab1b740457230fc582c92752e1c3255cf114a2719818a90009f7f8e702585b5c7a5dbbe77ac7549c0baa53d35c9cbd5e6aaad80a88b846f54c97251d0ec6af38bcc81c66bc24f55b76b67659eb794add4833aebf414444510e0328e68e1b3cddc06d2efd7ecf10c9b2ce62d54814f430971c9e27dbd9947490ce3a833a19e941c32c160c37362da559a04ef6485588f82c4f3aaa8b68548d7bf34b361c615aaaa703ffb7a2ed0861e446d5afd29ff46c87837b478b23053af35b5bb97799d20c500d1a3483b3\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local missing sign file",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/x": "1"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local bad json",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{oops",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local no files",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"files\": []}"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local files not list",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"files\": 3}"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local unknown fingerprint",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"6bfc1e87477c66d274d6b2e38f7f0d3bbe809a0257a4645be861e6f557a39aa47d3bd88347013afa239c11ce152ad4189ddc41d2a24417156838987ed87e7f98a09f882be7a4cf4c94b02c355796713419da79f394204cf9e86f7f318d27f0aaadc3d8e7d4c4f8f707f02273f0cda4f1d7fba56ebbcdd800e07ac4ca9ca6667cbc69e4ed78e6558dd65167222676fefae35352ccfd7b4a47ecf73d66ec2cec83c0111fbfcd87cec0709058e73fd8abdceee6ce0340f7342c969d9e8619a33724021a1c7ba1828a949445b12ac8b5cec0edc2837dc421886d8ac718ff68ca50def201ec3fd1d1954e7225c1cfb15e7c8671cde205559cc29202e51c3d86fa1d5a\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"other\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local wrong signer",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"9a663d7737fdb86a909e17c95ca9043c63aa34763e068da97ccad8bd9163c99edbb6ffa624e8d44d4e4abd111958919d65582a2de61de29019b27209b23b8facb63223cba49bbbaff5bbcdd967b79b353319f3cc0f8bf6d08e406fc26e11a6b1e986ab4746a3d628e6fa42d55e8e3708816199004bb10c1a167805eaafd4234de3525a1dc0c0b3ac642c28bc4e5fc79cd4d749f0228a5e8d36c18e5e31d023357923f19f20490eda7b2e4f0a8f9ce795325431c1356718b3fc9c960793adc1ab0cc796ef22960c2bb583b33aaba26b5e84694c40502cf7dd74a0704d948a3488f964d91d20622818fed93a73653a6be7f60219ae80f4334e3a91765f94a7754f\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local bad key",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14T22:13:20Z\", \"hashSignature\": \"6bfc1e87477c66d274d6b2e38f7f0d3bbe809a0257a4645be861e6f557a39aa47d3bd88347013afa239c11ce152ad4189ddc41d2a24417156838987ed87e7f98a09f882be7a4cf4c94b02c355796713419da79f394204cf9e86f7f318d27f0aaadc3d8e7d4c4f8f707f02273f0cda4f1d7fba56ebbcdd800e07ac4ca9ca6667cbc69e4ed78e6558dd65167222676fefae35352ccfd7b4a47ecf73d66ec2cec83c0111fbfcd87cec0709058e73fd8abdceee6ce0340f7342c969d9e8619a33724021a1c7ba1828a949445b12ac8b5cec0edc2837dc421886d8ac718ff68ca50def201ec3fd1d1954e7225c1cfb15e7c8671cde205559cc29202e51c3d86fa1d5a\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"anVuaw==\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results local naive time",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--local-export-path",
+   "exp"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "exp/result_sign.json": "{\"version\": \"1.0\", \"region\": \"us-east-1\", \"files\": [{\"fileName\": \"result_1.csv.gz\", \"fileHashValue\": \"492d5ea496056f1a6a6592241032fab764c321596317930b4fa0e1e8bc3b7470\"}], \"hashAlgorithm\": \"SHA-256\", \"signatureAlgorithm\": \"SHA256withRSA\", \"queryCompleteTime\": \"2023-11-14 22:13:20\", \"hashSignature\": \"6bfc1e87477c66d274d6b2e38f7f0d3bbe809a0257a4645be861e6f557a39aa47d3bd88347013afa239c11ce152ad4189ddc41d2a24417156838987ed87e7f98a09f882be7a4cf4c94b02c355796713419da79f394204cf9e86f7f318d27f0aaadc3d8e7d4c4f8f707f02273f0cda4f1d7fba56ebbcdd800e07ac4ca9ca6667cbc69e4ed78e6558dd65167222676fefae35352ccfd7b4a47ecf73d66ec2cec83c0111fbfcd87cec0709058e73fd8abdceee6ce0340f7342c969d9e8619a33724021a1c7ba1828a949445b12ac8b5cec0edc2837dc421886d8ac718ff68ca50def201ec3fd1d1954e7225c1cfb15e7c8671cde205559cc29202e51c3d86fa1d5a\", \"publicKeyFingerprint\": \"fp1\"}",
+   "exp/result_1.csv.gz": "base64:YSxiCjEsMgo="
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results s3 valid",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--s3-bucket",
+   "b",
+   "--s3-prefix",
+   "q/1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:eyJ2ZXJzaW9uIjogIjEuMCIsICJyZWdpb24iOiAidXMtZWFzdC0xIiwgImZpbGVzIjogW3siZmlsZU5hbWUiOiAicmVzdWx0XzEuY3N2Lmd6IiwgImZpbGVIYXNoVmFsdWUiOiAiNDkyZDVlYTQ5NjA1NmYxYTZhNjU5MjI0MTAzMmZhYjc2NGMzMjE1OTYzMTc5MzBiNGZhMGUxZThiYzNiNzQ3MCJ9LCB7ImZpbGVOYW1lIjogInJlc3VsdF8yLmNzdi5neiIsICJmaWxlSGFzaFZhbHVlIjogImEzYTVlNzE1ZjBjYzU3NGE3M2MzZjliZWJiNmJjMjRmMzJmZmQ1YjY3YjM4NzI0NGMyYzkwOWRhNzc5YTE0NzgifV0sICJoYXNoQWxnb3JpdGhtIjogIlNIQS0yNTYiLCAic2lnbmF0dXJlQWxnb3JpdGhtIjogIlNIQTI1NndpdGhSU0EiLCAicXVlcnlDb21wbGV0ZVRpbWUiOiAiMjAyMy0xMS0xNFQyMjoxMzoyMFoiLCAiaGFzaFNpZ25hdHVyZSI6ICI3NTIzNGM1YjgyNDc1Mjc1ZjIzODEwNDM3ZjI2NzVhODk3MWQzYTk5MjY1YzllNGFmYWVlN2Q1M2M5MmFlNWYzNmE2Y2ZkMDVlZTk4NTI4ZDY2NGQxZWNiMjE0ZDVhZmViM2JlYjVkYWMwODJiOWM4ODQzMmFiMWI3NDA0NTcyMzBmYzU4MmM5Mjc1MmUxYzMyNTVjZjExNGEyNzE5ODE4YTkwMDA5ZjdmOGU3MDI1ODViNWM3YTVkYmJlNzdhYzc1NDljMGJhYTUzZDM1YzljYmQ1ZTZhYWFkODBhODhiODQ2ZjU0Yzk3MjUxZDBlYzZhZjM4YmNjODFjNjZiYzI0ZjU1Yjc2YjY3NjU5ZWI3OTRhZGQ0ODMzYWViZjQxNDQ0NDUxMGUwMzI4ZTY4ZTFiM2NkZGMwNmQyZWZkN2VjZjEwYzliMmNlNjJkNTQ4MTRmNDMwOTcxYzllMjdkYmQ5OTQ3NDkwY2UzYTgzM2ExOWU5NDFjMzJjMTYwYzM3MzYyZGE1NTlhMDRlZjY0ODU1ODhmODJjNGYzYWFhOGI2ODU0OGQ3YmYzNGIzNjFjNjE1YWFhYTcwM2ZmYjdhMmVkMDg2MWU0NDZkNWFmZDI5ZmY0NmM4NzgzN2I0NzhiMjMwNTNhZjM1YjViYjk3Nzk5ZDIwYzUwMGQxYTM0ODNiMyIsICJwdWJsaWNLZXlGaW5nZXJwcmludCI6ICJmcDEifQ=="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:YSxiCjEsMgo="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:Ywo="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results s3 root",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--s3-bucket",
+   "b"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:eyJ2ZXJzaW9uIjogIjEuMCIsICJyZWdpb24iOiAidXMtZWFzdC0xIiwgImZpbGVzIjogW3siZmlsZU5hbWUiOiAicmVzdWx0XzEuY3N2Lmd6IiwgImZpbGVIYXNoVmFsdWUiOiAiNDkyZDVlYTQ5NjA1NmYxYTZhNjU5MjI0MTAzMmZhYjc2NGMzMjE1OTYzMTc5MzBiNGZhMGUxZThiYzNiNzQ3MCJ9XSwgImhhc2hBbGdvcml0aG0iOiAiU0hBLTI1NiIsICJzaWduYXR1cmVBbGdvcml0aG0iOiAiU0hBMjU2d2l0aFJTQSIsICJxdWVyeUNvbXBsZXRlVGltZSI6ICIyMDIzLTExLTE0VDIyOjEzOjIwWiIsICJoYXNoU2lnbmF0dXJlIjogIjZiZmMxZTg3NDc3YzY2ZDI3NGQ2YjJlMzhmN2YwZDNiYmU4MDlhMDI1N2E0NjQ1YmU4NjFlNmY1NTdhMzlhYTQ3ZDNiZDg4MzQ3MDEzYWZhMjM5YzExY2UxNTJhZDQxODlkZGM0MWQyYTI0NDE3MTU2ODM4OTg3ZWQ4N2U3Zjk4YTA5Zjg4MmJlN2E0Y2Y0Yzk0YjAyYzM1NTc5NjcxMzQxOWRhNzlmMzk0MjA0Y2Y5ZTg2ZjdmMzE4ZDI3ZjBhYWFkYzNkOGU3ZDRjNGY4ZjcwN2YwMjI3M2YwY2RhNGYxZDdmYmE1NmViYmNkZDgwMGUwN2FjNGNhOWNhNjY2N2NiYzY5ZTRlZDc4ZTY1NThkZDY1MTY3MjIyNjc2ZmVmYWUzNTM1MmNjZmQ3YjRhNDdlY2Y3M2Q2NmVjMmNlYzgzYzAxMTFmYmZjZDg3Y2VjMDcwOTA1OGU3M2ZkOGFiZGNlZWU2Y2UwMzQwZjczNDJjOTY5ZDllODYxOWEzMzcyNDAyMWExYzdiYTE4MjhhOTQ5NDQ1YjEyYWM4YjVjZWMwZWRjMjgzN2RjNDIxODg2ZDhhYzcxOGZmNjhjYTUwZGVmMjAxZWMzZmQxZDE5NTRlNzIyNWMxY2ZiMTVlN2M4NjcxY2RlMjA1NTU5Y2MyOTIwMmU1MWMzZDg2ZmExZDVhIiwgInB1YmxpY0tleUZpbmdlcnByaW50IjogImZwMSJ9"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:YSxiCjEsMgo="
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   }
+  ]
+ },
+ {
+  "name": "cloudtrail verify-query-results s3 missing sign file",
+  "argv": [
+   "cloudtrail",
+   "verify-query-results",
+   "--s3-bucket",
+   "b"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>k</Key></Error>"
+   }
+  ]
+ }
+]

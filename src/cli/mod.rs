@@ -6,12 +6,13 @@
 //! `awscli/paramfile.py`, the generic customizations, and
 //! `botocore/validate.py`).
 
+pub(crate) mod alias;
 pub(crate) mod argparse;
 pub(crate) mod argprocess;
 pub mod arguments;
 pub(crate) mod commands;
 pub(crate) mod difflib;
-mod driver;
+pub(crate) mod driver;
 #[cfg(test)]
 mod fingerprint_tests;
 #[cfg(test)]
@@ -114,6 +115,8 @@ pub enum Command {
         path: Vec<String>,
         args: Vec<String>,
     },
+    /// An alias command (`awscli/alias.py`).
+    Alias(alias::Expansion),
 }
 
 /// Split the global options out of `args` (`args[0]` is the first argument
@@ -149,7 +152,22 @@ pub fn parse_command(
     globals: &GlobalArgs,
     config: &dyn ConfigLookup,
 ) -> Result<Command, CliError> {
-    let ctx = Ctx { globals, config };
+    parse_command_shadowed(rest, globals, config, &[])
+}
+
+/// [`parse_command`] after aliases that proxy to the built-in commands at
+/// the command paths `shadow`.
+pub fn parse_command_shadowed(
+    rest: &[String],
+    globals: &GlobalArgs,
+    config: &dyn ConfigLookup,
+    shadow: &[Vec<String>],
+) -> Result<Command, CliError> {
+    let ctx = Ctx {
+        globals,
+        config,
+        shadow,
+    };
     driver::dispatch(rest, &ctx).map_err(|f| render::render(f, Some(globals), Some(config)))
 }
 
@@ -170,7 +188,11 @@ pub(crate) fn parse_operation_with(
     config: &dyn ConfigLookup,
     hooks: &mut dyn OperationHooks,
 ) -> Result<Command, CliError> {
-    let ctx = Ctx { globals, config };
+    let ctx = Ctx {
+        globals,
+        config,
+        shadow: &[],
+    };
     driver::customized_operation(cli_service, name, args, &ctx, hooks)
         .map_err(|f| render::render(f, Some(globals), Some(config)))
 }
@@ -199,6 +221,8 @@ pub(crate) enum Fail {
 pub(crate) struct Ctx<'a> {
     pub globals: &'a GlobalArgs,
     pub config: &'a dyn ConfigLookup,
+    /// The command path an alias proxies to (its alias is not looked up).
+    pub shadow: &'a [Vec<String>],
 }
 
 thread_local! {

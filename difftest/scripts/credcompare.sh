@@ -17,7 +17,12 @@ rm -rf "$WORK"
 mkdir -p "$WORK"
 python3 "$ROOT/difftest/scripts/credstub.py" "$PORT" "$WORK/stub.log" &
 STUB=$!
-trap 'kill $STUB 2>/dev/null' EXIT
+# Stubs with several accounts and roles for the configure sso menus.
+CREDSTUB_ACCOUNTS=3 CREDSTUB_ROLES=2 python3 "$ROOT/difftest/scripts/credstub.py" "$((PORT + 1))" "$WORK/stub-multi.log" &
+STUB_MULTI=$!
+CREDSTUB_ACCOUNTS=12 python3 "$ROOT/difftest/scripts/credstub.py" "$((PORT + 2))" "$WORK/stub-many.log" &
+STUB_MANY=$!
+trap 'kill $STUB $STUB_MULTI $STUB_MANY 2>/dev/null' EXIT
 sleep 0.5
 STUBURL=http://127.0.0.1:$PORT
 pass=0
@@ -267,6 +272,17 @@ case_ sso-login-noport "$SSO" "" --profile sso sso login --redirect-port abc
 case_ sso-session-configure "" 'mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\n' configure sso-session
 case_ sso-session-eof "" 'x\n' configure sso-session
 case_ configure-sso "" 'mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\nus-west-2\njson\nmyprof\n' configure sso --use-device-code --no-browser
+SSO_IN='mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\n'
+MULTI="AWS_ENDPOINT_URL_SSO_OIDC=http://127.0.0.1:$((PORT + 1)) AWS_ENDPOINT_URL_SSO=http://127.0.0.1:$((PORT + 1))"
+MANY="AWS_ENDPOINT_URL_SSO_OIDC=http://127.0.0.1:$((PORT + 2)) AWS_ENDPOINT_URL_SSO=http://127.0.0.1:$((PORT + 2))"
+CASE_ENV=$MULTI case_ configure-sso-accounts-eof "" "$SSO_IN" configure sso --use-device-code --no-browser
+CASE_ENV=$MULTI case_ configure-sso-accounts-enter "" "${SSO_IN}\r" configure sso --use-device-code --no-browser
+CASE_ENV=$MULTI case_ configure-sso-accounts-down "" "${SSO_IN}x\\x1b[B\\x1b[B\r\r" configure sso --use-device-code --no-browser
+CASE_ENV=$MULTI case_ configure-sso-accounts-wrap "" "${SSO_IN}\\x1b[A\\x1b[B\\x1b[B\\x1b[B\\x1b[B\r" configure sso --use-device-code --no-browser
+CASE_ENV=$MULTI case_ configure-sso-accounts-newline "" "${SSO_IN}\n\n" configure sso --use-device-code --no-browser
+CASE_ENV=$MULTI case_ configure-sso-accounts-interrupt "" "${SSO_IN}\\x03" configure sso --use-device-code --no-browser
+CASE_ENV=$MANY case_ configure-sso-accounts-scroll "" "${SSO_IN}\\x1b[A\r" configure sso --use-device-code --no-browser
+CASE_ENV=$MANY case_ configure-sso-accounts-many-eof "" "${SSO_IN}" configure sso --use-device-code --no-browser
 case_ configure-sso-legacy "" '\nhttps://d-1.awsapps.com/start\nus-east-1\n\n\n\n' configure sso --use-device-code --no-browser
 
 # login / logout

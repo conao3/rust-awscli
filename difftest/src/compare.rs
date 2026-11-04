@@ -86,6 +86,19 @@ fn body_text(content_type: &str, body: &[u8]) -> String {
     }
 }
 
+/// The signing region and service of a SigV4 `Authorization` header (the
+/// rest depends on the time and the signer).
+fn masked_authorization(value: &str) -> String {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    let re = RE.get_or_init(|| {
+        Regex::new(r"Credential=[^/]*/[0-9]{8}/([^/]+)/([^/]+)/aws4_request").unwrap()
+    });
+    match re.captures(value) {
+        Some(c) => format!("<masked scope={}/{}>", &c[1], &c[2]),
+        None => "<masked>".to_string(),
+    }
+}
+
 pub fn render_request(r: &Recorded) -> String {
     let mut out = format!("{} {}\n", r.method, r.target);
     // A generated idempotency token in the body makes its checksums
@@ -97,7 +110,9 @@ pub fn render_request(r: &Recorded) -> String {
         .map(|(k, v)| {
             let k = k.to_ascii_lowercase();
             let body_digest = k.starts_with("x-amz-checksum-") || k == "content-md5";
-            let v = if MASKED_HEADERS.contains(&k.as_str()) || (body_has_uuid && body_digest) {
+            let v = if k == "authorization" {
+                masked_authorization(&String::from_utf8_lossy(v))
+            } else if MASKED_HEADERS.contains(&k.as_str()) || (body_has_uuid && body_digest) {
                 "<masked>".to_string()
             } else {
                 String::from_utf8_lossy(v).into_owned()

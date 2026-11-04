@@ -25,16 +25,89 @@ pub(crate) fn dispatch(rest: &[String], ctx: &Ctx<'_>) -> Result<Command, Fail> 
     if command == "help" {
         return provider_help(remaining);
     }
+    if !shadowed(ctx, &[command])
+        && let Some(value) = super::alias::find(&[], command)?
+    {
+        return Ok(Command::Alias(super::alias::toplevel(
+            command,
+            &value,
+            remaining,
+            ctx.globals,
+        )?));
+    }
     match find_main(command) {
         Some(MainCommand::Service(cli, service)) => service_command(cli, service, remaining, ctx),
-        Some(MainCommand::Custom(name)) => Ok(Command::Custom {
-            path: vec![name.to_string()],
-            args: remaining.to_vec(),
-        }),
+        Some(MainCommand::Custom(name)) => {
+            if let Some(command) = custom_subcommand_alias(name, remaining, ctx)? {
+                return Ok(command);
+            }
+            Ok(Command::Custom {
+                path: vec![name.to_string()],
+                args: remaining.to_vec(),
+            })
+        }
         None => Err(argparse_error(&format!(
             "argument command: Found invalid choice '{command}'\n"
         ))),
     }
+}
+
+/// `BasicCommand.__call__` of a command with subcommands when its
+/// subcommand table has aliases (`AliasSubCommandInjector`): the alias
+/// the `subcommand` positional names, if any.
+fn custom_subcommand_alias(
+    name: &str,
+    args: &[String],
+    ctx: &Ctx<'_>,
+) -> Result<Option<Command>, Fail> {
+    let subcommands: &[&str] = match name {
+        "s3" => crate::commands::s3::SUBCOMMANDS,
+        "configure" => crate::commands::configure::SUBCOMMANDS,
+        _ => return Ok(None),
+    };
+    let aliases = super::alias::get(&[name])?;
+    if aliases.is_empty() || (args.len() == 1 && args[0] == "help") {
+        return Ok(None);
+    }
+    let mut choices: Vec<String> = subcommands.iter().map(|s| s.to_string()).collect();
+    super::alias::extend_choices(&[name], &mut choices)?;
+    let mut parser = Parser::new();
+    let mut sub = Action::positional("subcommand", Nargs::Optional);
+    sub.choices = Some(choices);
+    parser.add(sub);
+    let ns = match parser
+        .parse_known_args(args)
+        .map_err(|e| argparse_error(&e.to_string()))?
+    {
+        Parsed::Args { ns, .. } => ns,
+        Parsed::Version => unreachable!("no version action"),
+    };
+    let NsVal::Str(sub) = &ns["subcommand"] else {
+        return Ok(None);
+    };
+    if shadowed(ctx, &[name, sub]) {
+        return Ok(None);
+    }
+    let Some((_, value)) = aliases.iter().find(|(n, _)| n == sub) else {
+        return Ok(None);
+    };
+    let mut new_args = args.to_vec();
+    if let Some(p) = new_args.iter().position(|a| a == sub) {
+        new_args.remove(p);
+    }
+    Ok(Some(Command::Alias(super::alias::subcommand(
+        &[name],
+        sub,
+        value,
+        &new_args,
+        ctx.globals,
+        subcommands.contains(&sub.as_str()),
+    )?)))
+}
+
+/// Whether the alias of the command path `path` is skipped.
+fn shadowed(ctx: &Ctx<'_>, path: &[&str]) -> bool {
+    ctx.shadow.iter().any(|s| s == path)
 }
 
 /// The `session-initialized` handlers that can fail
@@ -99,6 +172,7 @@ fn service_command(
     let model = ServiceModel::load(service).map_err(|e| Fail::General(e.to_string()))?;
     let table = service_commands(cli, &model);
     let mut choices: Vec<String> = table.iter().map(|(n, _)| n.clone()).collect();
+    super::alias::extend_choices(&[cli], &mut choices)?;
     choices.push("help".to_string());
     let mut parser = Parser::new();
     let mut operation = Action::positional("operation", Nargs::One);
@@ -116,6 +190,19 @@ fn service_command(
     };
     if name == "help" {
         return Ok(Command::Help(HelpRequest::Service(cli.to_string())));
+    }
+    if !shadowed(ctx, &[cli, name])
+        && let Some(value) = super::alias::find(&[cli], name)?
+    {
+        let proxied = table.iter().any(|(n, _)| n == name);
+        return Ok(Command::Alias(super::alias::subcommand(
+            &[cli],
+            name,
+            &value,
+            &remaining,
+            ctx.globals,
+            proxied,
+        )?));
     }
     let entry = table
         .iter()
@@ -135,7 +222,13 @@ fn service_command(
             }
             let op = model.operation(&op).expect("operation");
             let path = CommandPath { parent: cli, name };
-            match operation::run(&op, path, &remaining, ctx)? {
+            match operation::run_with(
+                &op,
+                path,
+                &remaining,
+                ctx,
+                &mut service_hooks(cli, ctx, &remaining),
+            )? {
                 Invocation::Print(text) => Ok(Command::Print(text)),
                 Invocation::Help { clear_required } => Ok(Command::Help(HelpRequest::Operation {
                     service: cli.to_string(),
@@ -215,6 +308,41 @@ pub(crate) fn customized_operation(
     }
 }
 
+/// The handlers registered for every command of a service
+/// (`before-building-argument-table-parser.emr.*`:
+/// `emr.command.override_args_required_option`).
+struct ServiceHooks {
+    /// Keys of the profile's `emr` section.
+    emr_config_keys: Vec<String>,
+}
+
+fn service_hooks(cli: &str, ctx: &Ctx<'_>, args: &[String]) -> ServiceHooks {
+    let help = args.len() == 1 && args[0] == "help";
+    ServiceHooks {
+        emr_config_keys: if cli == "emr" && !help {
+            ctx.config.nested_keys("emr")
+        } else {
+            Vec::new()
+        },
+    }
+}
+
+impl super::OperationHooks for ServiceHooks {
+    fn table<'m>(&mut self, _op: &crate::model::Operation<'m>, table: &mut super::ArgTable<'m>) {
+        override_emr_required(&self.emr_config_keys, table);
+    }
+}
+
+/// `override_args_required_option`: arguments whose name is a key of the
+/// profile's `emr` section are not required.
+pub(crate) fn override_emr_required(keys: &[String], table: &mut super::ArgTable<'_>) {
+    for (name, arg) in table.iter_mut() {
+        if keys.contains(&name.replace('-', "_")) {
+            arg.required = false;
+        }
+    }
+}
+
 /// `WaitCommand` (`BasicCommand.__call__` with the waiter subcommands).
 fn wait_command(
     cli: &str,
@@ -228,7 +356,17 @@ fn wait_command(
     }
     let mut parser = Parser::new();
     let mut sub = Action::positional("subcommand", Nargs::Optional);
-    sub.choices = Some(waiters.iter().map(|(n, _)| n.clone()).collect());
+    // `WaitCommand._build_subcommand_table` adds the waiters after the
+    // `building-command-table` handlers: an alias named like a waiter is
+    // replaced by it.
+    let mut choices: Vec<String> = Vec::new();
+    super::alias::extend_choices(&[cli, "wait"], &mut choices)?;
+    for (n, _) in &waiters {
+        if !choices.contains(n) {
+            choices.push(n.clone());
+        }
+    }
+    sub.choices = Some(choices);
     parser.add(sub);
     let (ns, remaining) = match parser
         .parse_known_args(args)
@@ -253,6 +391,18 @@ fn wait_command(
     let mut new_args = args.to_vec();
     if let Some(p) = new_args.iter().position(|a| a == sub) {
         new_args.remove(p);
+    }
+    if !waiters.iter().any(|(n, _)| n == sub)
+        && let Some(value) = super::alias::find(&[cli, "wait"], sub)?
+    {
+        return Ok(Command::Alias(super::alias::subcommand(
+            &[cli, "wait"],
+            sub,
+            &value,
+            &new_args,
+            ctx.globals,
+            false,
+        )?));
     }
     let waiter = waiters
         .iter()

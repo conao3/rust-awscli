@@ -55,6 +55,39 @@ pub struct Scenario {
     /// known gaps outside the command under test.
     #[serde(default)]
     pub ignore_headers: Vec<String>,
+    /// Compare only the stderr log records (a line starting with a
+    /// `logging` timestamp and the lines after it) that match this
+    /// regular expression, with the timestamps masked (`--debug`).
+    #[serde(default)]
+    pub stderr_records: Option<String>,
+}
+
+/// Keep the `logging` records of `stderr` that match `filter`.
+fn filter_records(stderr: &[u8], filter: &regex::Regex) -> Vec<u8> {
+    let stamp =
+        regex::Regex::new(r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} ")
+            .expect("timestamp regex");
+    let text = String::from_utf8_lossy(stderr);
+    let mut records: Vec<String> = Vec::new();
+    let mut open = false;
+    for line in text.split_inclusive('\n') {
+        match (stamp.find(line), records.last_mut()) {
+            (Some(m), _) => {
+                records.push(format!("<time> {}", &line[m.end()..]));
+                open = true;
+            }
+            // An empty line ends the record (the error message after the
+            // log).
+            _ if line == "\n" => open = false,
+            (None, Some(last)) if open => last.push_str(line),
+            _ => {}
+        }
+    }
+    records
+        .into_iter()
+        .filter(|r| filter.is_match(r))
+        .collect::<String>()
+        .into_bytes()
 }
 
 fn apply_masks(masks: &[regex::Regex], out: &mut RunOut, reqs: &mut [crate::server::Recorded]) {
@@ -81,6 +114,11 @@ fn apply_masks(masks: &[regex::Regex], out: &mut RunOut, reqs: &mut [crate::serv
             }
         }
         r.target = String::from_utf8_lossy(&mask(r.target.as_bytes())).into_owned();
+        for (k, v) in &mut r.headers {
+            if !k.eq_ignore_ascii_case("content-length") {
+                *v = mask(v);
+            }
+        }
     }
 }
 
@@ -215,6 +253,11 @@ pub async fn exec(
         .collect::<Result<Vec<_>, _>>()?;
     apply_masks(&masks, &mut ra, &mut qa);
     apply_masks(&masks, &mut rb, &mut qb);
+    if let Some(f) = &s.stderr_records {
+        let re = regex::Regex::new(f)?;
+        ra.stderr = filter_records(&ra.stderr, &re);
+        rb.stderr = filter_records(&rb.stderr, &re);
+    }
     for r in qa.iter_mut().chain(qb.iter_mut()) {
         r.headers
             .retain(|(k, _)| !s.ignore_headers.contains(&k.to_ascii_lowercase()));

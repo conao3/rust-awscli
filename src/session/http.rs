@@ -367,6 +367,24 @@ impl HttpClient {
                 Err(SendError::Stale) => {}
             }
         }
+        if crate::debuglog::enabled() {
+            static CONNECTIONS: Mutex<Option<HashMap<String, usize>>> = Mutex::new(None);
+            let mut counts = CONNECTIONS.lock().unwrap();
+            let n = counts
+                .get_or_insert_with(HashMap::new)
+                .entry(key.clone())
+                .or_insert(0);
+            *n += 1;
+            crate::debuglog::debug(
+                "urllib3.connectionpool",
+                &format!(
+                    "Starting new {} connection ({n}): {}:{}",
+                    parts.scheme.to_uppercase(),
+                    parts.hostname,
+                    parts.effective_port()
+                ),
+            );
+        }
         let conn = self.connect(url, &parts, proxy.as_ref()).await?;
         match self
             .exchange(
@@ -605,6 +623,22 @@ impl HttpClient {
                 break (status, hs);
             }
         };
+        if crate::debuglog::enabled() {
+            let length = resp_headers
+                .iter()
+                .find(|(k, _)| k.eq_ignore_ascii_case("content-length"))
+                .map(|(_, v)| v.trim().to_string())
+                .unwrap_or_else(|| "None".to_string());
+            crate::debuglog::debug(
+                "urllib3.connectionpool",
+                &format!(
+                    "{}://{}:{} \"{method} {target} HTTP/1.1\" {status} {length}",
+                    parts.scheme,
+                    parts.hostname,
+                    parts.effective_port()
+                ),
+            );
+        }
         let get = |name: &str| {
             resp_headers
                 .iter()
@@ -627,9 +661,10 @@ impl HttpClient {
                 closed()
             }
         };
+        let feed = status < 300;
         if !no_body {
             if get("transfer-encoding").is_some_and(|t| t.to_lowercase().contains("chunked")) {
-                read_chunked(&mut conn, &mut resp_body, read_timeout)
+                read_chunked(&mut conn, &mut resp_body, read_timeout, feed)
                     .await
                     .map_err(body_err)?;
             } else if let Some(len) =
@@ -648,6 +683,7 @@ impl HttpClient {
                         keep_alive = false;
                         break;
                     }
+                    feed_sink(feed, &resp_body[filled..filled + n]);
                     filled += n;
                 }
             } else {
@@ -660,6 +696,7 @@ impl HttpClient {
                     if n == 0 {
                         break;
                     }
+                    feed_sink(feed, &buf[..n]);
                     resp_body.extend_from_slice(&buf[..n]);
                 }
             }
@@ -769,10 +806,32 @@ async fn read_head(
     Ok((status, reason, headers))
 }
 
+/// A receiver of the body bytes of successful responses as they are read
+/// (an event stream read while it arrives, as `EventStream` iterates
+/// `raw_stream.stream()`).
+pub type BodySink = Box<dyn FnMut(&[u8]) + Send>;
+
+static BODY_SINK: std::sync::Mutex<Option<BodySink>> = std::sync::Mutex::new(None);
+
+/// Install (or remove) the [`BodySink`] the next responses feed.
+pub fn set_body_sink(sink: Option<BodySink>) {
+    *BODY_SINK.lock().unwrap() = sink;
+}
+
+fn feed_sink(feed: bool, data: &[u8]) {
+    if feed
+        && !data.is_empty()
+        && let Some(sink) = BODY_SINK.lock().unwrap().as_mut()
+    {
+        sink(data);
+    }
+}
+
 async fn read_chunked(
     conn: &mut Conn,
     out: &mut Vec<u8>,
     timeout: Option<Duration>,
+    feed: bool,
 ) -> std::io::Result<()> {
     let invalid = || std::io::Error::new(std::io::ErrorKind::InvalidData, "bad chunk");
     loop {
@@ -798,6 +857,7 @@ async fn read_chunked(
         let start = out.len();
         out.resize(start + size, 0);
         timed(timeout, conn.read_exact(&mut out[start..])).await?;
+        feed_sink(feed, &out[start..]);
         let mut crlf = Vec::new();
         timed(timeout, conn.read_until(b'\n', &mut crlf)).await?;
     }

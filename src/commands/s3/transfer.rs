@@ -1200,9 +1200,35 @@ impl Iterator for Comparator<'_> {
 // The command (`S3TransferCommand._run_main`, `CommandArchitecture`).
 
 pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fail> {
-    let client = Client::new(ctx).map_err(S3Fail::Other)?;
     let page_size = args.int("page_size");
     let mut p = build_params(ctx, cmd, args)?;
+    // `S3TransferCommand._get_source_and_transfer_clients`
+    // (`ClientFactory.create_client`): a `--source-region` copy reads the
+    // source with a client of that region and without `--endpoint-url`.
+    let source_region = p
+        .s("source_region")
+        .filter(|_| p.paths_type() == "s3s3")
+        .map(str::to_string);
+    if let Some(r) = &source_region {
+        crate::session::validate_region_name(r).map_err(|e| S3Fail::Other(e.into()))?;
+    }
+    let src_client = Client::with_config(
+        ctx,
+        crate::driver::ClientConfig {
+            region: source_region.clone().map(Some),
+            without_endpoint_url: source_region.is_some(),
+            id: 1,
+        },
+    )
+    .map_err(S3Fail::Other)?;
+    let client = Client::with_config(
+        ctx,
+        crate::driver::ClientConfig {
+            id: 2,
+            ..Default::default()
+        },
+    )
+    .map_err(S3Fail::Other)?;
     p.set("page_size", page_size.map_or(Value::Null, Value::int));
     let cfg = runtime_config(ctx, &p)?;
     let cmd = p.cmd.clone();
@@ -1247,7 +1273,7 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
     let mut rgen_head = Map::new();
     mapper::request_payer_only(&mut rgen_head, &p.a);
     let fgen = Generator {
-        client: &client,
+        client: &src_client,
         operation_name: operation_name.to_string(),
         follow_symlinks: p.t("follow_symlinks"),
         page_size,
@@ -1372,6 +1398,7 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
     }
     let handler = Handler {
         client: &client,
+        src_client: &src_client,
         cfg: cfg.clone(),
         p: handler_params,
         results: results.clone(),
@@ -1400,6 +1427,8 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
 
 struct Handler<'a> {
     client: &'a Client<'a>,
+    /// `fileinfo.source_client`.
+    src_client: &'a Client<'a>,
     cfg: TransferConfig,
     p: Args,
     results: Sender<TResult>,
@@ -1416,12 +1445,31 @@ struct Tx {
     size: Option<i64>,
 }
 
+/// The annotations a multipart copy writes to the new object.
+type Annotations = Arc<Mutex<Option<Vec<(String, Vec<u8>)>>>>;
+
 /// What a job needs to finish a transfer.
 type Done<'s> = Box<dyn FnOnce(Result<(), TransferError>) + Send + 's>;
 
 enum TransferError {
     Call(CallError),
     Message(String),
+    /// The transfer was cancelled by Ctrl-C before its request was sent.
+    Interrupted,
+}
+
+/// Set by SIGINT during a transfer command (`KeyboardInterrupt`).
+static INTERRUPTED: AtomicBool = AtomicBool::new(false);
+
+/// SIGINT stops the submissions and cancels the transfers whose requests
+/// are not in flight instead of ending the process.
+fn catch_interrupt() {
+    extern "C" fn on_sigint(_: libc::c_int) {
+        INTERRUPTED.store(true, Ordering::SeqCst);
+    }
+    unsafe {
+        libc::signal(libc::SIGINT, on_sigint as *const () as libc::sighandler_t);
+    }
 }
 
 impl std::fmt::Display for TransferError {
@@ -1429,6 +1477,7 @@ impl std::fmt::Display for TransferError {
         match self {
             TransferError::Call(e) => write!(f, "{e}"),
             TransferError::Message(m) => f.write_str(m),
+            TransferError::Interrupted => f.write_str("KeyboardInterrupt()"),
         }
     }
 }
@@ -1517,6 +1566,7 @@ impl<'a> Handler<'a> {
     }
 
     fn run(&self, items: Box<dyn Iterator<Item = Item> + '_>) {
+        catch_interrupt();
         let pool = Pool::new(self.cfg.max_queue_size as usize);
         let workers = self.cfg.max_concurrent_requests.max(1) as usize;
         let total = AtomicUsize::new(0);
@@ -1526,6 +1576,9 @@ impl<'a> Handler<'a> {
             }
             let mut items = items.peekable();
             while let Some(item) = items.next() {
+                if INTERRUPTED.load(Ordering::SeqCst) {
+                    break;
+                }
                 // Look one item ahead so that an error raised while
                 // generating the next file stops the command before the
                 // current one is submitted.
@@ -1558,9 +1611,17 @@ impl<'a> Handler<'a> {
                     }
                 }
             }
-            self.send(TResult::FinalTotal(total.load(Ordering::SeqCst)));
+            if !INTERRUPTED.load(Ordering::SeqCst) {
+                self.send(TResult::FinalTotal(total.load(Ordering::SeqCst)));
+            }
             pool.close();
             pool.wait_idle();
+            // `KeyboardInterrupt` out of the `TransferManager` block: the
+            // transfers not in flight were cancelled, then
+            // `CommandResultRecorder.__exit__` records the exception.
+            if INTERRUPTED.load(Ordering::SeqCst) {
+                self.send(TResult::Error(String::new()));
+            }
         });
     }
 
@@ -1611,16 +1672,29 @@ impl<'a> Handler<'a> {
         }
         match r {
             Ok(()) => self.send(TResult::Success(tx.loc.clone())),
+            Err(TransferError::Interrupted) => self.send(TResult::CtrlC),
             Err(e) if e.precondition_failed() => self.send(TResult::Skip),
             Err(e) => self.send(TResult::Failure(tx.loc.clone(), e.to_string())),
         }
     }
 
     fn call(&self, op: &str, params: Map) -> Result<Map, TransferError> {
+        self.call_with(self.client, op, params)
+    }
+
+    /// A call of the source client.
+    fn src_call(&self, op: &str, params: Map) -> Result<Map, TransferError> {
+        self.call_with(self.src_client, op, params)
+    }
+
+    fn call_with(&self, client: &Client<'_>, op: &str, params: Map) -> Result<Map, TransferError> {
         if self.cancelled.load(Ordering::SeqCst) {
             return Err(TransferError::Message("cancelled".into()));
         }
-        self.client.call(op, params).map_err(TransferError::Call)
+        if INTERRUPTED.load(Ordering::SeqCst) {
+            return Err(TransferError::Interrupted);
+        }
+        client.call(op, params).map_err(TransferError::Call)
     }
 
     fn throttle(&self, n: usize) {
@@ -2086,7 +2160,7 @@ impl<'a> Handler<'a> {
                     if let Some(rp) = request_payer {
                         params.insert("RequestPayer".into(), rp);
                     }
-                    self.call("DeleteObject", params)?;
+                    self.src_call("DeleteObject", params)?;
                 }
                 Ok(())
             });
@@ -2281,6 +2355,10 @@ impl<'a> Handler<'a> {
         let (sb2, sk2) = (sb.clone(), sk.clone());
         let tags_after: Arc<Mutex<Option<Vec<Value>>>> = Arc::new(Mutex::new(None));
         let tags_after2 = tags_after.clone();
+        let annotations: Annotations = Arc::new(Mutex::new(None));
+        let annotations2 = annotations.clone();
+        let completed: Arc<Mutex<Option<Map>>> = Arc::default();
+        let completed2 = completed.clone();
         let (b2, k2) = (bucket.clone(), key.clone());
         let done: Done<'s> = Box::new(move |r| {
             let r = r.and_then(|()| {
@@ -2305,13 +2383,50 @@ impl<'a> Handler<'a> {
                         return Err(e);
                     }
                 }
+                // `SetAnnotationsSubscriber._on_success`.
+                if let Some(list) = annotations2.lock().unwrap().take() {
+                    let response = completed2.lock().unwrap().clone().unwrap_or_default();
+                    let (mut succeeded, mut failed) = (Vec::new(), Vec::new());
+                    for (name, payload) in list {
+                        let mut params = map(&[
+                            ("Bucket", Value::str(&b2)),
+                            ("Key", Value::str(&k2)),
+                            ("AnnotationName", Value::str(&name)),
+                            ("AnnotationPayload", Value::Bytes(payload)),
+                        ]);
+                        if let Some(rp) = &request_payer {
+                            params.insert("RequestPayer".into(), rp.clone());
+                        }
+                        if let Some(etag) = response.get("ETag") {
+                            params.insert("ObjectIfMatch".into(), etag.clone());
+                        }
+                        if let Some(v) = response.get("VersionId") {
+                            params.insert("VersionId".into(), v.clone());
+                        }
+                        match self.call("PutObjectAnnotation", params) {
+                            Ok(_) => succeeded.push(name),
+                            Err(e) => failed.push(format!("{name}: {e}")),
+                        }
+                    }
+                    if !failed.is_empty() {
+                        let written = if succeeded.is_empty() {
+                            "(none)".to_string()
+                        } else {
+                            succeeded.join(", ")
+                        };
+                        return Err(TransferError::Message(format!(
+                            "Failed to copy all annotations to s3://{b2}/{k2}. The object was copied successfully and was not deleted. Annotations written: {written}. Annotations that failed: {}.",
+                            failed.join("; ")
+                        )));
+                    }
+                }
                 if is_move {
                     let mut params =
                         map(&[("Bucket", Value::str(&sb2)), ("Key", Value::str(&sk2))]);
                     if let Some(rp) = &request_payer {
                         params.insert("RequestPayer".into(), rp.clone());
                     }
-                    self.call("DeleteObject", params)?;
+                    self.src_call("DeleteObject", params)?;
                 }
                 Ok(())
             });
@@ -2332,7 +2447,15 @@ impl<'a> Handler<'a> {
         let copy_source = copy_source_string(&sb, &sk);
         let r: Result<(), TransferError> = (|| {
             if !self.p.truthy("metadata_directive") {
-                self.copy_props(&mut extra, &sb, &sk, size, head_response, &tags_after)?;
+                self.copy_props(
+                    &mut extra,
+                    &sb,
+                    &sk,
+                    size,
+                    head_response,
+                    &tags_after,
+                    &annotations,
+                )?;
             }
             if size.is_none() || etag.is_none() {
                 let mut head = map(&[("Bucket", Value::str(&sb)), ("Key", Value::str(&sk))]);
@@ -2351,7 +2474,7 @@ impl<'a> Handler<'a> {
                         head.insert(to.into(), v.clone());
                     }
                 }
-                let resp = self.call("HeadObject", head)?;
+                let resp = self.src_call("HeadObject", head)?;
                 size = resp.get("ContentLength").and_then(Value::as_i64);
                 etag = resp.get("ETag").and_then(Value::as_str).map(str::to_string);
             }
@@ -2432,6 +2555,7 @@ impl<'a> Handler<'a> {
                 .get("ChecksumAlgorithm")
                 .and_then(Value::as_str)
                 .map(|a| format!("Checksum{}", a.to_uppercase())),
+            completed: completed.clone(),
         };
         pool.submit(Box::new(move |pool: &Pool<'s>| {
             let Some(mpu) = self.create_mpu(spec, done) else {
@@ -2487,6 +2611,7 @@ impl<'a> Handler<'a> {
     }
 
     /// `CopyPropsSubscriberFactory` subscribers' `on_queued`.
+    #[allow(clippy::too_many_arguments)]
     fn copy_props(
         &self,
         extra: &mut Map,
@@ -2495,6 +2620,7 @@ impl<'a> Handler<'a> {
         size: Option<i64>,
         head_response: Option<Map>,
         tags_after: &Arc<Mutex<Option<Vec<Value>>>>,
+        annotations: &Annotations,
     ) -> Result<(), TransferError> {
         let props = self.p.str("copy_props").unwrap_or("default").to_string();
         let multipart = size.is_some_and(|s| s >= self.cfg.multipart_threshold);
@@ -2522,7 +2648,7 @@ impl<'a> Handler<'a> {
                         let mut params =
                             map(&[("Bucket", Value::str(sb)), ("Key", Value::str(sk))]);
                         mapper::head_object_with_copy_source_sse(&mut params, &self.p);
-                        self.call("HeadObject", params)?
+                        self.src_call("HeadObject", params)?
                     }
                 };
                 for p in PROPS {
@@ -2541,7 +2667,7 @@ impl<'a> Handler<'a> {
             }
             let mut params = map(&[("Bucket", Value::str(sb)), ("Key", Value::str(sk))]);
             mapper::request_payer_only(&mut params, &self.p);
-            let resp = self.call("GetObjectTagging", params)?;
+            let resp = self.src_call("GetObjectTagging", params)?;
             let tags = resp
                 .get("TagSet")
                 .and_then(Value::as_list)
@@ -2573,6 +2699,71 @@ impl<'a> Handler<'a> {
             }
             Ok(())
         };
+        // `SetAnnotationsSubscriber.on_queued`: a multipart copy reads the
+        // source's annotations to write them after the copy.
+        let copy_annotations = || -> Result<(), TransferError> {
+            if !multipart {
+                return Ok(());
+            }
+            let version_id = head_response
+                .as_ref()
+                .and_then(|h| h.get("VersionId"))
+                .cloned();
+            let base = |extra: &[(&str, Value)]| {
+                let mut params = map(&[("Bucket", Value::str(sb)), ("Key", Value::str(sk))]);
+                for (k, v) in extra {
+                    params.insert((*k).to_string(), v.clone());
+                }
+                mapper::request_payer_only(&mut params, &self.p);
+                if let Some(v) = &version_id {
+                    params.insert("VersionId".into(), v.clone());
+                }
+                params
+            };
+            let mut names = Vec::new();
+            let mut token: Option<Value> = None;
+            loop {
+                let mut params = base(&[]);
+                if let Some(t) = &token {
+                    params.insert("ContinuationToken".into(), t.clone());
+                }
+                let page = self.src_call("ListObjectAnnotations", params)?;
+                for a in page
+                    .get("Annotations")
+                    .and_then(Value::as_list)
+                    .map(Vec::as_slice)
+                    .unwrap_or_default()
+                {
+                    if let Some(n) = a.get("AnnotationName").and_then(Value::as_str) {
+                        names.push(n.to_string());
+                    }
+                }
+                match page.get("NextContinuationToken") {
+                    Some(t) if t.is_truthy() && Some(t) != token.as_ref() => {
+                        token = Some(t.clone())
+                    }
+                    _ => break,
+                }
+            }
+            if names.is_empty() {
+                return Ok(());
+            }
+            let mut out = Vec::new();
+            for name in names {
+                let resp = self.src_call(
+                    "GetObjectAnnotation",
+                    base(&[("AnnotationName", Value::str(&name))]),
+                )?;
+                let payload = match resp.get("AnnotationPayload") {
+                    Some(Value::Bytes(b)) => b.clone(),
+                    Some(Value::Str(s)) => s.clone().into_bytes(),
+                    _ => Vec::new(),
+                };
+                out.push((name, payload));
+            }
+            *annotations.lock().unwrap() = Some(out);
+            Ok(())
+        };
         match props.as_str() {
             "none" => {
                 extra.insert("MetadataDirective".into(), Value::str("REPLACE"));
@@ -2587,6 +2778,7 @@ impl<'a> Handler<'a> {
             "all" => {
                 metadata_props(extra)?;
                 set_tags(extra)?;
+                copy_annotations()?;
             }
             _ => {
                 metadata_props(extra)?;
@@ -2696,6 +2888,8 @@ struct UploadSpec {
     complete_extra: Map,
     /// `Checksum{ALGORITHM}`, copied from part responses into the parts.
     checksum_member: Option<String>,
+    /// The `CompleteMultipartUpload` response (`future.result()`).
+    completed: Arc<Mutex<Option<Map>>>,
 }
 
 /// The upload arguments of `UploadSubmissionTask._submit_multipart_request`.
@@ -2742,6 +2936,7 @@ fn upload_spec(tx: Tx, bucket: &str, key: &str, mut extra: Map) -> UploadSpec {
             .get("ChecksumAlgorithm")
             .and_then(Value::as_str)
             .map(|a| format!("Checksum{}", a.to_uppercase())),
+        completed: Arc::default(),
     }
 }
 
@@ -2885,7 +3080,10 @@ impl<'s, 'a> Mpu<'s, 'a> {
                         &me.spec.complete_extra,
                     );
                     match me.h.call("CompleteMultipartUpload", params) {
-                        Ok(_) => Ok(()),
+                        Ok(resp) => {
+                            *me.spec.completed.lock().unwrap() = Some(resp);
+                            Ok(())
+                        }
                         Err(e) => {
                             abort();
                             Err(e)

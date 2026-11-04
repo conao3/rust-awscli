@@ -25,6 +25,7 @@ mod decode;
 mod glacier;
 pub mod presign;
 mod s3;
+pub(crate) use s3::with_bytes_payload;
 mod services;
 
 #[cfg(test)]

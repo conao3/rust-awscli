@@ -28,7 +28,7 @@ ec2 wait --foo
 ec2 wait instance-runnin
 ec2 wait instance-running --foo
 ec2 wait instance-running --instance-ids i-1
-s3api put-object --bucket b --key k --body /etc/hostname
+s3api put-object --bucket b --key k --body @DIR@/crlf.txt
 s3api get-object --bucket b --key k out.txt
 iam create-user --user-name u --tags Key=a,Value=b
 sts assume-role --generate-cli-skeleton
@@ -65,7 +65,7 @@ dynamodb scan --table-name t --limit 0
 dynamodb query --table-name t --key-condition-expression x --expression-attribute-values '{":v": {"S": "x"}}' --max-items 2
 s3api put-object --bucket b --key k --body /nonexistent
 s3api put-object --bucket b --key k --metadata a=b,c=d
-s3api put-object --bucket b --key k --body fileb:///etc/hostname
+s3api put-object --bucket b --key k --body fileb://@DIR@/body.bin
 s3api get-object --bucket b --key k
 s3api get-object --bucket b --key k --generate-cli-skeleton
 s3api list-objects-v2 --bucket b --max-items 3 --page-size 2

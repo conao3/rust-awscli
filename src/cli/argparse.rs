@@ -226,9 +226,19 @@ pub(crate) struct Parser {
 type OptionTuple = (Option<usize>, String, Option<String>, Option<String>);
 
 fn negative_number(s: &str) -> bool {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| Regex::new(r"^-\.?\d").expect("regex"))
-        .is_match(s)
+    let Some(rest) = s.strip_prefix('-') else {
+        return false;
+    };
+    let rest = rest.strip_prefix('.').unwrap_or(rest);
+    match rest.chars().next() {
+        Some(c) if c.is_ascii() => c.is_ascii_digit(),
+        Some(_) => {
+            static RE: OnceLock<Regex> = OnceLock::new();
+            RE.get_or_init(|| Regex::new(r"^-\.?\d").expect("regex"))
+                .is_match(s)
+        }
+        None => false,
+    }
 }
 
 impl Parser {
@@ -336,28 +346,59 @@ impl Parser {
         result
     }
 
-    fn nargs_pattern(action: &Action) -> String {
-        let option = !action.option_strings.is_empty();
-        match action.nargs {
-            Nargs::One => if option { "([A])" } else { "(-*A-*)" }.to_string(),
-            Nargs::Optional => if option { "(A?)" } else { "(-*A?-*)" }.to_string(),
-            Nargs::ZeroOrMore => if option { "(A*)" } else { "(-*[A-]*)" }.to_string(),
-            Nargs::OneOrMore => if option { "(A+)" } else { "(-*A[A-]*)" }.to_string(),
-            Nargs::Exact(n) => {
-                if option {
-                    format!("([AO]{{{n}}})")
-                } else {
-                    format!("((?:-*A){{{n}}}-*)")
+    fn nargs_matches(action: &Action, s: &[u8]) -> bool {
+        let count = |c: u8| s.iter().filter(|&&b| b == c).count();
+        let only = |set: &[u8]| s.iter().all(|b| set.contains(b));
+        if action.option_strings.is_empty() {
+            only(b"A-")
+                && match action.nargs {
+                    Nargs::One => count(b'A') == 1,
+                    Nargs::Optional => count(b'A') <= 1,
+                    Nargs::ZeroOrMore => true,
+                    Nargs::OneOrMore => count(b'A') >= 1,
+                    Nargs::Exact(n) => count(b'A') == n,
                 }
+        } else {
+            match action.nargs {
+                Nargs::One => s == b"A",
+                Nargs::Optional => s.len() <= 1 && only(b"A"),
+                Nargs::ZeroOrMore => only(b"A"),
+                Nargs::OneOrMore => !s.is_empty() && only(b"A"),
+                Nargs::Exact(n) => s.len() == n && only(b"AO"),
             }
         }
     }
 
+    fn nargs_lengths(action: &Action, pattern: &[u8], pos: usize) -> Vec<usize> {
+        (0..=pattern.len() - pos)
+            .rev()
+            .filter(|&len| Parser::nargs_matches(action, &pattern[pos..pos + len]))
+            .collect()
+    }
+
+    fn match_sequence(
+        actions: &[&Action],
+        pattern: &[u8],
+        pos: usize,
+        out: &mut Vec<usize>,
+    ) -> bool {
+        let Some((first, rest)) = actions.split_first() else {
+            return true;
+        };
+        for len in Parser::nargs_lengths(first, pattern, pos) {
+            out.push(len);
+            if Parser::match_sequence(rest, pattern, pos + len, out) {
+                return true;
+            }
+            out.pop();
+        }
+        false
+    }
+
     /// `_match_argument`.
     fn match_argument(action: &Action, pattern: &str) -> Result<usize, ArgumentError> {
-        let re = Regex::new(&format!("^{}", Parser::nargs_pattern(action))).expect("regex");
-        match re.captures(pattern) {
-            Some(c) => Ok(c.get(1).map_or(0, |m| m.len())),
+        match Parser::nargs_lengths(action, pattern.as_bytes(), 0).first() {
+            Some(&len) => Ok(len),
             None => {
                 let msg = match action.nargs {
                     Nargs::One => "expected one argument".to_string(),
@@ -375,16 +416,9 @@ impl Parser {
     /// `_match_arguments_partial`.
     fn match_arguments_partial(actions: &[&Action], pattern: &str) -> Vec<usize> {
         for i in (1..=actions.len()).rev() {
-            let joined: String = actions[..i]
-                .iter()
-                .map(|a| Parser::nargs_pattern(a))
-                .collect();
-            let re = Regex::new(&format!("^{joined}")).expect("regex");
-            if let Some(c) = re.captures(pattern) {
-                let mut result: Vec<usize> = (1..c.len())
-                    .map(|g| c.get(g).map_or(0, |m| m.len()))
-                    .collect();
-                let end = c.get(0).map_or(0, |m| m.end());
+            let mut result = Vec::new();
+            if Parser::match_sequence(&actions[..i], pattern.as_bytes(), 0, &mut result) {
+                let end: usize = result.iter().sum();
                 if end < pattern.len() && pattern.as_bytes()[end] == b'O' {
                     while result.last() == Some(&0) {
                         result.pop();

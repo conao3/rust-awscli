@@ -316,9 +316,13 @@ const IPV4_PAT: &str = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}";
 
 /// botocore `utils.IPV4_RE` (`^...$`, where Python's `$` also matches
 /// before a trailing newline).
-pub fn ipv4_re() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| Regex::new(&format!(r"\A{IPV4_PAT}\n?\z")).unwrap())
+pub fn is_ipv4(s: &str) -> bool {
+    let s = s.strip_suffix('\n').unwrap_or(s);
+    let parts: Vec<&str> = s.split('.').collect();
+    parts.len() == 4
+        && parts
+            .iter()
+            .all(|p| (1..=3).contains(&p.len()) && p.bytes().all(|b| b.is_ascii_digit()))
 }
 
 /// botocore `utils.IPV6_ADDRZ_RE`.
@@ -350,7 +354,7 @@ fn ipv6_addrz_re() -> &'static Regex {
 pub fn is_valid_ipv4_endpoint_url(url: &str) -> Result<bool, String> {
     let parsed = urlparse(url).map_err(|e| e.0)?;
     match parsed.hostname() {
-        Some(h) => Ok(ipv4_re().is_match(&h)),
+        Some(h) => Ok(is_ipv4(&h)),
         None => Err("expected string or bytes-like object, got 'NoneType'".into()),
     }
 }

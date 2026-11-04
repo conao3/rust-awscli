@@ -5,11 +5,8 @@
 mod pyurl;
 mod stdlib;
 
-use std::sync::OnceLock;
-
 use anyhow::Result;
 use indexmap::IndexMap;
-use regex::Regex;
 use serde_json::Value as Json;
 
 use crate::bjson::Node;
@@ -297,24 +294,7 @@ pub(crate) fn xform_name(name: &str, sep: &str) -> String {
     if name.contains(sep) {
         return name.to_string();
     }
-    static SPECIAL: OnceLock<Regex> = OnceLock::new();
-    static FIRST_CAP: OnceLock<Regex> = OnceLock::new();
-    static END_CAP: OnceLock<Regex> = OnceLock::new();
-    let special = SPECIAL.get_or_init(|| Regex::new(r"[A-Z]{2,}s\n?\z").unwrap());
-    let first_cap = FIRST_CAP.get_or_init(|| Regex::new(r"(.)([A-Z][a-z]+)").unwrap());
-    let end_cap = END_CAP.get_or_init(|| Regex::new(r"([a-z0-9])([A-Z])").unwrap());
-    let mut name = name.to_string();
-    if let Some(m) = special.find(&name) {
-        let matched = m.as_str().to_string();
-        name = format!(
-            "{}{sep}{}",
-            &name[..name.len() - matched.len()],
-            matched.to_lowercase()
-        );
-    }
-    let rep = format!("${{1}}{sep}${{2}}");
-    let s1 = first_cap.replace_all(&name, rep.as_str());
-    end_cap.replace_all(&s1, rep.as_str()).to_lowercase()
+    crate::cli::arguments::xform_name_uncached(name, sep)
 }
 
 /// The `s3` section of the configuration as botocore's

@@ -412,10 +412,35 @@ fn convert_func_name(name: &str) -> String {
     n.replace('.', "_")
 }
 
+fn ascii_index_part(part: &str) -> Option<(&str, &str)> {
+    let b = part.as_bytes();
+    let word = |c: u8| c.is_ascii_alphanumeric() || c == b'_';
+    (0..b.len()).find_map(|open| {
+        if b[open] != b'[' {
+            return None;
+        }
+        let digits = b[open + 1..]
+            .iter()
+            .take_while(|c| c.is_ascii_digit())
+            .count();
+        if digits == 0 || b.get(open + 1 + digits) != Some(&b']') {
+            return None;
+        }
+        let start = b[..open]
+            .iter()
+            .rposition(|&c| !word(c))
+            .map_or(0, |i| i + 1);
+        Some((&part[start..open], &part[open + 1..open + 1 + digits]))
+    })
+}
+
+fn index_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"(\w*)\[(\d+)\]").unwrap())
+}
+
 /// `RuleSetStandardLibary.get_attr`.
 fn get_attr(value: Val, path: &Val) -> Result<Val, EndpointError> {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    let re = RE.get_or_init(|| Regex::new(r"(\w*)\[(\d+)\]").unwrap());
     let path = match path {
         Val::Str(s) => s.clone(),
         other => {
@@ -427,9 +452,17 @@ fn get_attr(value: Val, path: &Val) -> Result<Val, EndpointError> {
     };
     let mut value = value;
     for part in path.split('.') {
-        if let Some(caps) = re.captures(part) {
-            let name = &caps[1];
-            let index: usize = match caps[2].parse() {
+        let caps = if !part.contains('[') {
+            None
+        } else if part.is_ascii() {
+            ascii_index_part(part)
+        } else {
+            index_re()
+                .captures(part)
+                .map(|c| (c.get(1).unwrap().as_str(), c.get(2).unwrap().as_str()))
+        };
+        if let Some((name, digits)) = caps {
+            let index: usize = match digits.parse() {
                 Ok(i) => i,
                 Err(_) => return Ok(Val::None),
             };
@@ -604,7 +637,7 @@ fn is_virtual_hostable_s3_bucket(
             )));
         }
     };
-    if s.chars().count() < 3 || pyurl::py_lower(s) != s || pyurl::ipv4_re().is_match(s) {
+    if s.chars().count() < 3 || pyurl::py_lower(s) != s || pyurl::is_ipv4(s) {
         return Ok(false);
     }
     if *allow_subdomains == Val::Bool(true) {
@@ -619,7 +652,8 @@ fn is_virtual_hostable_s3_bucket(
 }
 
 struct Partition {
-    regex: Regex,
+    region_regex: &'static str,
+    regex: OnceLock<Regex>,
     regions: Vec<String>,
     output: IndexMap<String, Val>,
 }
@@ -652,7 +686,8 @@ fn partitions() -> &'static Vec<Partition> {
                     Val::Str(p["id"].as_str().unwrap_or_default().to_string()),
                 );
                 Partition {
-                    regex: python_match_regex(p["regionRegex"].as_str().unwrap_or_default()),
+                    region_regex: p["regionRegex"].as_str().unwrap_or_default(),
+                    regex: OnceLock::new(),
                     regions: p["regions"]
                         .as_object()
                         .map(|r| r.keys().map(str::to_string).collect())
@@ -671,8 +706,11 @@ fn aws_partition(value: Val) -> Result<Val, EndpointError> {
         Val::None => {}
         Val::Str(region) => {
             for p in parts {
-                let matches_regex = p.regex.is_match(region);
-                if p.regions.iter().any(|r| r == region) || matches_regex {
+                if p.regions.iter().any(|r| r == region)
+                    || p.regex
+                        .get_or_init(|| python_match_regex(p.region_regex))
+                        .is_match(region)
+                {
                     return Ok(Val::Dict(p.output.clone()));
                 }
             }

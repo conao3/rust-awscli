@@ -104,10 +104,10 @@ jobs:
             use-cross: true
             rustflags: -C target-feature=+crt-static
           - target: x86_64-apple-darwin
-            os: macos-14
+            os: macos-15
             use-cross: false
           - target: aarch64-apple-darwin
-            os: macos-14
+            os: macos-15
             use-cross: false
     steps:
       - uses: actions/checkout@v7.0.1
@@ -164,6 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [version-bump, create-release]
+    if: ${{ !cancelled() && needs.create-release.result == 'success' }}
     permissions:
       actions: write
     steps:

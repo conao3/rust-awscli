@@ -309,11 +309,20 @@ fn version_string() -> String {
         "macos" => "Darwin",
         other => other,
     };
-    format!(
-        "aws-cli/{} Python/3.14.8 {system}/{release} exe/{}",
-        crate::model::REFERENCE_VERSION.trim(),
-        std::env::consts::ARCH
-    )
+    let mut version = format!(
+        "aws-cli/{} Python/3.14.8 {system}/{release}",
+        crate::model::REFERENCE_VERSION.trim()
+    );
+    if let Some(env) = std::env::var_os("AWS_EXECUTION_ENV") {
+        version.push_str(&format!(" exec-env/{}", env.to_string_lossy()));
+    }
+    version.push_str(&format!(" exe/{}", std::env::consts::ARCH));
+    if system == "Linux"
+        && let Some(distribution) = crate::session::useragent::linux_distribution()
+    {
+        version.push_str(&format!(".{distribution}"));
+    }
+    version
 }
 
 /// The outcome of one API call.

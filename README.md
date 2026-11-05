@@ -52,8 +52,10 @@ $ nix profile install github:conao3/rust-awscli
 ### Cargo
 
 ```console
-$ cargo install --git https://github.com/conao3/rust-awscli awsr
+$ cargo install awsr
 ```
+
+The crate takes the vendored models from three data crates (`awsr-models`, `awsr-models-services-a-l`, and `awsr-models-services-m-z`, versioned as the reference release). `cargo install` formats no help page at build time, so `awsr` formats each page with the installed groff on first use.
 
 ## Usage
 

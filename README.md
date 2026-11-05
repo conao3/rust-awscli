@@ -82,7 +82,7 @@ The table shows the mean wall time of the flake package (statically linked). `hy
 
 `awsr` embeds the service models and the help inputs uncompressed, in a form it reads in place. A command touches only the parts it uses and parses no JSON at start, and the binary weighs 121 MB as a result.
 
-The first time you open a help page, `awsr` formats it with the installed groff, as the reference does. It keeps the output in `$XDG_CACHE_HOME/awsr/help` (or `~/.cache/awsr/help`), keyed by the page, the awsr and groff binaries, and the groff and locale environment variables.
+The release binaries and the flake package carry every help page formatted by groff at build time (`make help-pages`): groff 1.23.0 of Ubuntu for the release binaries and the groff of nixpkgs for the flake package. `awsr` prints these pages when the groff on `PATH` reports the same version and no `GROFF*` variable is set. Otherwise it formats the page with the installed groff (or mandoc), as the reference does, and keeps the output in `$XDG_CACHE_HOME/awsr/help` (or `~/.cache/awsr/help`), keyed by the page, the awsr and groff binaries, and the groff and locale environment variables.
 
 ## Development
 

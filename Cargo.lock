@@ -586,6 +586,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "awsr-helpgen"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "awsr",
+ "zstd",
+]
+
+[[package]]
 name = "base16ct"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

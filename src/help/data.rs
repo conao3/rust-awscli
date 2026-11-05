@@ -65,6 +65,14 @@ impl HelpData {
         self.json.get("commands")?.get(path)?.as_object()
     }
 
+    pub(crate) fn command_paths(&self) -> Vec<&'static str> {
+        self.json
+            .get("commands")
+            .and_then(Node::as_object)
+            .map(|c| c.keys().collect())
+            .unwrap_or_default()
+    }
+
     pub(crate) fn doc(&self, index: &Node) -> &'static str {
         index
             .as_u64()

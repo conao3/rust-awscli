@@ -8,6 +8,7 @@ mod data;
 mod docutils;
 mod entities;
 mod html;
+pub mod pages;
 mod render;
 mod restdoc;
 
@@ -598,6 +599,12 @@ fn has_commands(req: &HelpRequest) -> bool {
 /// The groff output of the page (`PosixHelpRenderer._convert_doc_content`),
 /// with docutils' messages written to stderr.
 fn convert(req: &HelpRequest, device: &str) -> Result<Vec<u8>, String> {
+    if device == "ascii"
+        && let Some((stderr, output)) = pages::lookup(req)
+    {
+        std::io::Write::write_all(&mut std::io::stderr(), &stderr).map_err(|e| e.to_string())?;
+        return Ok(output);
+    }
     let cached = render::formatter().and_then(|f| cache::path(req, device, f));
     if let Some((stderr, output)) = cached.as_deref().and_then(cache::read) {
         std::io::Write::write_all(&mut std::io::stderr(), &stderr).map_err(|e| e.to_string())?;

@@ -8,9 +8,14 @@ check:
 fmt:
 	nix fmt
 
+.PHONY: help-pages
+help-pages:
+	cargo build --release -p awsr-helpgen
+	env -i PATH="$$PATH" HOME="$$(mktemp -d)" target/release/awsr-helpgen target/help-pages.bin
+
 .PHONY: build
-build:
-	cargo build --release
+build: help-pages
+	AWSR_HELP_PAGES=target/help-pages.bin cargo build --release -p awsr
 
 .PHONY: difftest
 difftest:

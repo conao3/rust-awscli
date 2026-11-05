@@ -1,0 +1,2 @@
+[build.env]
+passthrough = ["AWSR_HELP_PAGES"]

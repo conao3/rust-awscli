@@ -1,0 +1,16 @@
+[package]
+name = "awsr-helpgen"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "Formats every help page of awsr with groff for embedding in the awsr binary"
+publish = false
+
+[[bin]]
+name = "awsr-helpgen"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+awsr = { path = ".." }
+zstd = "0.13"

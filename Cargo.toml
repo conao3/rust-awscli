@@ -8,7 +8,7 @@ repository = "https://github.com/conao3/rust-awscli"
 rust-version = "1.94"
 
 [workspace]
-members = [".", "difftest"]
+members = [".", "difftest", "helpgen"]
 
 [[bin]]
 name = "awsr"

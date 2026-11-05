@@ -163,4 +163,14 @@ fn main() {
         write_node(&out_dir.join("topics.bin"), &topics)
     ));
     fs::write(out_dir.join("docs.rs"), docs).unwrap();
+
+    println!("cargo:rerun-if-env-changed=AWSR_HELP_PAGES");
+    let pages = out_dir.join("help-pages.bin");
+    match env::var_os("AWSR_HELP_PAGES") {
+        Some(src) => {
+            println!("cargo:rerun-if-changed={}", Path::new(&src).display());
+            fs::copy(&src, &pages).unwrap();
+        }
+        None => fs::write(&pages, b"").unwrap(),
+    }
 }

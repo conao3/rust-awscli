@@ -61,6 +61,15 @@
               src = lib.cleanSource ./.;
               cargoLock.lockFile = ./Cargo.lock;
               doCheck = false;
+              nativeBuildInputs = [ pkgs.groff ];
+              preBuild = ''
+                cargo build --release --frozen --target ${pkgs.stdenv.hostPlatform.rust.rustcTarget} -p awsr-helpgen
+                HOME=$TMPDIR target/${pkgs.stdenv.hostPlatform.rust.rustcTarget}/release/awsr-helpgen $TMPDIR/help-pages.bin
+                export AWSR_HELP_PAGES=$TMPDIR/help-pages.bin
+              '';
+              postInstall = ''
+                rm $out/bin/awsr-helpgen
+              '';
               env = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
                 RUSTFLAGS = "-C target-feature=+crt-static -L native=${pkgs.glibc.static}/lib";
               };

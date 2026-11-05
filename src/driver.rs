@@ -188,6 +188,15 @@ fn new_session(globals: &GlobalArgs) -> Result<Session, CliError> {
     })
 }
 
+pub fn help_request(args: &[String]) -> Option<crate::help::HelpRequest> {
+    let (globals, rest) = cli::parse_globals(args).ok()?;
+    let session = new_session(&globals).ok()?;
+    match cli::parse_command_shadowed(&rest, &globals, &session, &[]).ok()? {
+        Command::Help(req) => Some(req),
+        _ => None,
+    }
+}
+
 fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
     let (mut globals, mut rest) = cli::parse_globals(&args)?;
     if globals.debug {

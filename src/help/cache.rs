@@ -68,3 +68,31 @@ pub(super) fn write(path: &Path, stderr: &[u8], output: &[u8]) {
         let _ = std::fs::remove_file(&tmp);
     }
 }
+
+pub(super) fn run_groff_version(groff: &Path) -> Option<String> {
+    let out = std::process::Command::new(groff)
+        .arg("-v")
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output()
+        .ok()?;
+    Some(
+        String::from_utf8(out.stdout)
+            .ok()?
+            .lines()
+            .next()?
+            .to_string(),
+    )
+}
+
+pub(super) fn groff_version() -> Option<String> {
+    let groff = super::render::find_on_path("groff")?;
+    let key = format!("groff -v\n{}", identity(&groff)?);
+    let path = dir()?.join(hex::encode(Sha256::digest(key.as_bytes())));
+    if let Some((_, version)) = read(&path) {
+        return String::from_utf8(version).ok();
+    }
+    let version = run_groff_version(&groff)?;
+    write(&path, b"", version.as_bytes());
+    Some(version)
+}

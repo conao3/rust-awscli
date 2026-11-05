@@ -80,7 +80,7 @@ $ awsr ec2 describe-instances --query 'Reservations[].Instances[].InstanceId' --
 
 The table shows the mean wall time of the flake package (statically linked). `hyperfine -N` ran each command against a local stub endpoint (`--endpoint-url http://127.0.0.1:<port>`) with static credentials on an Intel Core Ultra 5 225U. The reference is the official AWS CLI 2.39.3 Linux installer. The speedup is the aws time divided by the awsr time. A C hello world takes 1.1 ms on the same machine.
 
-`awsr` embeds the service models and the help inputs uncompressed, in a form it reads in place. A command touches only the parts it uses and parses no JSON at start, and the binary weighs 121 MB as a result.
+`awsr` embeds the service models and the help inputs uncompressed, in a form it reads in place. A command touches only the parts it uses and parses no JSON at start. With the formatted help pages (36 MB compressed), the binary of the flake package weighs 150 MiB.
 
 The release binaries and the flake package carry every help page formatted by groff at build time (`make help-pages`): groff 1.23.0 of Ubuntu for the release binaries and the groff of nixpkgs for the flake package. `awsr` prints these pages when the groff on `PATH` reports the same version and no `GROFF*` variable is set. Otherwise it formats the page with the installed groff (or mandoc), as the reference does, and keeps the output in `$XDG_CACHE_HOME/awsr/help` (or `~/.cache/awsr/help`), keyed by the page, the awsr and groff binaries, and the groff and locale environment variables.
 

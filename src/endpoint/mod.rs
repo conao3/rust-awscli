@@ -301,7 +301,7 @@ pub(crate) fn xform_name(name: &str, sep: &str) -> String {
     if name.contains(sep) {
         return name.to_string();
     }
-    crate::cli::arguments::xform_name_uncached(name, sep)
+    crate::cli::xform::xform_name_uncached(name, sep)
 }
 
 /// The `s3` section of the configuration as botocore's

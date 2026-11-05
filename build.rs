@@ -8,6 +8,37 @@ use serde_json::Value;
 #[allow(dead_code)]
 mod encode;
 
+#[path = "src/cli/tables.rs"]
+#[allow(dead_code)]
+mod tables;
+
+#[path = "src/cli/xform.rs"]
+mod xform;
+
+fn cli_operation_names(doc: &Value) -> Value {
+    let names = doc["service"]["operations"]
+        .as_object()
+        .map(|ops| {
+            ops.keys()
+                .map(|name| {
+                    let cached = tables::XFORM_CACHE
+                        .iter()
+                        .find(|(n, s, _)| *n == name.as_str() && *s == '-');
+                    let cli_name = if name.contains('-') {
+                        name.clone()
+                    } else if let Some((_, _, v)) = cached {
+                        v.to_string()
+                    } else {
+                        xform::xform_name_uncached(name, "-")
+                    };
+                    Value::String(cli_name)
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    Value::Array(names)
+}
+
 fn names(dir: &Path) -> Vec<String> {
     let mut names: Vec<String> = fs::read_dir(dir)
         .unwrap()
@@ -21,15 +52,14 @@ fn names(dir: &Path) -> Vec<String> {
 }
 
 /// `(name, include_bytes!(path))` entries for the `<name>.json.zst` files
-/// of `dir`, sorted by name.
-fn table(dir: &Path, var: &str) -> String {
+/// of `dir` encoded into `out`, sorted by name.
+fn table(dir: &Path, out: &Path, var: &str) -> String {
+    fs::create_dir_all(out).unwrap();
     let mut code = format!("pub static {var}: &[(&str, &[u8])] = &[\n");
     for name in names(dir) {
-        let path = dir.join(format!("{name}.json.zst"));
-        code.push_str(&format!(
-            "    ({name:?}, include_bytes!({:?})),\n",
-            path.display().to_string()
-        ));
+        let doc = read_json(&dir.join(format!("{name}.json.zst")));
+        let bytes = write_node(&out.join(format!("{name}.bin")), &doc);
+        code.push_str(&format!("    ({name:?}, {bytes}),\n"));
     }
     code.push_str("];\n");
     code
@@ -84,6 +114,8 @@ fn main() {
     let models = Path::new(&manifest_dir).join("models");
     println!("cargo:rerun-if-changed=models");
     println!("cargo:rerun-if-changed=src/bjson/encode.rs");
+    println!("cargo:rerun-if-changed=src/cli/tables.rs");
+    println!("cargo:rerun-if-changed=src/cli/xform.rs");
     if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux")
         && env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("gnu")
     {
@@ -97,6 +129,7 @@ fn main() {
     for name in names(&services_dir) {
         let mut doc = read_json(&services_dir.join(format!("{name}.json.zst")));
         apply_endpoint_ruleset_customizations(&name, &mut doc);
+        doc["cli_operation_names"] = cli_operation_names(&doc);
         let bytes = write_node(&bin_dir.join(format!("{name}.bin")), &doc);
         code.push_str(&format!("    ({name:?}, {bytes}),\n"));
     }
@@ -113,7 +146,16 @@ fn main() {
     }
     fs::write(out_dir.join("models.rs"), code).unwrap();
 
-    let mut docs = table(&models.join("examples"), "EXAMPLES");
-    docs.push_str(&table(&models.join("help"), "HELP"));
+    let mut docs = table(
+        &models.join("examples"),
+        &out_dir.join("examples"),
+        "EXAMPLES",
+    );
+    docs.push_str(&table(&models.join("help"), &out_dir.join("help"), "HELP"));
+    let topics = read_json(&models.join("topics.json.zst"));
+    docs.push_str(&format!(
+        "pub static TOPICS: &[u8] = {};\n",
+        write_node(&out_dir.join("topics.bin"), &topics)
+    ));
     fs::write(out_dir.join("docs.rs"), docs).unwrap();
 }

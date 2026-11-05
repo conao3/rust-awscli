@@ -2,6 +2,7 @@
 //! (`clidocs`), converted to roff by docutils' manpage writer
 //! (`docutils`), formatted by groff / mandoc, and shown through the pager.
 
+mod cache;
 pub(crate) mod clidocs;
 mod data;
 mod docutils;
@@ -12,7 +13,7 @@ mod restdoc;
 
 use serde_json::{Map, Value as Json};
 
-use crate::bjson::{Node, Obj};
+use crate::bjson::{Arr, Node, Obj};
 
 use crate::cli::arguments::xform_name;
 use crate::cli::commands::{
@@ -122,11 +123,11 @@ fn leak_obj(map: Map<String, Json>) -> &'static Obj {
 }
 
 /// The owned parts of the argument models of `records`.
-fn collect_models(records: &[Json], data: &HelpData, owned: &mut Owned) -> Vec<Option<ModelRef>> {
+fn collect_models(records: &Arr, data: &HelpData, owned: &mut Owned) -> Vec<Option<ModelRef>> {
     records
         .iter()
         .map(|r| {
-            if let Some(m) = r.get("m").and_then(Json::as_str) {
+            if let Some(m) = r.get("m").and_then(Node::as_str) {
                 return Some(ModelRef {
                     source: Source::Input,
                     top: m.to_string(),
@@ -136,22 +137,22 @@ fn collect_models(records: &[Json], data: &HelpData, owned: &mut Owned) -> Vec<O
             }
             let s = data.model(r.get("s")?)?;
             let top = s.get("top")?.as_str()?.to_string();
-            let member = s.get("member").and_then(Json::as_object).map(|m| {
-                owned.members.push(leak_obj(m.clone()));
+            let member = s.get("member").and_then(Node::as_object).map(|m| {
+                owned.members.push(m);
                 owned.members.len() - 1
             });
-            let members = s.get("members").and_then(Json::as_array).map(|a| {
+            let members = s.get("members").and_then(Node::as_array).map(|a| {
                 a.iter()
-                    .filter_map(Json::as_str)
+                    .filter_map(Node::as_str)
                     .map(str::to_string)
                     .collect()
             });
-            let source = if s.get("svc").and_then(Json::as_bool) == Some(true) {
+            let source = if s.get("svc").and_then(Node::as_bool) == Some(true) {
                 Source::Svc
             } else {
                 owned.models.push(ServiceModel::from_shapes(
                     "custom",
-                    s.get("shapes")?.clone(),
+                    s.get("shapes")?.to_json(),
                 ));
                 Source::Own(owned.models.len() - 1)
             };
@@ -212,7 +213,7 @@ fn resolve<'a>(
 
 #[allow(clippy::too_many_arguments)]
 fn help_args<'a>(
-    records: &[Json],
+    records: &Arr,
     refs: &[Option<ModelRef>],
     defs: &[Option<usize>],
     data: &HelpData,
@@ -229,8 +230,8 @@ fn help_args<'a>(
             let model = mref
                 .as_ref()
                 .and_then(|m| resolve(m, *def, owned, svc, input));
-            let flag = |k: &str| r.get(k).and_then(Json::as_bool).unwrap_or(false);
-            let string = |k: &str| r.get(k).and_then(Json::as_str).map(str::to_string);
+            let flag = |k: &str| r.get(k).and_then(Node::as_bool).unwrap_or(false);
+            let string = |k: &str| r.get(k).and_then(Node::as_str).map(str::to_string);
             HelpArg {
                 cli_name: string("c").unwrap_or_else(|| format!("--{name}")),
                 documentation: match r.get("d") {
@@ -251,10 +252,9 @@ fn help_args<'a>(
                 document_as_required: flag("ar"),
                 group_name: string("g"),
                 positional_arg: flag("p"),
-                nargs: r.get("na").map(|v| match v {
-                    Json::String(s) => s.clone(),
-                    other => other.to_string(),
-                }),
+                nargs: r
+                    .get("na")
+                    .map(|v| v.as_str().map_or_else(|| v.to_string(), str::to_string)),
                 synopsis: string("sy"),
                 undocumented: flag("u"),
                 model,
@@ -534,19 +534,18 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
             let spec = custom.command(&path.join(" ")).ok_or("unknown command")?;
             let s = |k: &str| {
                 spec.get(k)
-                    .and_then(Json::as_str)
+                    .and_then(Node::as_str)
                     .unwrap_or_default()
                     .to_string()
             };
             let records = spec
                 .get("args")
-                .and_then(Json::as_array)
-                .cloned()
-                .unwrap_or_default();
+                .and_then(Node::as_array)
+                .unwrap_or(Node::empty_array());
             let mut owned = Owned::default();
-            let refs = collect_models(&records, &custom, &mut owned);
+            let refs = collect_models(records, &custom, &mut owned);
             let defs = collect_defs(&refs, &mut owned, None);
-            let args = help_args(&records, &refs, &defs, &custom, &owned, None, None, false);
+            let args = help_args(records, &refs, &defs, &custom, &owned, None, None, false);
             let mut page = Page::new(
                 &s("name"),
                 &path.join("."),
@@ -560,10 +559,10 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
             );
             let names = |k: &str| -> Vec<String> {
                 spec.get(k)
-                    .and_then(Json::as_array)
+                    .and_then(Node::as_array)
                     .map(|a| {
                         a.iter()
-                            .filter_map(Json::as_str)
+                            .filter_map(Node::as_str)
                             .map(str::to_string)
                             .collect()
                     })
@@ -588,7 +587,7 @@ fn has_commands(req: &HelpRequest) -> bool {
             .and_then(|c| {
                 c.command(&path.join(" "))
                     .and_then(|s| s.get("commands"))
-                    .and_then(Json::as_array)
+                    .and_then(Node::as_array)
                     .map(|a| !a.is_empty())
             })
             .unwrap_or(false),
@@ -599,12 +598,21 @@ fn has_commands(req: &HelpRequest) -> bool {
 /// The groff output of the page (`PosixHelpRenderer._convert_doc_content`),
 /// with docutils' messages written to stderr.
 fn convert(req: &HelpRequest, device: &str) -> Result<Vec<u8>, String> {
+    let cached = render::formatter().and_then(|f| cache::path(req, device, f));
+    if let Some((stderr, output)) = cached.as_deref().and_then(cache::read) {
+        std::io::Write::write_all(&mut std::io::stderr(), &stderr).map_err(|e| e.to_string())?;
+        return Ok(output);
+    }
     let rst = document(req)?;
     let published = docutils::publish_man(&rst)?;
     if !published.stderr.is_empty() {
         eprint!("{}", published.stderr);
     }
-    render::groff(published.man.as_bytes(), device)
+    let output = render::groff(published.man.as_bytes(), device)?;
+    if let Some(path) = cached {
+        cache::write(&path, published.stderr.as_bytes(), &output);
+    }
+    Ok(output)
 }
 
 /// The formatted page as text, for callers that print rather than page.

@@ -31,6 +31,7 @@ pub(crate) mod shorthand;
 mod skeleton;
 mod tables;
 pub(crate) mod validate;
+pub(crate) mod xform;
 mod yamlskel;
 
 use crate::config::ConfigLookup;

@@ -4,24 +4,17 @@
 //! customizations build (`models/help`, extracted by
 //! `scripts/gen-help-data.py`).
 
-use serde_json::{Map, Value as Json};
+use crate::bjson::{Arr, Node, Obj};
 
 mod embedded {
     include!(concat!(env!("OUT_DIR"), "/docs.rs"));
 }
 
-static TOPICS: &[u8] = include_bytes!("../../models/topics.json.zst");
-
-fn decompress(bytes: &[u8]) -> Json {
-    let raw = zstd::decode_all(bytes).expect("decompress embedded help data");
-    serde_json::from_slice(&raw).expect("parse embedded help data")
-}
-
-fn lookup(table: &[(&str, &[u8])], name: &str) -> Option<Json> {
+fn lookup(table: &'static [(&str, &[u8])], name: &str) -> Option<&'static Node> {
     table
         .binary_search_by(|(n, _)| (*n).cmp(name))
         .ok()
-        .map(|i| decompress(table[i].1))
+        .map(|i| Node::from_bytes(table[i].1))
 }
 
 /// The contents of `awscli/examples/<path>`, if the file exists.
@@ -32,22 +25,22 @@ pub(crate) fn example_file(path: &str) -> Option<String> {
     };
     lookup(embedded::EXAMPLES, dir)?
         .get(rest)
-        .and_then(Json::as_str)
+        .and_then(Node::as_str)
         .map(str::to_string)
 }
 
 /// `awscli/topics/<name>`.
 pub(crate) fn topic_file(name: &str) -> Option<String> {
-    decompress(TOPICS)
+    Node::from_bytes(embedded::TOPICS)
         .get(name)
-        .and_then(Json::as_str)
+        .and_then(Node::as_str)
         .map(str::to_string)
 }
 
 /// The extracted help data of a model-driven service (`<cli name>.json`)
 /// or of the main command table and custom commands (`_custom`).
 pub(crate) struct HelpData {
-    pub json: Json,
+    pub json: &'static Node,
 }
 
 impl HelpData {
@@ -58,32 +51,32 @@ impl HelpData {
     pub(crate) fn undocumented(&self) -> Vec<&str> {
         self.json["undocumented"]
             .as_array()
-            .map(|a| a.iter().filter_map(Json::as_str).collect())
+            .map(|a| a.iter().filter_map(Node::as_str).collect())
             .unwrap_or_default()
     }
 
     /// The argument records of `operations` / `waiters`.
-    pub(crate) fn args(&self, section: &str, name: &str) -> Option<&Vec<Json>> {
+    pub(crate) fn args(&self, section: &str, name: &str) -> Option<&'static Arr> {
         self.json.get(section)?.get(name)?.as_array()
     }
 
     /// A `BasicCommand` spec of `_custom`.
-    pub(crate) fn command(&self, path: &str) -> Option<&Map<String, Json>> {
+    pub(crate) fn command(&self, path: &str) -> Option<&'static Obj> {
         self.json.get("commands")?.get(path)?.as_object()
     }
 
-    pub(crate) fn doc(&self, index: &Json) -> &str {
+    pub(crate) fn doc(&self, index: &Node) -> &'static str {
         index
             .as_u64()
-            .and_then(|i| self.json["docs"].get(i as usize))
-            .and_then(Json::as_str)
+            .and_then(|i| self.json["docs"].as_array()?.get(i as usize))
+            .and_then(Node::as_str)
             .unwrap_or_default()
     }
 
-    pub(crate) fn model(&self, index: &Json) -> Option<&Map<String, Json>> {
+    pub(crate) fn model(&self, index: &Node) -> Option<&'static Obj> {
         index
             .as_u64()
-            .and_then(|i| self.json["models"].get(i as usize))
-            .and_then(Json::as_object)
+            .and_then(|i| self.json["models"].as_array()?.get(i as usize))
+            .and_then(Node::as_object)
     }
 }

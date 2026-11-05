@@ -57,9 +57,9 @@ pub(crate) fn service_commands(
     model: &ServiceModel,
 ) -> Vec<(String, ServiceEntry)> {
     let mut table: Vec<(String, ServiceEntry)> = model
-        .operation_names()
+        .cli_operation_names()
         .into_iter()
-        .map(|op| (xform_name(op, '-'), ServiceEntry::Operation(op.to_string())))
+        .map(|(op, cli)| (cli.to_string(), ServiceEntry::Operation(op.to_string())))
         .collect();
     if model.waiters().is_some_and(|w| !w.is_empty()) {
         table.push(("wait".to_string(), ServiceEntry::Wait));

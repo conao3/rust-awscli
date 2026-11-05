@@ -109,14 +109,29 @@ fn communicate(cmdline: &[&str], input: &[u8]) -> std::io::Result<Vec<u8>> {
 /// `PosixBrowserHelpRenderer._convert_doc_content` (`html`) after the
 /// manpage writer.
 pub(crate) fn groff(man: &[u8], device: &str) -> Result<Vec<u8>, String> {
-    let cmdline: Vec<&str> = if exists_on_path("groff") {
-        vec!["groff", "-m", "man", "-T", device]
-    } else if exists_on_path("mandoc") {
-        vec!["mandoc", "-T", device]
-    } else {
-        return Err(executable_not_found("groff or mandoc"));
+    let cmdline: Vec<&str> = match formatter() {
+        Some("groff") => vec!["groff", "-m", "man", "-T", device],
+        Some(_) => vec!["mandoc", "-T", device],
+        None => return Err(executable_not_found("groff or mandoc")),
     };
     communicate(&cmdline, man).map_err(|e| e.to_string())
+}
+
+pub(crate) fn formatter() -> Option<&'static str> {
+    ["groff", "mandoc"].into_iter().find(|p| exists_on_path(p))
+}
+
+pub(crate) fn find_on_path(name: &str) -> Option<std::path::PathBuf> {
+    let path = std::env::var("PATH").unwrap_or_default();
+    path.split(':')
+        .map(|p| {
+            if p.is_empty() || name.starts_with('/') {
+                std::path::PathBuf::from(name)
+            } else {
+                Path::new(p).join(name)
+            }
+        })
+        .find(|p| p.exists())
 }
 
 /// `BrowserHelpRenderer._send_output_to_browser`: the page in a temporary
@@ -182,6 +197,15 @@ pub(crate) fn page(output: &[u8]) -> Result<(), String> {
         let _ = stdout.flush();
         return Ok(());
     };
+    let name = Path::new(program).file_name().and_then(|n| n.to_str());
+    let copies_input =
+        matches!(name, Some("less" | "more")) || (name == Some("cat") && cmdline.len() == 1);
+    if copies_input && !std::io::IsTerminal::is_terminal(&std::io::stdout()) {
+        let mut stdout = std::io::stdout().lock();
+        let _ = stdout.write_all(output);
+        let _ = stdout.flush();
+        return Ok(());
+    }
     let _guard = IgnoreCtrlC::new();
     let mut child = Command::new(program)
         .args(&cmdline[1..])

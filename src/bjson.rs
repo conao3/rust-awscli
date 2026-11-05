@@ -16,6 +16,7 @@ pub struct Obj(Node);
 pub struct Arr(Node);
 
 static NULL_NODE: [u8; 1] = [NULL];
+static EMPTY_ARRAY: [u8; 5] = [ARRAY, 0, 0, 0, 0];
 
 const LINEAR_LOOKUP: usize = 8;
 
@@ -27,6 +28,10 @@ impl Node {
 
     pub fn null() -> &'static Node {
         Node::from_bytes(&NULL_NODE)
+    }
+
+    pub fn empty_array() -> &'static Arr {
+        Node::from_bytes(&EMPTY_ARRAY).as_array().unwrap()
     }
 
     pub fn leak(value: &serde_json::Value) -> &'static Node {

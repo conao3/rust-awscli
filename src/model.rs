@@ -218,6 +218,19 @@ impl ServiceModel {
             .unwrap_or_else(|| self.signing_name().to_string())
     }
 
+    pub fn cli_operation_names(&self) -> Vec<(&str, &str)> {
+        match (
+            self.service()["operations"].as_object(),
+            self.doc["cli_operation_names"].as_array(),
+        ) {
+            (Some(ops), Some(names)) => ops
+                .keys()
+                .zip(names.iter().filter_map(Node::as_str))
+                .collect(),
+            _ => Vec::new(),
+        }
+    }
+
     /// Operation names in model order.
     pub fn operation_names(&self) -> Vec<&str> {
         self.service()["operations"]

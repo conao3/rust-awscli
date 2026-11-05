@@ -1,6 +1,6 @@
 [package]
 name = "awsr"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2024"
 license = "Apache-2.0"
 description = "A fast, output-compatible Rust reimplementation of the AWS CLI v2"

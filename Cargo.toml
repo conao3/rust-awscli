@@ -21,7 +21,7 @@ aws-credential-types = "1"
 aws-sigv4 = { version = "1", features = ["sign-http", "sigv4a"] }
 aws-smithy-runtime-api = { version = "1", features = ["client"] }
 aws-types = "1"
-base64 = "0.22"
+base64 = "0.23"
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
 ciborium = "0.2"
 crc32c = "0.6"
@@ -31,12 +31,12 @@ flate2 = { version = "1", features = ["zlib"] }
 hex = "0.4"
 http = "1"
 indexmap = "2"
-md-5 = "0.10"
+md-5 = "0.11"
 num-bigint = "0.4"
 num-traits = "0.2"
 percent-encoding = "2"
 quick-xml = "0.38"
-rand = "0.9"
+rand = "0.10"
 regex = "1"
 ring = "0.17"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-native-roots", "rustls-tls", "http2", "gzip"] }
@@ -60,7 +60,7 @@ rustls-native-certs = "0.8"
 tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
 webpki-roots = "1"
 rsa = { version = "0.9", features = ["sha1", "sha2"] }
-p256 = { version = "0.13", features = ["ecdsa", "pem", "pkcs8"] }
+p256 = { version = "0.14", features = ["ecdsa", "pem", "pkcs8"] }
 xxhash-rust = { version = "0.8.19", features = ["xxh64", "xxh3"] }
 
 [build-dependencies]

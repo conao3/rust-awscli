@@ -413,7 +413,7 @@ fn checksum_digest(algorithm: &str, body: &[u8]) -> Result<String> {
         "sha1" => sha1::Sha1::digest(body).to_vec(),
         "sha256" => sha2::Sha256::digest(body).to_vec(),
         "sha512" => sha2::Sha512::digest(body).to_vec(),
-        "md5" => md5::Md5::digest(body).to_vec(),
+        "md5" => <md5::Md5 as md5::Digest>::digest(body).to_vec(),
         "xxhash64" => xxhash_rust::xxh64::xxh64(body, 0).to_be_bytes().to_vec(),
         "xxhash3" => xxhash_rust::xxh3::xxh3_64(body).to_be_bytes().to_vec(),
         "xxhash128" => xxhash_rust::xxh3::xxh3_128(body).to_be_bytes().to_vec(),

@@ -187,8 +187,7 @@ pub fn open_pty(cols: u16) -> Result<(OwnedFd, OwnedFd)> {
     // pair, or this case's reader would not see EOF when its child exits.
     for fd in [&pair.master, &pair.slave] {
         use nix::fcntl::{FcntlArg, FdFlag, fcntl};
-        use std::os::fd::AsRawFd;
-        fcntl(fd.as_raw_fd(), FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC)).context("fcntl")?;
+        fcntl(fd, FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC)).context("fcntl")?;
     }
     let mut t = tcgetattr(&pair.slave).context("tcgetattr")?;
     t.output_flags.remove(OutputFlags::OPOST);

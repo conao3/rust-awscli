@@ -37,7 +37,7 @@ impl DpopKey {
     pub fn generate() -> DpopKey {
         let mut bytes = [0u8; 32];
         loop {
-            rand::Rng::fill(&mut rand::rng(), &mut bytes[..]);
+            rand::fill(&mut bytes[..]);
             if let Ok(k) = SigningKey::from_slice(&bytes) {
                 return DpopKey(k);
             }
@@ -62,7 +62,7 @@ impl DpopKey {
             0xa0, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07, 0xa1, 0x44,
             0x03, 0x42, 0x00,
         ]);
-        der.extend_from_slice(self.0.verifying_key().to_encoded_point(false).as_bytes());
+        der.extend_from_slice(self.0.verifying_key().to_sec1_point(false).as_bytes());
         der
     }
 
@@ -95,7 +95,7 @@ impl DpopKey {
 
     /// `build_dpop_header(private_key, uri)`.
     pub fn dpop_header(&self, uri: &str) -> String {
-        let point = self.0.verifying_key().to_encoded_point(false);
+        let point = self.0.verifying_key().to_sec1_point(false);
         let x = URL_SAFE_NO_PAD.encode(point.x().expect("x"));
         let y = URL_SAFE_NO_PAD.encode(point.y().expect("y"));
         let header = format!(

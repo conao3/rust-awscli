@@ -76,8 +76,25 @@ fn terminal_width() -> Option<usize> {
 pub(crate) struct Context {
     pub(crate) globals: GlobalArgs,
     pub(crate) session: Session,
-    pub(crate) runtime: Runtime,
+    pub(crate) runtime: LazyRuntime,
     pub(crate) terminal: Terminal,
+}
+
+#[derive(Default)]
+pub(crate) struct LazyRuntime(std::sync::OnceLock<Runtime>);
+
+impl std::ops::Deref for LazyRuntime {
+    type Target = Runtime;
+
+    fn deref(&self) -> &Runtime {
+        self.0.get_or_init(|| {
+            tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(1)
+                .enable_all()
+                .build()
+                .expect("tokio runtime")
+        })
+    }
 }
 
 impl Context {
@@ -248,15 +265,10 @@ fn run_command(
     session: Session,
     command: Command,
 ) -> Result<ExitCode, CliError> {
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(1)
-        .enable_all()
-        .build()
-        .map_err(|e| CliError::new(ExitCode::General, render_general_error(&e.to_string())))?;
     let ctx = Context {
         globals,
         session,
-        runtime,
+        runtime: LazyRuntime::default(),
         terminal: Terminal::detect(),
     };
     match command {

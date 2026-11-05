@@ -245,15 +245,10 @@ pub(crate) fn sub_context(
     }
     let session =
         crate::session::Session::with_env(&globals, env).map_err(|e| ctx.session_error(&e))?;
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(1)
-        .enable_all()
-        .build()
-        .map_err(|e| ctx.general_error(&e.into()))?;
     Ok(Context {
         globals,
         session,
-        runtime,
+        runtime: crate::driver::LazyRuntime::default(),
         terminal: crate::driver::Terminal {
             stdout_is_tty: ctx.terminal.stdout_is_tty,
             width: ctx.terminal.width,

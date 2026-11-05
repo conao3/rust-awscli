@@ -576,15 +576,10 @@ pub(crate) fn context_with_endpoint(
     let mut globals = ctx.globals.clone();
     globals.endpoint_url = endpoint_url;
     let session = crate::session::Session::new(&globals).map_err(|e| ctx.general_error(&e))?;
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(1)
-        .enable_all()
-        .build()
-        .map_err(|e| general_error(ctx, &e.to_string()))?;
     Ok(Context {
         globals,
         session,
-        runtime,
+        runtime: crate::driver::LazyRuntime::default(),
         terminal: crate::driver::Terminal {
             stdout_is_tty: ctx.terminal.stdout_is_tty,
             width: ctx.terminal.width,

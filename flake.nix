@@ -61,6 +61,9 @@
               src = lib.cleanSource ./.;
               cargoLock.lockFile = ./Cargo.lock;
               doCheck = false;
+              env = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+                RUSTFLAGS = "-C target-feature=+crt-static -L native=${pkgs.glibc.static}/lib";
+              };
               meta = {
                 description = "A fast, output-compatible Rust reimplementation of the AWS CLI v2";
                 homepage = "https://github.com/conao3/rust-awscli";

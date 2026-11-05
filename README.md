@@ -24,7 +24,7 @@
 
 ---
 
-`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints byte-for-byte identical output. `awsr sts get-caller-identity` finishes in 4.7 ms; `aws` takes 704 ms on the same machine, 150 times as long.
+`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints byte-for-byte identical output. `awsr sts get-caller-identity` finishes in 6.0 ms; `aws` takes 659 ms on the same machine, 110 times as long.
 
 - **Same output.** Your scripts, `--query` expressions, and `--output` formats give the same bytes they give with `aws`. [Differential testing](#differential-testing) runs both CLIs on the operations of all services and compares what they print.
 - **All services.** `awsr` embeds the botocore service models of a pinned AWS CLI release (`models/VERSION`) and interprets them at run time. You can call any service and operation of that release as `awsr <service> <operation>`.
@@ -71,14 +71,15 @@ $ awsr ec2 describe-instances --query 'Reservations[].Instances[].InstanceId' --
 
 | Command | awsr | aws 2.39.3 | Speedup |
 |---|---:|---:|---:|
-| `--version` | 1.6 ms | 548 ms | 340× |
-| `sts get-caller-identity` | 4.7 ms | 704 ms | 150× |
-| `dynamodb list-tables` | 5.1 ms | 687 ms | 135× |
-| `ec2 describe-regions` | 5.4 ms | 981 ms | 180× |
-| `help` | 1.8 ms (57 ms the first time) | 704 ms | 390× (12× the first time) |
-| `ec2 help` | 1.9 ms (107 ms the first time) | 1008 ms | 530× (9× the first time) |
+| `--version` | 1.3 ms | 497 ms | 380× |
+| `sts get-caller-identity` | 6.0 ms | 659 ms | 110× |
+| `dynamodb list-tables` | 5.3 ms | 728 ms | 140× |
+| `ec2 describe-regions` | 5.0 ms | 936 ms | 190× |
+| `help` | 1.9 ms | 759 ms | 400× |
+| `ec2 help` | 1.9 ms | 1052 ms | 550× |
+| `ec2 describe-instances help` | 3.5 ms | 1346 ms | 380× |
 
-The table shows the mean wall time of the flake package (statically linked). `hyperfine -N` ran each command against a local stub endpoint (`--endpoint-url http://127.0.0.1:<port>`) with static credentials on an Intel Core Ultra 5 225U. The reference is the official AWS CLI 2.39.3 Linux installer. The speedup is the aws time divided by the awsr time. A C hello world takes 1.1 ms on the same machine.
+The table shows the mean wall time of the flake package (statically linked). `hyperfine -N` ran each command against a local stub endpoint (`--endpoint-url http://127.0.0.1:<port>`) with static credentials on an Intel Core Ultra 5 225U. The reference is the official AWS CLI 2.39.3 Linux installer. The speedup is the aws time divided by the awsr time. The help pages come from the ones formatted at build time; the first help on a machine also runs `groff -v` once and takes 3.8 ms for `ec2 help`. A C hello world takes 1.1 ms on the same machine.
 
 `awsr` embeds the service models and the help inputs uncompressed, in a form it reads in place. A command touches only the parts it uses and parses no JSON at start. With the formatted help pages (36 MB compressed), the binary of the flake package weighs 150 MiB.
 

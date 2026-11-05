@@ -158,3 +158,15 @@ jobs:
           files: artifacts/*.tar.gz
           fail_on_unmatched_files: true
           generate_release_notes: true
+
+  publish-crates:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [version-bump, create-release]
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish.yml --repo ${{ github.repository }} -f tag=v${{ needs.version-bump.outputs.new_version }}

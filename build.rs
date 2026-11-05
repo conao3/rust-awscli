@@ -120,6 +120,11 @@ fn main() {
         && env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("gnu")
     {
         println!("cargo:rustc-link-arg-bins=-no-pie");
+        let crt_static = env::var("CARGO_CFG_TARGET_FEATURE")
+            .is_ok_and(|f| f.split(',').any(|f| f == "crt-static"));
+        if crt_static {
+            println!("cargo:rustc-link-arg-bins=-Wl,--no-dynamic-linker");
+        }
     }
 
     let services_dir = models.join("services");

@@ -11,7 +11,8 @@
 ## Layout
 
 - `src/value.rs`: the dynamic value (Python `dict` / `list` / `str` / `int` / `float` / `bool` / `None` / `bytes`).
-- `src/model.rs`: the embedded models (`models/services/<service>.json.zst`), which `build.rs` encodes at build time into `src/bjson.rs` documents that are read in place.
+- `models/`: the vendored data, split into crates of less than the 10 MB crates.io limit that hold only files and their directory (`DIR`): `awsr-models` (`models/`: CLI data, endpoints, examples, topics, help inputs, `VERSION`), `awsr-models-services-a-l` and `awsr-models-services-m-z` (`models/services-a-l/`, `models/services-m-z/`: the service models by the first letter of the name). Their version is the reference version. `awsr` takes them as build dependencies: `build.rs` reads the files under each `DIR` and embeds them, and the data crates add no code to the binary.
+- `src/model.rs`: the embedded models (`models/services-*/<service>.json.zst`), which `build.rs` encodes at build time into `src/bjson.rs` documents that are read in place.
 - `src/cli/`: global options, command tables, argument parsing, parameter values, validation.
 - `src/config.rs`, `src/session.rs`: configuration, credentials, signing, HTTP, retries.
 - `src/endpoint/`: the endpoint rule set interpreter.

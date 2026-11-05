@@ -110,9 +110,14 @@ fn apply_endpoint_ruleset_customizations(name: &str, doc: &mut Value) {
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir);
-    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let models = Path::new(&manifest_dir).join("models");
-    println!("cargo:rerun-if-changed=models");
+    let models = Path::new(awsr_models::DIR);
+    let service_dirs = [
+        Path::new(awsr_models_services_a_l::DIR),
+        Path::new(awsr_models_services_m_z::DIR),
+    ];
+    for dir in std::iter::once(models).chain(service_dirs) {
+        println!("cargo:rerun-if-changed={}", dir.display());
+    }
     println!("cargo:rerun-if-changed=src/bjson/encode.rs");
     println!("cargo:rerun-if-changed=src/cli/tables.rs");
     println!("cargo:rerun-if-changed=src/cli/xform.rs");
@@ -127,12 +132,16 @@ fn main() {
         }
     }
 
-    let services_dir = models.join("services");
+    let mut services: Vec<(String, &Path)> = service_dirs
+        .iter()
+        .flat_map(|dir| names(dir).into_iter().map(move |name| (name, *dir)))
+        .collect();
+    services.sort();
     let bin_dir = out_dir.join("services");
     fs::create_dir_all(&bin_dir).unwrap();
     let mut code = String::from("pub static SERVICES: &[(&str, &[u8])] = &[\n");
-    for name in names(&services_dir) {
-        let mut doc = read_json(&services_dir.join(format!("{name}.json.zst")));
+    for (name, dir) in services {
+        let mut doc = read_json(&dir.join(format!("{name}.json.zst")));
         apply_endpoint_ruleset_customizations(&name, &mut doc);
         doc["cli_operation_names"] = cli_operation_names(&doc);
         let bytes = write_node(&bin_dir.join(format!("{name}.bin")), &doc);
@@ -150,6 +159,7 @@ fn main() {
         code.push_str(&format!("pub static {var}: &[u8] = {bytes};\n"));
     }
     fs::write(out_dir.join("models.rs"), code).unwrap();
+    fs::copy(models.join("VERSION"), out_dir.join("VERSION")).unwrap();
 
     let mut docs = table(
         &models.join("examples"),

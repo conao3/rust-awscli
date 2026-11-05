@@ -1,6 +1,6 @@
 //! Access to the embedded botocore models.
 //!
-//! Each service is one JSON document (`models/services/<service>.json.zst`,
+//! Each service is one JSON document (`models/services-*/<service>.json.zst`,
 //! produced by `scripts/vendor-models.sh`) with the keys `api_version`,
 //! `service` (`service-2.json`), `paginators` (the `pagination` object of
 //! `paginators-1.json`), `waiters` (the `waiters` object of
@@ -17,7 +17,7 @@ mod embedded {
 }
 
 /// The version of the AWS CLI whose models are embedded.
-pub const REFERENCE_VERSION: &str = include_str!("../models/VERSION");
+pub const REFERENCE_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// Names of every embedded botocore service, sorted.
 pub fn service_names() -> impl Iterator<Item = &'static str> {
@@ -134,10 +134,11 @@ impl ServiceModel {
 
     #[cfg(test)]
     pub fn load_source(name: &str) -> ServiceModel {
-        let path = format!(
-            "{}/models/services/{name}.json.zst",
-            env!("CARGO_MANIFEST_DIR")
-        );
+        let path = [awsr_models_services_a_l::DIR, awsr_models_services_m_z::DIR]
+            .iter()
+            .map(|dir| format!("{dir}/{name}.json.zst"))
+            .find(|path| std::path::Path::new(path).exists())
+            .unwrap();
         let raw = zstd::decode_all(std::fs::File::open(path).unwrap()).unwrap();
         let doc: serde_json::Value = serde_json::from_slice(&raw).unwrap();
         ServiceModel {

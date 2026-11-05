@@ -8,7 +8,7 @@ repository = "https://github.com/conao3/rust-awscli"
 rust-version = "1.94"
 
 [workspace]
-members = [".", "difftest", "helpgen"]
+members = [".", "difftest", "helpgen", "models", "models/services-a-l", "models/services-m-z"]
 
 [[bin]]
 name = "awsr"
@@ -64,10 +64,15 @@ p256 = { version = "0.14", features = ["ecdsa", "pem", "pkcs8"] }
 xxhash-rust = { version = "0.8.19", features = ["xxh64", "xxh3"] }
 
 [build-dependencies]
+awsr-models = { path = "models", version = "=2.39.3" }
+awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.3" }
+awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.3" }
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 zstd = "0.13"
 
 [dev-dependencies]
+awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.3" }
+awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.3" }
 tempfile = "3"
 tokio = { version = "1", features = ["test-util"] }
 

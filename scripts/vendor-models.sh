@@ -7,8 +7,8 @@ src="$1"
 data="$src/awscli/botocore/data"
 out="models"
 
-rm -rf "$out"
-mkdir -p "$out/services"
+rm -rf "$out/examples" "$out/help"
+rm -f "$out"/*.json.zst "$out"/services-*/*.json.zst
 tmp_dir="$(mktemp -d)"
 null_file="$tmp_dir/null.json"
 echo null > "$null_file"
@@ -18,6 +18,10 @@ for dir in "$data"/*/; do
   service="$(basename "$dir")"
   version="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | tail -n 1)"
   [ -n "$version" ] || continue
+  case "$service" in
+    [a-l]*) crate="$out/services-a-l" ;;
+    *) crate="$out/services-m-z" ;;
+  esac
   vdir="$dir$version"
   [ -f "$vdir/service-2.json" ] || continue
   path_or_null() { if [ -f "$vdir/$1" ]; then echo "$vdir/$1"; else echo "$null_file"; fi; }
@@ -38,7 +42,7 @@ for dir in "$data"/*/; do
     --slurpfile waiters "$(with_extras waiters-2)" \
     --slurpfile ruleset "$(path_or_null endpoint-rule-set-1.json)" \
     '{api_version: $version, service: $service[0], paginators: ($paginators[0].pagination // null), waiters: ($waiters[0].waiters // null), ruleset: $ruleset[0]}' \
-    | zstd -19 -q -o "$out/services/$service.json.zst"
+    | zstd -19 -q -o "$crate/$service.json.zst"
 done
 
 for f in partitions.json endpoints.json; do
@@ -48,6 +52,10 @@ jq -c '.partitions |= map(.services |= with_entries(select([.value | .. | object
   | zstd -19 -q -o "$out/credential-scopes.json.zst"
 jq -c . "$src/awscli/data/cli.json" | zstd -19 -q -o "$out/cli.json.zst"
 sed -n "s/^__version__ = .\(.*\).$/\1/p" "$src/awscli/__init__.py" > "$out/VERSION"
+reference="$(cat "$out/VERSION")"
+sed -i "0,/^version = \".*\"/s//version = \"$reference\"/" "$out/Cargo.toml" "$out"/services-*/Cargo.toml
+sed -i "s/\(The botocore .* of the AWS CLI \)[0-9.]*/\1$reference/" "$out/Cargo.toml" "$out"/services-*/Cargo.toml
+sed -i "s/^\(awsr-models[a-z-]* = { path = \"[^\"]*\", version = \"=\)[^\"]*/\1$reference/" Cargo.toml
 
 scripts_dir="$(dirname "$0")"
 python3 "$scripts_dir/vendor-docs.py" "$src" "$tmp_dir/docs"

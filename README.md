@@ -25,17 +25,18 @@ $ awsr ec2 describe-instances --query 'Reservations[].Instances[].InstanceId' --
 
 ## Performance
 
-Mean wall time measured with `hyperfine -N` against a local stub endpoint (`--endpoint-url http://127.0.0.1:<port>`), static credentials, on an Intel Core Ultra 5 225U. The reference is the official AWS CLI 2.39.3 Linux installer.
+Mean wall time of the flake package (statically linked) measured with `hyperfine -N` against a local stub endpoint (`--endpoint-url http://127.0.0.1:<port>`), static credentials, on an Intel Core Ultra 5 225U. The reference is the official AWS CLI 2.39.3 Linux installer. A C hello world takes 1.1 ms on the same machine.
 
 | Command | awsr | aws 2.39.3 |
 |---|---:|---:|
-| `--version` | 3.3 ms | 548 ms |
-| `sts get-caller-identity` | 6.6 ms | 704 ms |
-| `dynamodb list-tables` | 7.2 ms | 687 ms |
-| `ec2 describe-regions` | 8.3 ms | 981 ms |
-| `ec2 help` | 122 ms | 1008 ms |
+| `--version` | 1.6 ms | 548 ms |
+| `sts get-caller-identity` | 4.7 ms | 704 ms |
+| `dynamodb list-tables` | 5.1 ms | 687 ms |
+| `ec2 describe-regions` | 5.4 ms | 981 ms |
+| `help` | 1.8 ms (57 ms the first time) | 704 ms |
+| `ec2 help` | 1.9 ms (107 ms the first time) | 1008 ms |
 
-The service models are embedded uncompressed in a form that is read in place, so a command touches only the operations and shapes it uses and parses no JSON at start. This makes the release binary 97 MB.
+The service models and the help inputs are embedded uncompressed in a form that is read in place, so a command touches only the parts it uses and parses no JSON at start. This makes the binary 121 MB. A help page is formatted by the installed groff, like the reference does, the first time it is shown; the output is then kept in `$XDG_CACHE_HOME/awsr/help` (or `~/.cache/awsr/help`), keyed by the page, the awsr and groff binaries, and the groff and locale environment variables.
 
 ## Development
 

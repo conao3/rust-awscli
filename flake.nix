@@ -52,34 +52,39 @@
             '';
             meta.platforms = [ "x86_64-linux" ];
           };
+          awsr = pkgs.rustPlatform.buildRustPackage {
+            pname = "awsr";
+            version = (lib.importTOML ./Cargo.toml).package.version;
+            src = lib.cleanSource ./.;
+            cargoLock.lockFile = ./Cargo.lock;
+            doCheck = false;
+            nativeBuildInputs = [ pkgs.groff ];
+            preBuild = ''
+              cargo build --release --frozen --target ${pkgs.stdenv.hostPlatform.rust.rustcTarget} -p awsr-helpgen
+              HOME=$TMPDIR target/${pkgs.stdenv.hostPlatform.rust.rustcTarget}/release/awsr-helpgen $TMPDIR/help-pages.bin
+              export AWSR_HELP_PAGES=$TMPDIR/help-pages.bin
+            '';
+            postInstall = ''
+              rm $out/bin/awsr-helpgen
+            '';
+            env = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+              RUSTFLAGS = "-C target-feature=+crt-static -L native=${pkgs.glibc.static}/lib";
+            };
+            meta = {
+              description = "A fast, output-compatible Rust reimplementation of the AWS CLI v2";
+              homepage = "https://github.com/conao3/rust-awscli";
+              license = lib.licenses.asl20;
+              mainProgram = "awsr";
+              platforms = lib.platforms.unix;
+            };
+          };
         in
         {
           packages = {
-            default = pkgs.rustPlatform.buildRustPackage {
-              pname = "awsr";
-              version = (lib.importTOML ./Cargo.toml).package.version;
-              src = lib.cleanSource ./.;
-              cargoLock.lockFile = ./Cargo.lock;
-              doCheck = false;
-              nativeBuildInputs = [ pkgs.groff ];
-              preBuild = ''
-                cargo build --release --frozen --target ${pkgs.stdenv.hostPlatform.rust.rustcTarget} -p awsr-helpgen
-                HOME=$TMPDIR target/${pkgs.stdenv.hostPlatform.rust.rustcTarget}/release/awsr-helpgen $TMPDIR/help-pages.bin
-                export AWSR_HELP_PAGES=$TMPDIR/help-pages.bin
-              '';
-              postInstall = ''
-                rm $out/bin/awsr-helpgen
-              '';
-              env = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-                RUSTFLAGS = "-C target-feature=+crt-static -L native=${pkgs.glibc.static}/lib";
-              };
-              meta = {
-                description = "A fast, output-compatible Rust reimplementation of the AWS CLI v2";
-                homepage = "https://github.com/conao3/rust-awscli";
-                license = lib.licenses.asl20;
-                mainProgram = "awsr";
-                platforms = lib.platforms.unix;
-              };
+            default = awsr;
+            awsr-without-help-pages = awsr.overrideAttrs {
+              preBuild = "";
+              postInstall = "";
             };
           }
           // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux { awscli-reference = awscliReference; };

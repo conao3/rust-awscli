@@ -331,9 +331,10 @@ async fn async_main(cli: Cli) -> Result<()> {
 }
 
 fn load_table(path: Option<&Path>) -> Result<table::Table> {
-    let path = path
-        .map(Path::to_path_buf)
-        .unwrap_or_else(table::default_path);
+    let path = match path {
+        Some(p) => p.to_path_buf(),
+        None => table::default_path()?,
+    };
     table::load(&path)
 }
 

@@ -178,9 +178,9 @@ impl SessionError {
         };
         let message = message.trim();
         if message.is_empty() {
-            "\naws: [ERROR]:\n".to_string()
+            "\nawsr: [ERROR]:\n".to_string()
         } else {
-            format!("\naws: [ERROR]: {message}\n")
+            format!("\nawsr: [ERROR]: {message}\n")
         }
     }
 
@@ -285,12 +285,12 @@ mod tests {
     fn rendering() {
         assert_eq!(
             SessionError::no_credentials().render("enhanced"),
-            "\naws: [ERROR]: An error occurred (NoCredentials): Unable to locate credentials. \
+            "\nawsr: [ERROR]: An error occurred (NoCredentials): Unable to locate credentials. \
              You can configure credentials by running \"aws login\".\n"
         );
         assert_eq!(
             SessionError::profile_not_found("x").to_cli_error().message,
-            "\naws: [ERROR]: The config profile (x) could not be found\n"
+            "\nawsr: [ERROR]: The config profile (x) could not be found\n"
         );
     }
 }

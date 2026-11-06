@@ -107,7 +107,7 @@ fn first_pass(args: &[String]) -> Result<(), Fail> {
     match p.parse_known_args(args) {
         Ok(_) => Ok(()),
         Err(e) => Err(Fail::ParamValidation(format!(
-            "{e}\n\nusage: aws [--profile PROFILE] [--debug]\n"
+            "{e}\n\nusage: awsr [--profile PROFILE] [--debug]\n"
         ))),
     }
 }

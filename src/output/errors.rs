@@ -244,7 +244,7 @@ fn format_inline(v: &Value) -> String {
     }
 }
 
-/// `errorformat.write_error`: `"\naws: [ERROR]: <message>\n"` (with the
+/// `errorformat.write_error`: `"\nawsr: [ERROR]: <message>\n"` (with the
 /// exact surrounding newlines of the AWS CLI).
 pub fn render_general_error(message: &str) -> String {
     let mut out = String::new();
@@ -271,9 +271,9 @@ fn write_error(stream: &mut table::Stream<'_>, message: &str) {
 /// `errorformat.format_error_message` (`str.strip()` of the message).
 pub fn format_error_message(message: &str) -> String {
     if message.is_empty() {
-        return "aws: [ERROR]:".to_string();
+        return "awsr: [ERROR]:".to_string();
     }
-    format!("aws: [ERROR]: {}", py_strip(message))
+    format!("awsr: [ERROR]: {}", py_strip(message))
 }
 
 /// Python `str.strip()` with no arguments (strips Unicode whitespace).

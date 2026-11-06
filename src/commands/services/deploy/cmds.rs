@@ -108,7 +108,7 @@ pub(crate) fn raw_call(
             .general_error(&e)
             .message
             .trim()
-            .trim_start_matches("aws: [ERROR]: ")
+            .trim_start_matches("awsr: [ERROR]: ")
             .to_string()
     })
 }

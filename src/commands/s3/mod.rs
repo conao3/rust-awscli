@@ -106,7 +106,8 @@ fn dispatch(ctx: &Context, args: &[String]) -> Result<ExitCode, S3Fail> {
         );
     }
     Err(Fail::ParamValidation(
-        "usage: aws [options] s3 <subcommand> [parameters]\naws: [ERROR]: too few arguments".into(),
+        "usage: awsr [options] s3 <subcommand> [parameters]\nawsr: [ERROR]: too few arguments"
+            .into(),
     )
     .into())
 }

@@ -89,7 +89,7 @@ pub(crate) fn warn_if_permissive(path: &str) {
     }
     if meta.permissions().mode() & 0o777 & !0o700 != 0 {
         err(&format!(
-            "\naws: [WARNING]: The file '{path}' is accessible by other users. Consider running 'chmod 600 {path}' to restrict access to only your user.\n"
+            "\nawsr: [WARNING]: The file '{path}' is accessible by other users. Consider running 'chmod 600 {path}' to restrict access to only your user.\n"
         ));
     }
 }
@@ -452,7 +452,9 @@ fn set(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
         if !valid {
             return Err(fail(
                 ctx,
-                Fail::ParamValidation(format!("aws: [ERROR]: Invalid value for --{section_type}.")),
+                Fail::ParamValidation(format!(
+                    "awsr: [ERROR]: Invalid value for --{section_type}."
+                )),
             ));
         }
         if varname.contains('.') {

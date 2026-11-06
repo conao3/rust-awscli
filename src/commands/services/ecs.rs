@@ -61,7 +61,7 @@ impl Monitor {
         let tty = std::io::stdout().is_terminal();
         if self.mode == "INTERACTIVE" && !tty {
             super::basic::eprint(
-                "aws: [ERROR]: Interactive mode requires a TTY (terminal). Monitoring skipped. Use --monitor-mode TEXT-ONLY for non-interactive environments.",
+                "awsr: [ERROR]: Interactive mode requires a TTY (terminal). Monitoring skipped. Use --monitor-mode TEXT-ONLY for non-interactive environments.",
             );
             return Ok(After::Display);
         }

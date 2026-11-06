@@ -139,7 +139,7 @@ fn build_params(ctx: &Context, cmd: &str, args: Args) -> Result<Params, S3Fail> 
     };
     if !allowed {
         return Err(pv(format!(
-            "usage: aws s3 {cmd} {}\nError: Invalid argument type",
+            "usage: awsr s3 {cmd} {}\nError: Invalid argument type",
             usage(cmd)
         )));
     }

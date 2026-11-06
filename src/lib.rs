@@ -12,6 +12,7 @@ pub mod jmes;
 pub mod model;
 pub mod output;
 pub mod paginate;
+pub mod progname;
 pub mod protocol;
 pub mod pyfmt;
 pub mod session;

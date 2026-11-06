@@ -179,6 +179,10 @@ pub fn compare(reference: &Side<'_>, candidate: &Side<'_>) -> Vec<(String, Strin
         }
     };
     let (a, b) = (reference.run, candidate.run);
+    let a_stderr = match std::str::from_utf8(&a.stderr) {
+        Ok(s) => awsr::progname::messages(s).into_bytes(),
+        Err(_) => a.stderr.clone(),
+    };
     part(
         "exit",
         exit_text(a),
@@ -193,9 +197,9 @@ pub fn compare(reference: &Side<'_>, candidate: &Side<'_>) -> Vec<(String, Strin
     );
     part(
         "stderr",
-        visible(&a.stderr),
+        visible(&a_stderr),
         visible(&b.stderr),
-        a.stderr == b.stderr,
+        a_stderr == b.stderr,
     );
     if a.outfile.is_some() || b.outfile.is_some() {
         let fa = a.outfile.clone().unwrap_or_default();

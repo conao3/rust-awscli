@@ -58,7 +58,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'foo'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'foo'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -66,7 +66,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'describe-instancs'\n\nMaybe you meant:\n\n  * describe-instances\n  * describe-instance-types\n  * describe-instance-status\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'describe-instancs'\n\nMaybe you meant:\n\n  * describe-instances\n  * describe-instance-types\n  * describe-instance-status\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -74,7 +74,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: operation\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: operation\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -82,7 +82,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --bucket, --key, outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --bucket, --key, outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -99,7 +99,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --foo\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --foo\n",
         record: None,
     },
     Golden {
@@ -107,7 +107,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --output: Found invalid choice 'xml'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --output: Found invalid choice 'xml'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -115,7 +115,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --region: expected one argument\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --region: expected one argument\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -123,7 +123,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: command\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: command\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -131,7 +131,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): ambiguous option: --no could match --no-verify-ssl, --no-paginate, --no-sign-request, --no-cli-pager, --no-cli-auto-prompt\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): ambiguous option: --no could match --no-verify-ssl, --no-paginate, --no-sign-request, --no-cli-pager, --no-cli-auto-prompt\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -139,7 +139,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Both --cli-auto-prompt and --no-cli-auto-prompt cannot be specified at the same time.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Both --cli-auto-prompt and --no-cli-auto-prompt cannot be specified at the same time.\n",
         record: None,
     },
     Golden {
@@ -147,7 +147,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'abc'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'abc'\n",
         record: None,
     },
     Golden {
@@ -155,7 +155,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Bad value for --endpoint-url \"foo\": scheme is missing.  Must be of the form http://<hostname>/ or https://<hostname>/\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Bad value for --endpoint-url \"foo\": scheme is missing.  Must be of the form http://<hostname>/ or https://<hostname>/\n",
         record: None,
     },
     Golden {
@@ -178,7 +178,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in input: \"a\", must be one of:\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in input: \"a\", must be one of:\n",
         record: None,
     },
     Golden {
@@ -193,7 +193,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.a.S, value: 1, type: <class 'int'>, valid types: <class 'str'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.a.S, value: 1, type: <class 'int'>, valid types: <class 'str'>\n",
         record: None,
     },
     Golden {
@@ -225,7 +225,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'abc'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'abc'\n",
         record: None,
     },
     Golden {
@@ -233,7 +233,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Invalid JSON: Expecting ',' delimiter: line 1 column 13 (char 12)\nJSON received: [{\"Name\": 1}\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Invalid JSON: Expecting ',' delimiter: line 1 column 13 (char 12)\nJSON received: [{\"Name\": 1}\n",
         record: None,
     },
     Golden {
@@ -283,7 +283,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'abc'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'abc'\n",
         record: None,
     },
     Golden {
@@ -338,7 +338,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--item': Unable to load paramfile file:///nonexist: [Errno 2] No such file or directory: '/nonexist'\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--item': Unable to load paramfile file:///nonexist: [Errno 2] No such file or directory: '/nonexist'\n",
         record: None,
     },
     Golden {
@@ -346,7 +346,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Expected: '=', received: 'EOF' for input:\n \n^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Expected: '=', received: 'EOF' for input:\n \n^\n",
         record: None,
     },
     Golden {
@@ -354,7 +354,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): usage: aws [options] ec2 wait <subcommand> [parameters]\naws: [ERROR]: too few arguments\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): usage: awsr [options] ec2 wait <subcommand> [parameters]\nawsr: [ERROR]: too few arguments\n",
         record: None,
     },
     Golden {
@@ -362,7 +362,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Unknown options: --foo\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Unknown options: --foo\n",
         record: None,
     },
     Golden {
@@ -370,7 +370,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument subcommand: Found invalid choice 'instance-runnin'\n\nMaybe you meant:\n\n  * instance-running\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument subcommand: Found invalid choice 'instance-runnin'\n\nMaybe you meant:\n\n  * instance-running\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -378,7 +378,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --foo\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --foo\n",
         record: None,
     },
     Golden {
@@ -481,7 +481,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Cannot specify both the \"--disable-api-termination\" option and the \"--no-disable-api-termination\" option.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Cannot specify both the \"--disable-api-termination\" option and the \"--no-disable-api-termination\" option.\n",
         record: None,
     },
     Golden {
@@ -522,7 +522,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Cannot specify --no-paginate along with pagination arguments: --max-items\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Cannot specify --no-paginate along with pagination arguments: --max-items\n",
         record: None,
     },
     Golden {
@@ -537,7 +537,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Cannot specify --no-paginate along with pagination arguments: --max-items\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Cannot specify --no-paginate along with pagination arguments: --max-items\n",
         record: None,
     },
     Golden {
@@ -632,7 +632,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cli-input-json': Invalid type: expecting map, received <class 'list'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cli-input-json': Invalid type: expecting map, received <class 'list'>\n",
         record: None,
     },
     Golden {
@@ -640,7 +640,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter 'cli-input-json': Invalid JSON received.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter 'cli-input-json': Invalid JSON received.\n",
         record: None,
     },
     Golden {
@@ -655,7 +655,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Only one --cli-input- parameter may be specified.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Only one --cli-input- parameter may be specified.\n",
         record: None,
     },
     Golden {
@@ -678,7 +678,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter 'cli-input-yaml': Invalid YAML received.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter 'cli-input-yaml': Invalid YAML received.\n",
         record: None,
     },
     Golden {
@@ -691,7 +691,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cli-input-json': Unable to load paramfile file:///nonexist: [Errno 2] No such file or directory: '/nonexist'\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cli-input-json': Unable to load paramfile file:///nonexist: [Errno 2] No such file or directory: '/nonexist'\n",
         record: None,
     },
     Golden {
@@ -740,7 +740,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: Invalid base64: \"aGVsbG8\"\n",
+        stderr: "\nawsr: [ERROR]: Invalid base64: \"aGVsbG8\"\n",
         record: None,
     },
     Golden {
@@ -871,7 +871,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'x'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'x'\n",
         record: None,
     },
     Golden {
@@ -879,7 +879,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid value for parameter Limit, value: 0, valid min value: 1\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid value for parameter Limit, value: 0, valid min value: 1\n",
         record: None,
     },
     Golden {
@@ -917,7 +917,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--body': Blob values must be a path to a file.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--body': Blob values must be a path to a file.\n",
         record: None,
     },
     Golden {
@@ -953,7 +953,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--body': Blob values must be a path to a file.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--body': Blob values must be a path to a file.\n",
         record: None,
     },
     Golden {
@@ -961,7 +961,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -977,7 +977,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1011,7 +1011,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--assume-role-policy-document': Unable to load paramfile file:///nonexist: [Errno 2] No such file or directory: '/nonexist'\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--assume-role-policy-document': Unable to load paramfile file:///nonexist: [Errno 2] No such file or directory: '/nonexist'\n",
         record: None,
     },
     Golden {
@@ -1046,7 +1046,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --user-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --user-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1054,7 +1054,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --user-name: expected one argument\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --user-name: expected one argument\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1112,7 +1112,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nMissing required parameter in Tags[0]: \"Value\"\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nMissing required parameter in Tags[0]: \"Value\"\n",
         record: None,
     },
     Golden {
@@ -1128,7 +1128,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--tags': Invalid JSON:\n[{\"Key\":\"a\",\"Value\":\"b\"}]\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--tags': Invalid JSON:\n[{\"Key\":\"a\",\"Value\":\"b\"}]\n",
         record: None,
     },
     Golden {
@@ -1154,7 +1154,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: extra\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: extra\n",
         record: None,
     },
     Golden {
@@ -1169,7 +1169,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --regoin, us-east-1\n\nMaybe you meant:\n  * --region (instead of --regoin)\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --regoin, us-east-1\n\nMaybe you meant:\n  * --region (instead of --regoin)\n",
         record: None,
     },
     Golden {
@@ -1177,7 +1177,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --usr-name, x\n\nMaybe you meant:\n  * --user-name (instead of --usr-name)\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --usr-name, x\n\nMaybe you meant:\n  * --user-name (instead of --usr-name)\n",
         record: None,
     },
     Golden {
@@ -1185,7 +1185,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: help-me\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: help-me\n",
         record: None,
     },
     Golden {
@@ -1193,7 +1193,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --debug-x\n\nMaybe you meant:\n  * --debug (instead of --debug-x)\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --debug-x\n\nMaybe you meant:\n  * --debug (instead of --debug-x)\n",
         record: None,
     },
     Golden {
@@ -1210,7 +1210,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: '1.5'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: '1.5'\n",
         record: None,
     },
     Golden {
@@ -1227,7 +1227,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'x'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'x'\n",
         record: None,
     },
     Golden {
@@ -1286,7 +1286,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter EndTime, value: now, type: <class 'str'>, valid types: <class 'datetime.datetime'>, timestamp-string\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter EndTime, value: now, type: <class 'str'>, valid types: <class 'datetime.datetime'>, timestamp-string\n",
         record: None,
     },
     Golden {
@@ -1337,7 +1337,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: Invalid base64: \"{\"a\":1}\"\n",
+        stderr: "\nawsr: [ERROR]: Invalid base64: \"{\"a\":1}\"\n",
         record: None,
     },
     Golden {
@@ -1371,7 +1371,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: Invalid base64: \"notbase64!\"\n",
+        stderr: "\nawsr: [ERROR]: Invalid base64: \"notbase64!\"\n",
         record: None,
     },
     Golden {
@@ -1379,7 +1379,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): --endpoint-url is required for cloudsearchdomain commands\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): --endpoint-url is required for cloudsearchdomain commands\n",
         record: None,
     },
     Golden {
@@ -1459,7 +1459,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: name 'ParamValidationError' is not defined\n",
+        stderr: "\nawsr: [ERROR]: name 'ParamValidationError' is not defined\n",
         record: None,
     },
     Golden {
@@ -1474,7 +1474,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: name 'ParamValidationError' is not defined\n",
+        stderr: "\nawsr: [ERROR]: name 'ParamValidationError' is not defined\n",
         record: None,
     },
     Golden {
@@ -1490,7 +1490,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Mixing the --network-interfaces option with the simple, scalar options is not supported.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Mixing the --network-interfaces option with the simple, scalar options is not supported.\n",
         record: None,
     },
     Golden {
@@ -1506,7 +1506,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter Name, value: 1, valid min length: 3\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter Name, value: 1, valid min length: 3\n",
         record: None,
     },
     Golden {
@@ -1522,7 +1522,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter Name, value: 1, valid min length: 3\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter Name, value: 1, valid min length: 3\n",
         record: None,
     },
     Golden {
@@ -1615,7 +1615,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Cannot specify both the \"--source-dest-check\" option and the \"--no-source-dest-check\" option.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Cannot specify both the \"--source-dest-check\" option and the \"--no-source-dest-check\" option.\n",
         record: None,
     },
     Golden {
@@ -1657,7 +1657,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"the following arguments are required: --user-name\\n\\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  aws help\\n  aws <command> help\\n  aws <command> <subcommand> help\\n\"\n}\n",
+        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"the following arguments are required: --user-name\\n\\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  awsr help\\n  awsr <command> help\\n  awsr <command> <subcommand> help\\n\"\n}\n",
         record: None,
     },
     Golden {
@@ -1665,7 +1665,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "Code: ParamValidation\nMessage: \"the following arguments are required: --user-name\\n\\nusage: aws [options]\n  <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can\n  run:\\n\\n  aws help\\n  aws <command> help\\n  aws <command> <subcommand> help\\n\"\n",
+        stderr: "Code: ParamValidation\nMessage: \"the following arguments are required: --user-name\\n\\nusage: awsr [options]\n  <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can\n  run:\\n\\n  awsr help\\n  awsr <command> help\\n  awsr <command> <subcommand> help\\n\"\n",
         record: None,
     },
     Golden {
@@ -1673,7 +1673,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "ParamValidation\tthe following arguments are required: --user-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n",
+        stderr: "ParamValidation\tthe following arguments are required: --user-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n",
         record: None,
     },
     Golden {
@@ -1681,7 +1681,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n|                                                                                                                      error                                                                                                                     |\n+---------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n|  Code   |  ParamValidation                                                                                                                                                                                                                     |\n|  Message|  the following arguments are required: --user-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n   |\n+---------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n",
+        stderr: "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n|                                                                                                                        error                                                                                                                       |\n+---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n|  Code   |  ParamValidation                                                                                                                                                                                                                         |\n|  Message|  the following arguments are required: --user-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n   |\n+---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+\n",
         record: None,
     },
     Golden {
@@ -1689,7 +1689,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: the following arguments are required: --user-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: the following arguments are required: --user-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1697,7 +1697,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"the following arguments are required: --user-name\\n\\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  aws help\\n  aws <command> help\\n  aws <command> <subcommand> help\\n\"\n}\n",
+        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"the following arguments are required: --user-name\\n\\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  awsr help\\n  awsr <command> help\\n  awsr <command> <subcommand> help\\n\"\n}\n",
         record: None,
     },
     Golden {
@@ -1705,7 +1705,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'foo'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'foo'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1729,7 +1729,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'foo'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'foo'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1745,7 +1745,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --profile: expected one argument\n\nusage: aws [--profile PROFILE] [--debug]\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --profile: expected one argument\n\nusage: awsr [--profile PROFILE] [--debug]\n",
         record: None,
     },
     Golden {
@@ -1780,7 +1780,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --color: Found invalid choice 'maybe'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --color: Found invalid choice 'maybe'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1814,7 +1814,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Bad value for --query a[: Invalid jmespath expression: Incomplete expression:\n\"a[\"\n   ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Bad value for --query a[: Invalid jmespath expression: Incomplete expression:\n\"a[\"\n   ^\n",
         record: None,
     },
     Golden {
@@ -1849,7 +1849,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: '1.5'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: '1.5'\n",
         record: None,
     },
     Golden {
@@ -1857,7 +1857,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --debug: ignored explicit argument '1'\n\nusage: aws [--profile PROFILE] [--debug]\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --debug: ignored explicit argument '1'\n\nusage: awsr [--profile PROFILE] [--debug]\n",
         record: None,
     },
     Golden {
@@ -1865,7 +1865,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: -x\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: -x\n",
         record: None,
     },
     Golden {
@@ -1873,7 +1873,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice '-'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice '-'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1891,7 +1891,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'ec2s'\n\nMaybe you meant:\n\n  * ecs\n  * ec2\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'ec2s'\n\nMaybe you meant:\n\n  * ecs\n  * ec2\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1899,7 +1899,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 's3apii'\n\nMaybe you meant:\n\n  * s3api\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 's3apii'\n\nMaybe you meant:\n\n  * s3api\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1907,7 +1907,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'dynamo'\n\nMaybe you meant:\n\n  * dynamodb\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument command: Found invalid choice 'dynamo'\n\nMaybe you meant:\n\n  * dynamodb\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1915,7 +1915,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'get-caller-id'\n\nMaybe you meant:\n\n  * get-caller-identity\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'get-caller-id'\n\nMaybe you meant:\n\n  * get-caller-identity\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -1933,7 +1933,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: extra\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: extra\n",
         record: None,
     },
     Golden {
@@ -1941,7 +1941,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: -1\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: -1\n",
         record: None,
     },
     Golden {
@@ -1949,7 +1949,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: -a b\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: -a b\n",
         record: None,
     },
     Golden {
@@ -1984,7 +1984,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): ambiguous option: --in could match --instance-ids, --include-managed-resources\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): ambiguous option: --in could match --instance-ids, --include-managed-resources\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -2002,7 +2002,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --dry-run: ignored explicit argument 'true'\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --dry-run: ignored explicit argument 'true'\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -2020,7 +2020,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --max-items: invalid int value: '1.5'\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --max-items: invalid int value: '1.5'\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -2028,7 +2028,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --page-size: invalid int value: 'x'\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --page-size: invalid int value: 'x'\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -2075,7 +2075,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Unable to load paramfile file://@DIR@/missing.json: [Errno 2] No such file or directory: '@DIR@/missing.json'\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Unable to load paramfile file://@DIR@/missing.json: [Errno 2] No such file or directory: '@DIR@/missing.json'\n",
         record: None,
     },
     Golden {
@@ -2151,7 +2151,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in Filters[1]: \"Nam\", must be one of: Name, Values\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in Filters[1]: \"Nam\", must be one of: Name, Values\n",
         record: None,
     },
     Golden {
@@ -2159,7 +2159,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Second instance of key \"Name\" encountered for input:\nName=a,Name=b\n       ^\nThis is often because there is a preceding \",\" instead of a space.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Second instance of key \"Name\" encountered for input:\nName=a,Name=b\n       ^\nThis is often because there is a preceding \",\" instead of a space.\n",
         record: None,
     },
     Golden {
@@ -2167,7 +2167,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Expected: ',', received: '=' for input:\n Name==a\n     ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Expected: ',', received: '=' for input:\n Name==a\n     ^\n",
         record: None,
     },
     Golden {
@@ -2205,7 +2205,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--instance-ids': Invalid JSON: Expecting value: line 1 column 2 (char 1)\nJSON received: [bad\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--instance-ids': Invalid JSON: Expecting value: line 1 column 2 (char 1)\nJSON received: [bad\n",
         record: None,
     },
     Golden {
@@ -2237,7 +2237,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cpu-options': Second instance of key \"CoreCount\" encountered for input:\nCoreCount=2,CoreCount=3\n            ^\nThis is often because there is a preceding \",\" instead of a space.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cpu-options': Second instance of key \"CoreCount\" encountered for input:\nCoreCount=2,CoreCount=3\n            ^\nThis is often because there is a preceding \",\" instead of a space.\n",
         record: None,
     },
     Golden {
@@ -2269,7 +2269,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'x'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'x'\n",
         record: None,
     },
     Golden {
@@ -2303,7 +2303,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Mixing the --network-interfaces option with the simple, scalar options is not supported.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Mixing the --network-interfaces option with the simple, scalar options is not supported.\n",
         record: None,
     },
     Golden {
@@ -2318,7 +2318,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --secondary-private-ip-address-count: invalid int value: 'x'\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --secondary-private-ip-address-count: invalid int value: 'x'\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -2372,7 +2372,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --min-count, 1\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --min-count, 1\n",
         record: None,
     },
     Golden {
@@ -2412,7 +2412,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --no-disable-api-termination\n\nMaybe you meant:\n  * --disable-api-termination (instead of --no-disable-api-termination)\n  * --enable-api-termination (instead of --no-disable-api-termination)\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --no-disable-api-termination\n\nMaybe you meant:\n  * --disable-api-termination (instead of --no-disable-api-termination)\n  * --enable-api-termination (instead of --no-disable-api-termination)\n",
         record: None,
     },
     Golden {
@@ -2459,7 +2459,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in Tags[0]: \"Extra\", must be one of: Key, Value\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in Tags[0]: \"Extra\", must be one of: Key, Value\n",
         record: None,
     },
     Golden {
@@ -2474,7 +2474,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter EbsOptimized.Value, value: maybe, type: <class 'str'>, valid types: <class 'bool'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter EbsOptimized.Value, value: maybe, type: <class 'str'>, valid types: <class 'bool'>\n",
         record: None,
     },
     Golden {
@@ -2506,7 +2506,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --no-no-reboot\n\nMaybe you meant:\n  * --no-reboot (instead of --no-no-reboot)\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --no-no-reboot\n\nMaybe you meant:\n  * --no-reboot (instead of --no-no-reboot)\n",
         record: None,
     },
     Golden {
@@ -2591,7 +2591,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter StartTime, value: notatime, type: <class 'str'>, valid types: <class 'datetime.datetime'>, timestamp-string\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter StartTime, value: notatime, type: <class 'str'>, valid types: <class 'datetime.datetime'>, timestamp-string\n",
         record: None,
     },
     Golden {
@@ -2625,7 +2625,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in input: \"PaginationConfig\", must be one of: InstanceIds, IncludeManagedResources, DryRun, Filters, NextToken, MaxResults\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in input: \"PaginationConfig\", must be one of: InstanceIds, IncludeManagedResources, DryRun, Filters, NextToken, MaxResults\n",
         record: None,
     },
     Golden {
@@ -2683,7 +2683,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --table-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --table-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -2691,7 +2691,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): usage: aws [options] dynamodb wait <subcommand> [parameters]\naws: [ERROR]: too few arguments\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): usage: awsr [options] dynamodb wait <subcommand> [parameters]\nawsr: [ERROR]: too few arguments\n",
         record: None,
     },
     Golden {
@@ -2723,7 +2723,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: 'in <string>' requires string as left operand, not int\n",
+        stderr: "\nawsr: [ERROR]: 'in <string>' requires string as left operand, not int\n",
         record: None,
     },
     Golden {
@@ -2761,7 +2761,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nMissing required parameter in input: \"Item\"\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nMissing required parameter in input: \"Item\"\n",
         record: None,
     },
     Golden {
@@ -2769,7 +2769,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cli-input-yaml': Invalid type: expecting map, received <class 'list'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--cli-input-yaml': Invalid type: expecting map, received <class 'list'>\n",
         record: None,
     },
     Golden {
@@ -2784,7 +2784,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.k.N, value: 1.5, type: <class 'float'>, valid types: <class 'str'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.k.N, value: 1.5, type: <class 'float'>, valid types: <class 'str'>\n",
         record: None,
     },
     Golden {
@@ -2799,7 +2799,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.k.BOOL, value: yes, type: <class 'str'>, valid types: <class 'bool'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.k.BOOL, value: yes, type: <class 'str'>, valid types: <class 'bool'>\n",
         record: None,
     },
     Golden {
@@ -2831,7 +2831,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.k.SS, value: a, type: <class 'str'>, valid types: <class 'list'>, <class 'tuple'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Item.k.SS, value: a, type: <class 'str'>, valid types: <class 'list'>, <class 'tuple'>\n",
         record: None,
     },
     Golden {
@@ -2873,7 +2873,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter TableName, value: 0, valid min length: 1\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter TableName, value: 0, valid min length: 1\n",
         record: None,
     },
     Golden {
@@ -2934,7 +2934,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter TransactItems, value: 0, valid min length: 1\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter TransactItems, value: 0, valid min length: 1\n",
         record: None,
     },
     Golden {
@@ -3042,7 +3042,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Cannot specify --no-paginate along with pagination arguments: --starting-token\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Cannot specify --no-paginate along with pagination arguments: --starting-token\n",
         record: None,
     },
     Golden {
@@ -3055,7 +3055,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter ExclusiveStartTableName, value: 1, valid min length: 3\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter ExclusiveStartTableName, value: 1, valid min length: 3\n",
         record: None,
     },
     Golden {
@@ -3093,7 +3093,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --content-length: invalid int value: 'x'\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --content-length: invalid int value: 'x'\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -3212,7 +3212,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'x'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'x'\n",
         record: None,
     },
     Golden {
@@ -3230,7 +3230,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --cli-input-json, {}\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --cli-input-json, {}\n",
         record: None,
     },
     Golden {
@@ -3407,7 +3407,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--assume-role-policy-document': Unable to load paramfile (@DIR@/latin1.txt), text contents could not be decoded.  If this is a binary file, please use the fileb:// prefix instead of the file:// prefix.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--assume-role-policy-document': Unable to load paramfile (@DIR@/latin1.txt), text contents could not be decoded.  If this is a binary file, please use the fileb:// prefix instead of the file:// prefix.\n",
         record: None,
     },
     Golden {
@@ -3598,7 +3598,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Bad value for --endpoint-url \"e@example.com\": scheme is missing.  Must be of the form http://<hostname>/ or https://<hostname>/\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Bad value for --endpoint-url \"e@example.com\": scheme is missing.  Must be of the form http://<hostname>/ or https://<hostname>/\n",
         record: None,
     },
     Golden {
@@ -3687,7 +3687,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: Invalid base64: \"hello\"\n",
+        stderr: "\nawsr: [ERROR]: Invalid base64: \"hello\"\n",
         record: None,
     },
     Golden {
@@ -3695,7 +3695,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: string argument should contain only ASCII characters\n",
+        stderr: "\nawsr: [ERROR]: string argument should contain only ASCII characters\n",
         record: None,
     },
     Golden {
@@ -3759,7 +3759,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: Invalid base64: \"{\"k\": {\"S\": \"v\"}}\"\n",
+        stderr: "\nawsr: [ERROR]: Invalid base64: \"{\"k\": {\"S\": \"v\"}}\"\n",
         record: None,
     },
     Golden {
@@ -3787,7 +3787,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -3962,7 +3962,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --no-enable-execute-command\n\nMaybe you meant:\n  * --enable-execute-command (instead of --no-enable-execute-command)\n  * --disable-execute-command (instead of --no-enable-execute-command)\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --no-enable-execute-command\n\nMaybe you meant:\n  * --enable-execute-command (instead of --no-enable-execute-command)\n  * --disable-execute-command (instead of --no-enable-execute-command)\n",
         record: None,
     },
     Golden {
@@ -4087,7 +4087,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nMissing required parameter in ChangeBatch: \"Changes\"\nUnknown parameter in ChangeBatch: \"Version\", must be one of: Comment, Changes\nUnknown parameter in ChangeBatch: \"Statement\", must be one of: Comment, Changes\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nMissing required parameter in ChangeBatch: \"Changes\"\nUnknown parameter in ChangeBatch: \"Version\", must be one of: Comment, Changes\nUnknown parameter in ChangeBatch: \"Statement\", must be one of: Comment, Changes\n",
         record: None,
     },
     Golden {
@@ -4172,7 +4172,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter filters.sourceServerIDs[0], value: 3, valid min length: 19\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter filters.sourceServerIDs[0], value: 3, valid min length: 19\n",
         record: None,
     },
     Golden {
@@ -4185,7 +4185,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Entries[0].Detail, value: {}, type: <class 'dict'>, valid types: <class 'str'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Entries[0].Detail, value: {}, type: <class 'dict'>, valid types: <class 'str'>\n",
         record: None,
     },
     Golden {
@@ -4221,7 +4221,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: Invalid base64: \"hello\"\n",
+        stderr: "\nawsr: [ERROR]: Invalid base64: \"hello\"\n",
         record: None,
     },
     Golden {
@@ -4440,7 +4440,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--metric-data-queries': Invalid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)\nJSON received: {\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--metric-data-queries': Invalid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)\nJSON received: {\n",
         record: None,
     },
     Golden {
@@ -4482,7 +4482,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter RoleArn, value: 3, valid min length: 20\nInvalid length for parameter RoleSessionName, value: 1, valid min length: 2\nInvalid length for parameter PolicyArns[0].arn, value: 1, valid min length: 20\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter RoleArn, value: 3, valid min length: 20\nInvalid length for parameter RoleSessionName, value: 1, valid min length: 2\nInvalid length for parameter PolicyArns[0].arn, value: 1, valid min length: 20\n",
         record: None,
     },
     Golden {
@@ -4499,7 +4499,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter RoleArn, value: 3, valid min length: 20\nInvalid length for parameter RoleSessionName, value: 1, valid min length: 2\nInvalid value for parameter DurationSeconds, value: 1, valid min value: 900\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter RoleArn, value: 3, valid min length: 20\nInvalid length for parameter RoleSessionName, value: 1, valid min length: 2\nInvalid value for parameter DurationSeconds, value: 1, valid min value: 900\n",
         record: None,
     },
     Golden {
@@ -4514,7 +4514,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter RoleArn, value: 3, valid min length: 20\nInvalid length for parameter RoleSessionName, value: 0, valid min length: 2\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter RoleArn, value: 3, valid min length: 20\nInvalid length for parameter RoleSessionName, value: 0, valid min length: 2\n",
         record: None,
     },
     Golden {
@@ -4522,7 +4522,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --role-session-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --role-session-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4530,7 +4530,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'x'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'x'\n",
         record: None,
     },
     Golden {
@@ -4629,7 +4629,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'converse-stream'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'converse-stream'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4637,7 +4637,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'invoke-agent'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument operation: Found invalid choice 'invoke-agent'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4655,7 +4655,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n\n\naws: [ERROR]: Unknown options: --foo\n",
+        stderr: "\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n\n\nawsr: [ERROR]: Unknown options: --foo\n",
         record: None,
     },
     Golden {
@@ -4663,7 +4663,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "Code: ParamValidation\nMessage: \"the following arguments are required: --user-name\\n\\nusage: aws [options]\n  <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can\n  run:\\n\\n  aws help\\n  aws <command> help\\n  aws <command> <subcommand> help\\n\"\n",
+        stderr: "Code: ParamValidation\nMessage: \"the following arguments are required: --user-name\\n\\nusage: awsr [options]\n  <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can\n  run:\\n\\n  awsr help\\n  awsr <command> help\\n  awsr <command> <subcommand> help\\n\"\n",
         record: None,
     },
     Golden {
@@ -4671,7 +4671,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[("AWS_CLI_ERROR_FORMAT", "json")],
         rc: 252,
         stdout: "",
-        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"the following arguments are required: --user-name\\n\\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  aws help\\n  aws <command> help\\n  aws <command> <subcommand> help\\n\"\n}\n",
+        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"the following arguments are required: --user-name\\n\\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  awsr help\\n  awsr <command> help\\n  awsr <command> <subcommand> help\\n\"\n}\n",
         record: None,
     },
     Golden {
@@ -4679,7 +4679,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[("AWS_CLI_ERROR_FORMAT", "JSON")],
         rc: 252,
         stdout: "",
-        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"argument command: Found invalid choice 'foo'\\n\\n\\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  aws help\\n  aws <command> help\\n  aws <command> <subcommand> help\\n\"\n}\n",
+        stderr: "{\n    \"Code\": \"ParamValidation\",\n    \"Message\": \"argument command: Found invalid choice 'foo'\\n\\n\\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\\nTo see help text, you can run:\\n\\n  awsr help\\n  awsr <command> help\\n  awsr <command> <subcommand> help\\n\"\n}\n",
         record: None,
     },
     Golden {
@@ -4687,7 +4687,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[("AWS_CLI_ERROR_FORMAT", "bogus")],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --user-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --user-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4695,7 +4695,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[("AWS_CLI_ERROR_FORMAT", "legacy")],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: Error parsing parameter '--filters': Expected: '=', received: 'EOF' for input:\n \n^\n",
+        stderr: "\nawsr: [ERROR]: Error parsing parameter '--filters': Expected: '=', received: 'EOF' for input:\n \n^\n",
         record: None,
     },
     Golden {
@@ -4735,7 +4735,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Attributes.KeyName.B, value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\nInvalid type for parameter Attributes.KeyName.BS[0], value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\nInvalid type for parameter ItemCollectionMetrics.ItemCollectionKey.KeyName.B, value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\nInvalid type for parameter ItemCollectionMetrics.ItemCollectionKey.KeyName.BS[0], value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter Attributes.KeyName.B, value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\nInvalid type for parameter Attributes.KeyName.BS[0], value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\nInvalid type for parameter ItemCollectionMetrics.ItemCollectionKey.KeyName.B, value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\nInvalid type for parameter ItemCollectionMetrics.ItemCollectionKey.KeyName.BS[0], value: None, type: <class 'NoneType'>, valid types: <class 'bytes'>, <class 'bytearray'>, file-like object\n",
         record: None,
     },
     Golden {
@@ -4743,7 +4743,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --table-name, --item\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --table-name, --item\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4751,7 +4751,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): argument --generate-cli-skeleton: Found invalid choice 'nope'\n\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): argument --generate-cli-skeleton: Found invalid choice 'nope'\n\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4789,7 +4789,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --function-name, outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --function-name, outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -4818,7 +4818,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter Arn, value: 3, valid min length: 20\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter Arn, value: 3, valid min length: 20\n",
         record: None,
     },
     Golden {
@@ -4848,7 +4848,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter 'cli-input-json': Invalid JSON received.\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter 'cli-input-json': Invalid JSON received.\n",
         record: None,
     },
     Golden {
@@ -4875,7 +4875,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter UserName, value: 1, type: <class 'int'>, valid types: <class 'str'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter UserName, value: 1, type: <class 'int'>, valid types: <class 'str'>\n",
         record: None,
     },
     Golden {
@@ -4888,7 +4888,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in input: \"Bogus\", must be one of: Path, UserName, PermissionsBoundary, Tags\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nUnknown parameter in input: \"Bogus\", must be one of: Path, UserName, PermissionsBoundary, Tags\n",
         record: None,
     },
     Golden {
@@ -4971,7 +4971,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 255,
         stdout: "",
-        stderr: "\naws: [ERROR]: invalid literal for int() with base 10: 'x'\n",
+        stderr: "\nawsr: [ERROR]: invalid literal for int() with base 10: 'x'\n",
         record: None,
     },
     Golden {
@@ -5042,7 +5042,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Expected: '=', received: ',' for input:\n Name:tag:Name,Values:foo\n             ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--filters': Expected: '=', received: ',' for input:\n Name:tag:Name,Values:foo\n             ^\n",
         record: None,
     },
     Golden {
@@ -5134,7 +5134,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: '<double quoted>', received: '<none>' for input:\n ParameterKey=key,ParameterValue=\"foo,bar\n                                ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: '<double quoted>', received: '<none>' for input:\n ParameterKey=key,ParameterValue=\"foo,bar\n                                ^\n",
         record: None,
     },
     Golden {
@@ -5149,7 +5149,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: '=', received: '\"' for input:\n ParameterKey=key,ParameterValue=foo,bar\"\n                                       ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: '=', received: '\"' for input:\n ParameterKey=key,ParameterValue=foo,bar\"\n                                       ^\n",
         record: None,
     },
     Golden {
@@ -5164,7 +5164,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: ',', received: 'f' for input:\n ParameterKey=key,ParameterValue=\"\"foo,bar\"\n                                  ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: ',', received: 'f' for input:\n ParameterKey=key,ParameterValue=\"\"foo,bar\"\n                                  ^\n",
         record: None,
     },
     Golden {
@@ -5179,7 +5179,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: '<double quoted>', received: '<none>' for input:\n ParameterKey=key,ParameterValue=\"foo,bar'\n                                ^\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--parameters': Expected: '<double quoted>', received: '<none>' for input:\n ParameterKey=key,ParameterValue=\"foo,bar'\n                                ^\n",
         record: None,
     },
     Golden {
@@ -5228,7 +5228,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--block-device-mappings': Invalid JSON: Expecting ',' delimiter: line 1 column 52 (char 51)\nJSON received: [{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"VolumeSize\":20}}\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Error parsing parameter '--block-device-mappings': Invalid JSON: Expecting ',' delimiter: line 1 column 52 (char 51)\nJSON received: [{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"VolumeSize\":20}}\n",
         record: None,
     },
     Golden {
@@ -5251,7 +5251,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -5274,7 +5274,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -5297,7 +5297,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -5318,7 +5318,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -5455,7 +5455,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter UserName, value: 0, valid min length: 1\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid length for parameter UserName, value: 0, valid min length: 1\n",
         record: None,
     },
     Golden {
@@ -5492,7 +5492,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid value for parameter Limit, value: 0, valid min value: 1\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid value for parameter Limit, value: 0, valid min value: 1\n",
         record: None,
     },
     Golden {
@@ -5524,7 +5524,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter PublicAccessBlockConfiguration.IgnorePublicAcls, value: maybe, type: <class 'str'>, valid types: <class 'bool'>\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:\nInvalid type for parameter PublicAccessBlockConfiguration.IgnorePublicAcls, value: maybe, type: <class 'str'>, valid types: <class 'bool'>\n",
         record: None,
     },
     Golden {
@@ -5610,7 +5610,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --function-name\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --function-name\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -5774,7 +5774,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --api-id, --output-type, --specification\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --api-id, --output-type, --specification\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {
@@ -5782,7 +5782,7 @@ pub(super) const GOLDENS: &[Golden] = &[
         env: &[],
         rc: 252,
         stdout: "",
-        stderr: "\naws: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --api-id, --output-type, --specification, outfile\n\nusage: aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n",
+        stderr: "\nawsr: [ERROR]: An error occurred (ParamValidation): the following arguments are required: --api-id, --output-type, --specification, outfile\n\nusage: awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n",
         record: None,
     },
     Golden {

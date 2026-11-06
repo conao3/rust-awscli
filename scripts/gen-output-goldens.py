@@ -24,6 +24,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.environ["AWSR_REFERENCE_SRC"])
 
+import awsr_progname  # noqa: F401, E402
+
 import colorama  # noqa: E402
 import jmespath  # noqa: E402
 

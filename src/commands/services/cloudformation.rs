@@ -52,7 +52,7 @@ impl CfnError {
             CfnError::Cli(e) => e
                 .message
                 .trim()
-                .strip_prefix("aws: [ERROR]: ")
+                .strip_prefix("awsr: [ERROR]: ")
                 .unwrap_or(e.message.trim())
                 .to_string(),
         }

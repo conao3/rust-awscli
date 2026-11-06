@@ -30,11 +30,11 @@ impl WaitOutcome {
     }
 
     /// What the AWS CLI writes to stderr (`errorformat.write_error`):
-    /// `"\naws: [ERROR]: Waiter <name> failed: <reason>\n"`.
+    /// `"\nawsr: [ERROR]: Waiter <name> failed: <reason>\n"`.
     pub fn stderr(&self) -> Option<String> {
         match self {
             WaitOutcome::Success => None,
-            WaitOutcome::Failed(msg) => Some(format!("\naws: [ERROR]: {}\n", msg.trim())),
+            WaitOutcome::Failed(msg) => Some(format!("\nawsr: [ERROR]: {}\n", msg.trim())),
         }
     }
 }
@@ -376,7 +376,7 @@ mod tests {
                     assert_eq!(outcome.exit_code(), 255);
                     assert_eq!(
                         outcome.stderr().unwrap(),
-                        format!("\naws: [ERROR]: {msg}\n")
+                        format!("\nawsr: [ERROR]: {msg}\n")
                     );
                 }
                 (_, w) => panic!("{name}: want {w}"),

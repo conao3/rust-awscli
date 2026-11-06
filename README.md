@@ -27,6 +27,7 @@
 `awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints byte-for-byte identical output. `awsr sts get-caller-identity` finishes in 6.0 ms; `aws` takes 659 ms on the same machine, 110 times as long.
 
 - **Same output.** Your scripts, `--query` expressions, and `--output` formats give the same bytes they give with `aws`. [Differential testing](#differential-testing) runs both CLIs on the operations of all services and compares what they print.
+- **Its own name.** What `awsr` says about itself names `awsr`: `--version` prints `awsr/<version> (aws-cli/<reference version> compatible) <system>/<release> <machine>`, and the usage lines, the `awsr: [ERROR]:` prefix of error messages, and the command lines of the help pages name `awsr`. The text of messages and help pages is the reference's.
 - **All services.** `awsr` embeds the botocore service models of a pinned AWS CLI release (`models/VERSION`) and interprets them at run time. You can call any service and operation of that release as `awsr <service> <operation>`.
 
 `awsr` is not an official AWS product.

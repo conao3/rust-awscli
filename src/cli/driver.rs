@@ -385,7 +385,7 @@ fn wait_command(
             ));
         }
         return Err(Fail::ParamValidation(format!(
-            "usage: aws [options] {cli} wait <subcommand> [parameters]\naws: [ERROR]: too few arguments"
+            "usage: awsr [options] {cli} wait <subcommand> [parameters]\nawsr: [ERROR]: too few arguments"
         )));
     };
     let mut new_args = args.to_vec();

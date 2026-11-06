@@ -467,7 +467,7 @@ pub(crate) fn usage_error(ctx: &Context, lineage: &[&str]) -> CliError {
     param_validation(
         ctx,
         &format!(
-            "usage: aws [options] {} <subcommand> [parameters]\naws: [ERROR]: too few arguments",
+            "usage: awsr [options] {} <subcommand> [parameters]\nawsr: [ERROR]: too few arguments",
             lineage.join(" ")
         ),
     )

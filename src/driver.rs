@@ -301,28 +301,23 @@ fn run_command(
 }
 
 fn version_string() -> String {
-    let release = std::fs::read_to_string("/proc/sys/kernel/osrelease")
-        .map(|s| s.trim().to_string())
-        .unwrap_or_default();
-    let system = match std::env::consts::OS {
-        "linux" => "Linux",
-        "macos" => "Darwin",
-        other => other,
+    let mut uts: libc::utsname = unsafe { std::mem::zeroed() };
+    let (system, release) = if unsafe { libc::uname(&mut uts) } == 0 {
+        let field = |f: &[libc::c_char]| {
+            unsafe { std::ffi::CStr::from_ptr(f.as_ptr()) }
+                .to_string_lossy()
+                .into_owned()
+        };
+        (field(&uts.sysname), field(&uts.release))
+    } else {
+        (std::env::consts::OS.to_string(), String::new())
     };
-    let mut version = format!(
-        "aws-cli/{} Python/3.14.8 {system}/{release}",
-        crate::model::REFERENCE_VERSION.trim()
-    );
-    if let Some(env) = std::env::var_os("AWS_EXECUTION_ENV") {
-        version.push_str(&format!(" exec-env/{}", env.to_string_lossy()));
-    }
-    version.push_str(&format!(" exe/{}", std::env::consts::ARCH));
-    if system == "Linux"
-        && let Some(distribution) = crate::session::useragent::linux_distribution()
-    {
-        version.push_str(&format!(".{distribution}"));
-    }
-    version
+    format!(
+        "awsr/{} (aws-cli/{} compatible) {system}/{release} {}",
+        env!("CARGO_PKG_VERSION"),
+        crate::model::REFERENCE_VERSION.trim(),
+        std::env::consts::ARCH
+    )
 }
 
 /// The outcome of one API call.

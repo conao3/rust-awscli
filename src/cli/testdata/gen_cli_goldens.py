@@ -119,7 +119,7 @@ def main():
         if record is not None:
             stdout = ''
         fix = lambda s: s.replace(fixture_dir, '@DIR@').replace(
-            'usage: ref_harness.py ', 'usage: aws '
+            'usage: ref_harness.py ', 'usage: awsr '
         )
         argv = [fix(x) for x in words]
         w('    Golden {')

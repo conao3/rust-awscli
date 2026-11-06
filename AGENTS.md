@@ -1,11 +1,11 @@
 # AGENTS.md
 
-`awsr` is a Rust reimplementation of the AWS CLI v2 whose command line, requests, and output (json / text / table / yaml / yaml-stream / off, errors, exit codes) match the reference AWS CLI byte for byte. Commands are driven by the botocore models embedded from the reference version (`models/VERSION`).
+`awsr` is a Rust reimplementation of the AWS CLI v2 whose command line, requests, and output (json / text / table / yaml / yaml-stream / off, errors, exit codes) match the reference AWS CLI byte for byte, except where it names itself (`src/progname.rs`): `--version`, the usage lines, the `awsr:` prefix of messages, and the command lines of the help pages. Commands are driven by the botocore models embedded from the reference version (`models/VERSION`).
 
 ## Reference
 
 - Reference version: the AWS CLI release in `models/VERSION`. `scripts/vendor-models.sh <aws-cli checkout>` regenerates `models/` from the `awscli/botocore/data/` and `awscli/data/cli.json` of that release, the example and topic documents (`awscli/examples/`, `awscli/topics/`), and the help inputs the customizations build at run time (`scripts/gen-help-data.py`).
-- The devShell provides the reference CLI (official Linux installer) as `aws` and in `$AWSR_REFERENCE_AWS`, and a Python with the reference's dependencies. `$AWSR_REFERENCE_SRC` points at a checkout of the reference tag; `PYTHONPATH=$AWSR_REFERENCE_SRC python3` imports `awscli` and `awscli.botocore` from source, which is how expected values for unit tests are produced.
+- The devShell provides the reference CLI (official Linux installer) as `aws` and in `$AWSR_REFERENCE_AWS`, and a Python with the reference's dependencies. `$AWSR_REFERENCE_SRC` points at a checkout of the reference tag; `PYTHONPATH=$AWSR_REFERENCE_SRC python3` imports `awscli` and `awscli.botocore` from source, which is how expected values for unit tests are produced. The golden generators import `scripts/awsr_progname.py` first, which loads the reference with the name `awsr` in its usage lines and message prefixes.
 - Behavior is ported from the reference source, not reinvented. When a rule is ported, the doc comment names the Python file and function it comes from.
 
 ## Layout

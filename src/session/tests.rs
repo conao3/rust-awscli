@@ -208,7 +208,7 @@ async fn single_attempt_reaches_max_and_connection_errors() {
     assert_eq!(err.kind, ErrorKind::Connection);
     assert_eq!(
         err.to_cli_error().message,
-        "\naws: [ERROR]: Could not connect to the endpoint URL: \"http://127.0.0.1:9/\"\n"
+        "\nawsr: [ERROR]: Could not connect to the endpoint URL: \"http://127.0.0.1:9/\"\n"
     );
     assert_eq!(err.exit_code() as i32, 255);
 }
@@ -287,7 +287,7 @@ async fn configuration_errors() {
         .unwrap();
     assert_eq!(
         err.to_cli_error().message,
-        "\naws: [ERROR]: The config profile (nope) could not be found\n"
+        "\nawsr: [ERROR]: The config profile (nope) could not be found\n"
     );
 
     // A broken config file fails when the session is created.

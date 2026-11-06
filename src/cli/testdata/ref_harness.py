@@ -8,10 +8,14 @@ then returns an empty response.
 """
 
 import json
+import os
 import sys
 import uuid
 
-import awscli  # noqa: F401
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "scripts"))
+
+import awsr_progname  # noqa: F401, E402
+import awscli  # noqa: F401, E402
 import botocore
 import botocore.client
 from botocore.validate import validate_parameters

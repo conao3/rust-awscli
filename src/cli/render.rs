@@ -13,7 +13,7 @@ use crate::pyfmt;
 use crate::value::{Map, Value};
 
 /// `awscli/argparser.py` `USAGE`.
-pub(crate) const USAGE: &str = "aws [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  aws help\n  aws <command> help\n  aws <command> <subcommand> help\n";
+pub(crate) const USAGE: &str = "awsr [options] <command> <subcommand> [<subcommand> ...] [parameters]\nTo see help text, you can run:\n\n  awsr help\n  awsr <command> help\n  awsr <command> <subcommand> help\n";
 
 /// `CLIArgParser.format_usage()`.
 pub(crate) fn format_usage() -> String {
@@ -122,11 +122,11 @@ mod tests {
     fn formats() {
         assert_eq!(
             param_validation("bad\n", "enhanced", "auto"),
-            "\naws: [ERROR]: An error occurred (ParamValidation): bad\n"
+            "\nawsr: [ERROR]: An error occurred (ParamValidation): bad\n"
         );
         assert_eq!(
             param_validation("bad", "legacy", "auto"),
-            "\naws: [ERROR]: bad\n"
+            "\nawsr: [ERROR]: bad\n"
         );
         assert_eq!(
             param_validation("bad", "json", "auto"),

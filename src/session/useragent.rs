@@ -88,7 +88,7 @@ fn os_release() -> Option<String> {
 
 /// `awscli.utils._get_distribution` (`<id>.<major version>` from
 /// `/etc/os-release`).
-pub(crate) fn linux_distribution() -> Option<String> {
+fn linux_distribution() -> Option<String> {
     let text = std::fs::read_to_string("/etc/os-release").ok()?;
     let field = |k: &str| {
         text.lines().find_map(|l| {

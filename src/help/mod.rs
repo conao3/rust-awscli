@@ -344,7 +344,7 @@ fn waiter_description(config: &Map<String, Json>) -> String {
 /// The reStructuredText of the help page `req` (`doc.getvalue()` after
 /// `generate_events`).
 pub fn document(req: &HelpRequest) -> Result<String, String> {
-    match req {
+    let rst = match req {
         HelpRequest::Provider => {
             let cli = crate::model::cli_data();
             let s = |k: &str| {
@@ -356,7 +356,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
             let custom = HelpData::load("_custom").ok_or("missing help data")?;
             let undocumented = custom.undocumented();
             let mut page = Page::new(
-                "aws",
+                "awsr",
                 "aws",
                 Kind::Provider {
                     description: s("description"),
@@ -376,7 +376,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 .filter(|c| !undocumented.contains(&c.as_str()))
                 .collect();
             page.has_commands = true;
-            page.related_items = vec!["aws help topics".to_string()];
+            page.related_items = vec!["awsr help topics".to_string()];
             page.generate()
         }
         HelpRequest::TopicLister => {
@@ -578,7 +578,8 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 .collect();
             page.generate()
         }
-    }
+    };
+    rst.map(|rst| crate::progname::help(&rst))
 }
 
 /// Whether the page's command table has entries (`BasicHelp.url`).
@@ -683,7 +684,11 @@ mod tests {
             ),
         ];
         for (req, expected) in cases {
-            assert_eq!(document(&req).unwrap(), expected, "{req:?}");
+            assert_eq!(
+                document(&req).unwrap(),
+                crate::progname::help(expected),
+                "{req:?}"
+            );
         }
     }
 

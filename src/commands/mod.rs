@@ -32,6 +32,6 @@ pub(crate) fn run(ctx: &Context, path: &[String], args: &[String]) -> Result<Exi
 pub(crate) fn not_implemented() -> CliError {
     CliError::new(
         ExitCode::General,
-        "\naws: [ERROR]: awsr: command not implemented yet\n",
+        "\nawsr: [ERROR]: command not implemented yet\n",
     )
 }

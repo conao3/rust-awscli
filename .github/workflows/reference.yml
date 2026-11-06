@@ -1,0 +1,119 @@
+name: Reference
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: AWS CLI version to move to (the latest release when empty)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reference
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update the reference AWS CLI
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - id: target
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          current="$(cat models/VERSION)"
+          version="${REQUESTED:-$(git ls-remote --tags --refs https://github.com/aws/aws-cli.git '2.*' | sed 's|.*refs/tags/||' | sort -V | tail -n 1)}"
+          branch="reference/$version"
+          if [ "$(printf '%s\n%s\n' "$current" "$version" | sort -V | tail -n 1)" = "$current" ]; then
+            echo "The reference is $current; $version is not newer."
+          elif git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "$branch already exists."
+          else
+            echo "update=true" >>"$GITHUB_OUTPUT"
+          fi
+          echo "current=$current" >>"$GITHUB_OUTPUT"
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+          echo "branch=$branch" >>"$GITHUB_OUTPUT"
+      - if: steps.target.outputs.update
+        uses: cachix/install-nix-action@v31.11.3
+      - if: steps.target.outputs.update
+        run: scripts/update-reference.sh "${{ steps.target.outputs.version }}"
+      - if: steps.target.outputs.update
+        id: check
+        continue-on-error: true
+        run: nix develop --command make check 2>&1 | tee "$RUNNER_TEMP/check.log"
+      - if: steps.target.outputs.update
+        run: |
+          git status --porcelain --untracked-files=all -- models/services-a-l models/services-m-z \
+            | awk '{print $2}' | grep '\.json\.zst$' | xargs -r -n 1 basename | sed 's/\.json\.zst$//' | sort >"$RUNNER_TEMP/services.txt"
+          tr -d ' \n' <src/cli/tables.rs | grep -oE '\("[^"]*",Some\("[^"]*"\),?\)' | sed -E 's/\("([^"]*)",Some\("([^"]*)"\),?\)/\2 \1/' \
+            | awk 'NR == FNR { s[$1]; next } $1 in s { print $2 }' "$RUNNER_TEMP/services.txt" - >"$RUNNER_TEMP/commands.txt"
+          echo "Changed services: $(wc -l <"$RUNNER_TEMP/services.txt")"
+      - if: steps.target.outputs.update
+        id: difftest
+        continue-on-error: true
+        run: |
+          nix develop --command bash -euo pipefail -c '
+            cargo build --release
+            cargo run -q --release -p awsr-difftest -- corpus --awsr-bin target/release/awsr --seeds 4 --formats json,text,table \
+              $(sed "s/^/--service /" "$RUNNER_TEMP/services.txt") 2>"$RUNNER_TEMP/difftest.err" | tee "$RUNNER_TEMP/difftest.log"
+          '
+      - if: steps.target.outputs.update
+        id: help
+        continue-on-error: true
+        run: |
+          nix develop --command bash -euo pipefail -c '
+            HOME="$(mktemp -d)" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 scripts/list-help-pages.py \
+              | awk "NR == FNR { c[\$1]; next } \$1 in c" "$RUNNER_TEMP/commands.txt" - >"$RUNNER_TEMP/help-pages.txt"
+            scripts/compare-help.sh "$RUNNER_TEMP/help-pages.txt" "$(nproc)" | tee "$RUNNER_TEMP/help.log"
+            ! grep -q "^DIFF" "$RUNNER_TEMP/help.log"
+          '
+      - if: steps.target.outputs.update
+        env:
+          CURRENT: ${{ steps.target.outputs.current }}
+          VERSION: ${{ steps.target.outputs.version }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+          CHECK: ${{ steps.check.outcome }}
+          DIFFTEST: ${{ steps.difftest.outcome }}
+          HELP: ${{ steps.help.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add -A flake.nix Cargo.toml Cargo.lock models src
+          git commit -m "Move the reference AWS CLI to $VERSION"
+          git push origin "$BRANCH"
+          {
+            echo "Moves the reference AWS CLI from $CURRENT to $VERSION ([changelog](https://github.com/aws/aws-cli/blob/$VERSION/CHANGELOG.rst)) with \`scripts/update-reference.sh $VERSION\`."
+            echo
+            echo "| Check | Result |"
+            echo "|---|---|"
+            echo "| \`make check\` | $CHECK |"
+            echo "| \`awsr-difftest corpus\` (the changed services) | $DIFFTEST |"
+            echo "| \`scripts/compare-help.sh\` (the pages of the changed services) | $HELP |"
+            echo
+            echo "Run: $RUN_URL"
+            echo
+            echo '```'
+            grep -E '^test result|FAILED|panicked' "$RUNNER_TEMP/check.log" | head -n 40 || true
+            sed -n '/^[0-9]* cases:/,/^reports:/p' "$RUNNER_TEMP/difftest.log" | head -n 60 || true
+            { grep '^DIFF' "$RUNNER_TEMP/help.log" | head -n 40; grep '^match:' "$RUNNER_TEMP/help.log"; } || true
+            echo '```'
+          } >"$RUNNER_TEMP/body.md"
+          draft=()
+          if [ "$CHECK$DIFFTEST$HELP" != successsuccesssuccess ]; then draft=(--draft); fi
+          gh pr create "${draft[@]}" --base master --head "$BRANCH" \
+            --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md"

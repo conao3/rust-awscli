@@ -550,7 +550,7 @@ mod tests {
         }
     }
 
-    /// The table of `StandardRetryConditions` (botocore 2.39.3).
+    /// The table of `StandardRetryConditions` (the reference botocore).
     #[test]
     fn classification() {
         let p = policy(3);

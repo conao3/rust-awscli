@@ -230,7 +230,7 @@ pub fn parse_error(
 
 #[cfg(test)]
 mod tests {
-    //! Goldens produced by botocore (AWS CLI 2.39.3).
+    //! Goldens produced by the reference botocore.
 
     use super::*;
     use crate::protocol::xml_common::test_support::*;

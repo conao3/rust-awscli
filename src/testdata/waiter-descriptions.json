@@ -1,0 +1,9 @@
+{
+ "desc_count": 403,
+ "desc_sha256": "01b71f2dc49de5e9a17343a6e849ef24604c5592802bac6b2f9adcc13adc66cb",
+ "desc_sample": [
+  "Wait until JMESPath query Reservations[].Instances[].State.Name returns running for all elements when polling with ``describe-instances``. It will poll every 15 seconds until a successful state has been reached. This will exit with a return code of 255 after 40 failed checks.",
+  "Wait until 200 response is received when polling with ``head-bucket``. It will poll every 5 seconds until a successful state has been reached. This will exit with a return code of 255 after 20 failed checks.",
+  "Wait until JMESPath query Table.TableStatus returns ACTIVE when polling with ``describe-table``. It will poll every 20 seconds until a successful state has been reached. This will exit with a return code of 255 after 25 failed checks."
+ ]
+}

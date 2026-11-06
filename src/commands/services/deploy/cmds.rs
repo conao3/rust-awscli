@@ -718,6 +718,21 @@ fn config_path() -> String {
     format!("{CONFIG_DIR}/{DEFAULT_CONFIG_FILE}")
 }
 
+fn makedirs(name: &std::path::Path) -> Result<(), String> {
+    if let Some(head) = name.parent()
+        && !head.as_os_str().is_empty()
+        && !head.exists()
+    {
+        makedirs(head)?;
+    }
+    match std::fs::create_dir(name) {
+        Err(e) if e.kind() != std::io::ErrorKind::AlreadyExists => {
+            Err(crate::cli::paramfile::os_error(&e, &name.to_string_lossy()))
+        }
+        _ => Ok(()),
+    }
+}
+
 /// `awscli.compat.linux_distribution()[0]` from `/etc/lsb-release` or
 /// the first `/etc/*-release` file of a supported distribution.
 fn linux_distribution() -> String {
@@ -796,11 +811,27 @@ fn validate_instance(ctx: &Context) -> Result<System, CliError> {
             "Only Ubuntu Server, Red Hat Enterprise Linux Server and Windows Server operating systems are supported.",
         ));
     };
-    let imds = std::net::TcpStream::connect_timeout(
-        &std::net::SocketAddr::from(([169, 254, 169, 254], 80)),
-        std::time::Duration::from_secs(1),
-    );
-    if imds.is_ok() {
+    let imds = || -> std::io::Result<bool> {
+        use std::io::{BufRead, Write};
+        let timeout = Some(std::time::Duration::from_secs(1));
+        let mut stream = std::net::TcpStream::connect_timeout(
+            &std::net::SocketAddr::from(([169, 254, 169, 254], 80)),
+            std::time::Duration::from_secs(1),
+        )?;
+        stream.set_read_timeout(timeout)?;
+        stream.set_write_timeout(timeout)?;
+        stream.write_all(
+            b"GET /latest/meta-data/ HTTP/1.1\r\nHost: 169.254.169.254\r\nConnection: close\r\n\r\n",
+        )?;
+        let mut status = String::new();
+        std::io::BufReader::new(stream).read_line(&mut status)?;
+        Ok(status
+            .split(' ')
+            .nth(1)
+            .and_then(|c| c.parse::<u16>().ok())
+            .is_some_and(|c| c < 400))
+    };
+    if imds().unwrap_or(false) {
         return Err(general(ctx, "Amazon EC2 instances are not supported."));
     }
     if unsafe { libc::geteuid() } != 0 {
@@ -818,17 +849,9 @@ fn check_call(argv: &[&str], env: Option<&[(String, String)]>) -> Result<(), Str
             cmd.env(k, v);
         }
     }
-    let status = cmd.status().map_err(|e| {
-        format!(
-            "[Errno {}] {}: '{}'",
-            e.raw_os_error().unwrap_or(0),
-            crate::cli::paramfile::os_error(&e, argv[0])
-                .split(": ")
-                .next()
-                .unwrap_or_default(),
-            argv[0]
-        )
-    })?;
+    let status = cmd
+        .status()
+        .map_err(|e| crate::cli::paramfile::os_error(&e, argv[0]))?;
     if status.success() {
         return Ok(());
     }
@@ -849,7 +872,7 @@ fn stop_agent(system: System) -> Result<bool, String> {
     let out = std::process::Command::new("service")
         .args(["codedeploy-agent", "stop"])
         .output()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| crate::cli::paramfile::os_error(&e, "service"))?;
     let error = String::from_utf8_lossy(&out.stderr).into_owned();
     if !out.status.success() && !error.contains(not_found) {
         return Err(format!(
@@ -899,7 +922,7 @@ fn install(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     let config_file = a.str("config-file").unwrap_or_default();
     let steps = || -> Result<(), String> {
         basic::print("Creating the on-premises instance configuration file... ");
-        std::fs::create_dir_all(CONFIG_DIR).map_err(|e| e.to_string())?;
+        makedirs(std::path::Path::new(CONFIG_DIR))?;
         if config_file != config_path() {
             std::fs::copy(&config_file, config_path())
                 .map_err(|e| crate::cli::paramfile::os_error(&e, &config_file))?;
@@ -927,7 +950,8 @@ fn install(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
             Some(Value::Str(s)) => s.clone().into_bytes(),
             _ => Vec::new(),
         };
-        std::fs::write(&installer, body).map_err(|e| e.to_string())?;
+        std::fs::write(&installer, body)
+            .map_err(|e| crate::cli::paramfile::os_error(&e, &installer))?;
         check_call(&["chmod", "+x", &format!("./{installer}")], None)?;
         let creds = ctx
             .runtime

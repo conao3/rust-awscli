@@ -5,7 +5,8 @@ use regex::Regex;
 fn message_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
-        Regex::new(r"(?m)(usage: |(?:^|\\n)[ \t]*(?:\x1b\[[0-9;]*m)*)aws([ :])").unwrap()
+        Regex::new(r"(?m)(usage: |(?:^|\\n)[ \t]+(?:\x1b\[[0-9;]*m)*)aws([ :])|((?:^|\\n)(?:\x1b\[[0-9;]*m)*)aws(:)")
+            .unwrap()
     })
 }
 
@@ -16,7 +17,7 @@ fn help_re() -> &'static Regex {
 
 pub fn messages(reference: &str) -> String {
     message_re()
-        .replace_all(reference, "${1}awsr${2}")
+        .replace_all(reference, "${1}${3}awsr${2}${4}")
         .into_owned()
 }
 
@@ -53,6 +54,10 @@ mod tests {
         assert_eq!(
             messages("arn:aws:iam::aws:policy"),
             "arn:aws:iam::aws:policy"
+        );
+        assert_eq!(
+            messages("new bucket\naws s3 mb s3://bkt\n"),
+            "new bucket\naws s3 mb s3://bkt\n"
         );
     }
 

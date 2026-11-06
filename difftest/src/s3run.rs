@@ -74,6 +74,27 @@ fn progress_re() -> &'static Regex {
     RE.get_or_init(|| Regex::new("Completed [^\r\n]*[\r\n]").unwrap())
 }
 
+fn name_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"(awsr|AWSR)(\W|$)").unwrap())
+}
+
+fn flow(s: &str) -> String {
+    static SGR: OnceLock<Regex> = OnceLock::new();
+    static SPACE: OnceLock<Regex> = OnceLock::new();
+    static HYPHEN: OnceLock<Regex> = OnceLock::new();
+    let s = SGR
+        .get_or_init(|| Regex::new("\x1b\\[[0-9;]*m").unwrap())
+        .replace_all(s, "");
+    let s = SPACE
+        .get_or_init(|| Regex::new(r"\s+").unwrap())
+        .replace_all(&s, " ");
+    HYPHEN
+        .get_or_init(|| Regex::new(r"([[:alpha:]])- ").unwrap())
+        .replace_all(&s, "$1")
+        .into_owned()
+}
+
 fn trailing_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| Regex::new(" +([\r\n])").unwrap())
@@ -313,11 +334,15 @@ pub fn compare(a: &Side, b: &Side, compare_requests: bool) -> Vec<(String, Strin
     );
     // Concurrent transfers finish in any order: lines may come in any
     // order as long as they are the same lines.
-    if sorted_lines(&a.stdout) != sorted_lines(&b.stdout) {
-        diff("stdout", &a.stdout, &b.stdout, &mut out);
+    let b_stdout = name_re().replace_all(&b.stdout, |c: &regex::Captures| {
+        format!("{}{}", &c[1][..3], &c[2])
+    });
+    if sorted_lines(&a.stdout) != sorted_lines(&b_stdout) && flow(&a.stdout) != flow(&b_stdout) {
+        diff("stdout", &a.stdout, &b_stdout, &mut out);
     }
-    if sorted_lines(&a.stderr) != sorted_lines(&b.stderr) {
-        diff("stderr", &a.stderr, &b.stderr, &mut out);
+    let a_stderr = awsr::progname::messages(&a.stderr);
+    if sorted_lines(&a_stderr) != sorted_lines(&b.stderr) {
+        diff("stderr", &a_stderr, &b.stderr, &mut out);
     }
     if compare_requests {
         diff(

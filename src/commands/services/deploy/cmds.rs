@@ -924,8 +924,22 @@ fn install(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
         basic::print("Creating the on-premises instance configuration file... ");
         makedirs(std::path::Path::new(CONFIG_DIR))?;
         if config_file != config_path() {
-            std::fs::copy(&config_file, config_path())
+            use std::io::Write;
+            use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+            let contents = std::fs::read(&config_file)
                 .map_err(|e| crate::cli::paramfile::os_error(&e, &config_file))?;
+            let dest = config_path();
+            let os_error = |e: std::io::Error| crate::cli::paramfile::os_error(&e, &dest);
+            let mut f = std::fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .mode(0o600)
+                .open(&dest)
+                .map_err(os_error)?;
+            std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o600))
+                .map_err(os_error)?;
+            f.write_all(&contents).map_err(os_error)?;
         }
         basic::print("DONE\n");
         basic::print("Installing the AWS CodeDeploy Agent... ");

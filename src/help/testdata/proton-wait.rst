@@ -1,5 +1,5 @@
 .. meta::
-   :description: Use the AWS CLI 2.39.3 to run the proton wait command.
+   :description: Use the AWS CLI 2.39.5 to run the proton wait command.
 
 
 

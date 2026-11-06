@@ -1,8 +1,8 @@
 [package]
 name = "awsr-models-services-a-l"
-version = "2.39.3"
+version = "2.39.5"
 edition = "2024"
 license = "Apache-2.0"
-description = "The botocore service models of the AWS CLI 2.39.3 whose names start with a to l, embedded by awsr"
+description = "The botocore service models of the AWS CLI 2.39.5 whose names start with a to l, embedded by awsr"
 repository = "https://github.com/conao3/rust-awscli"
 rust-version = "1.94"

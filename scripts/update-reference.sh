@@ -30,7 +30,7 @@ mv flake.nix.new flake.nix
 nix develop --command bash -euo pipefail -c '
   [ "$(aws --version | cut -d" " -f1)" = "aws-cli/'"$version"'" ]
   scripts/vendor-models.sh "$AWSR_REFERENCE_SRC"
-  cargo update --workspace --offline
+  cargo update --workspace
   home="$(mktemp -d)"
   HOME="$home" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/cli/testdata/gen_tables.py >src/cli/tables.rs
   HOME="$home" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/cli/testdata/gen_fingerprints.py >src/cli/fingerprints.rs

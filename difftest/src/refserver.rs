@@ -22,6 +22,7 @@ use crate::run::{self, Env, RunOut};
 #[derive(Debug)]
 pub struct RefServer {
     socket: PathBuf,
+    _socket_dir: tempfile::TempDir,
     _dir: tempfile::TempDir,
     _child: Child,
 }
@@ -42,7 +43,8 @@ impl RefServer {
             "\n[plugins]\ncli_legacy_plugin_path = {}\nrefserver = awsr_refserver\n",
             plugin_dir.display()
         )?;
-        let socket = dir.path().join("socket");
+        let socket_dir = tempfile::Builder::new().prefix("refserver-").tempdir()?;
+        let socket = socket_dir.path().join("socket");
         let mut child = Command::new(reference)
             .args(["sts", "get-caller-identity"])
             .current_dir(dir.path())
@@ -73,6 +75,7 @@ impl RefServer {
         }
         Ok(RefServer {
             socket,
+            _socket_dir: socket_dir,
             _dir: dir,
             _child: child,
         })

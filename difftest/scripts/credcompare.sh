@@ -2,7 +2,8 @@
 # Compare `awsr` with the reference AWS CLI on the configure / sso / login
 # commands and the credential providers. Each case runs both CLIs in a fresh
 # HOME, then compares exit codes, stdout, stderr, and every file written
-# under ~/.aws (time-dependent values normalized).
+# under ~/.aws (time-dependent values normalized, and the name `awsr` turned
+# back into `aws`).
 #
 # Usage: difftest/scripts/credcompare.sh [CASE_FILTER]
 # Needs the devShell (python3, the reference `aws`) and a built awsr.
@@ -71,6 +72,9 @@ case_() {
       ${CASE_ENV:-} timeout 60 setsid "$bin" "$@" >"$home.out" 2>"$home.err" \
       && echo 0 >"$home.rc" || echo $? >"$home.rc"
     snapshot "$home" | normalize >"$home.snap"
+    if [ "$impl" = awsr ]; then
+      sed -i 's/awsr\([^[:alnum:]_]\|$\)/aws\1/g; s/AWSR\([^[:alnum:]_]\|$\)/AWS\1/g' "$home.snap"
+    fi
   done
   if diff -u "$WORK/$name/ref.snap" "$WORK/$name/awsr.snap" >"$WORK/$name.diff"; then
     pass=$((pass + 1))

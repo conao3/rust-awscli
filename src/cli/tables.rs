@@ -308,6 +308,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     ("accessanalyzer", Some("accessanalyzer")),
     ("account", Some("account")),
     ("account-access", Some("account-access")),
+    ("account-access-runtime", Some("account-access-runtime")),
     ("acm", Some("acm")),
     ("acm-pca", Some("acm-pca")),
     ("agent-registry", Some("agent-registry")),

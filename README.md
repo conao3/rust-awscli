@@ -71,6 +71,10 @@ $ awsr ec2 describe-instances --query 'Reservations[].Instances[].InstanceId' --
 
 ## Performance
 
+<p align="center">
+  <img src="docs/assets/performance.svg" alt="Mean wall time of awsr and aws 2.39.3 for seven commands" width="100%">
+</p>
+
 | Command | awsr | aws 2.39.3 | Speedup |
 |---|---:|---:|---:|
 | `--version` | 1.3 ms | 497 ms | 380× |

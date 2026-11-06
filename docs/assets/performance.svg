@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="696" viewBox="0 0 1100 696" font-family="Helvetica, Arial, sans-serif">
+<rect x="0" y="0" width="1100" height="696" rx="16" fill="#ffffff"/>
+<text x="30" y="48" font-size="24" font-weight="bold" fill="#222">Mean wall time (ms, lower is better)</text>
+<rect x="30" y="70" width="22" height="22" fill="#d9622b"/><text x="62" y="88" font-size="19" fill="#222">awsr</text>
+<rect x="150" y="70" width="22" height="22" fill="#9a9a9a"/><text x="182" y="88" font-size="19" fill="#222">aws 2.39.3</text>
+<text x="334" y="158" font-size="19" text-anchor="end" font-family="monospace" fill="#222">--version</text>
+<rect x="350" y="126" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="145" font-size="19" fill="#222">1.3 ms</text>
+<rect x="350" y="156" width="220.1" height="24" fill="#9a9a9a"/>
+<text x="578.1" y="175" font-size="19" fill="#222">497 ms</text>
+<text x="334" y="236" font-size="19" text-anchor="end" font-family="monospace" fill="#222">sts get-caller-identity</text>
+<rect x="350" y="204" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="223" font-size="19" fill="#222">6.0 ms</text>
+<rect x="350" y="234" width="291.8" height="24" fill="#9a9a9a"/>
+<text x="649.8" y="253" font-size="19" fill="#222">659 ms</text>
+<text x="334" y="314" font-size="19" text-anchor="end" font-family="monospace" fill="#222">dynamodb list-tables</text>
+<rect x="350" y="282" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="301" font-size="19" fill="#222">5.3 ms</text>
+<rect x="350" y="312" width="322.4" height="24" fill="#9a9a9a"/>
+<text x="680.4" y="331" font-size="19" fill="#222">728 ms</text>
+<text x="334" y="392" font-size="19" text-anchor="end" font-family="monospace" fill="#222">ec2 describe-regions</text>
+<rect x="350" y="360" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="379" font-size="19" fill="#222">5.0 ms</text>
+<rect x="350" y="390" width="414.5" height="24" fill="#9a9a9a"/>
+<text x="772.5" y="409" font-size="19" fill="#222">936 ms</text>
+<text x="334" y="470" font-size="19" text-anchor="end" font-family="monospace" fill="#222">help</text>
+<rect x="350" y="438" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="457" font-size="19" fill="#222">1.9 ms</text>
+<rect x="350" y="468" width="336.1" height="24" fill="#9a9a9a"/>
+<text x="694.1" y="487" font-size="19" fill="#222">759 ms</text>
+<text x="334" y="548" font-size="19" text-anchor="end" font-family="monospace" fill="#222">ec2 help</text>
+<rect x="350" y="516" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="535" font-size="19" fill="#222">1.9 ms</text>
+<rect x="350" y="546" width="465.9" height="24" fill="#9a9a9a"/>
+<text x="823.9" y="565" font-size="19" fill="#222">1052 ms</text>
+<text x="334" y="626" font-size="19" text-anchor="end" font-family="monospace" fill="#222">ec2 describe-instances help</text>
+<rect x="350" y="594" width="3.0" height="24" fill="#d9622b"/>
+<text x="361.0" y="613" font-size="19" fill="#222">3.5 ms</text>
+<rect x="350" y="624" width="596.1" height="24" fill="#9a9a9a"/>
+<text x="954.1" y="643" font-size="19" fill="#222">1346 ms</text>
+</svg>

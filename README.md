@@ -70,6 +70,39 @@ $ awsr ec2 describe-instances --query 'Reservations[].Instances[].InstanceId' --
 
 `awsr` reads the same `~/.aws/config`, `~/.aws/credentials`, SSO token cache, and environment variables as the AWS CLI.
 
+### Shell completion
+
+bash (`~/.bashrc`):
+
+```bash
+if command -v aws_completer > /dev/null; then
+    complete -C aws_completer awsr
+fi
+```
+
+zsh (`~/.zshrc`):
+
+```zsh
+autoload -Uz bashcompinit && bashcompinit
+if command -v aws_completer > /dev/null; then
+    complete -C aws_completer awsr
+fi
+```
+
+fish (`~/.config/fish/completions/awsr.fish`, or `~/.config/fish/config.fish`):
+
+```fish
+if type -q aws_completer
+    function __awsr_completer
+        set -lx COMP_LINE (commandline -pc)
+        set -lx COMP_POINT (string length $COMP_LINE)
+        aws_completer | tr -d ' '
+    end
+
+    complete -c awsr -f -a "(__awsr_completer)"
+end
+```
+
 ## Performance
 
 <p align="center">

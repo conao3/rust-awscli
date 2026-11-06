@@ -375,6 +375,21 @@ pub fn all() -> Vec<Scenario> {
         sc("cp-upload-no-overwrite", "s3 cp x.txt s3://dst/ --no-progress --no-overwrite")
             .file("x.txt", "hello\n")
             .obj("dst", "x.txt", "old"),
+        sc("cp-upload-tags", "s3 cp x.txt s3://dst/ --no-progress --tags env prod --tags team a&b=c/d")
+            .file("x.txt", "hello\n")
+            .bucket("dst"),
+        sc("cp-upload-multipart-tags", "s3 cp big s3://dst/ --no-progress --tags k v")
+            .file("big", blob(11 * 1024 * 1024 + 5, 3))
+            .bucket("dst"),
+        sc("mv-upload-tags", "s3 mv x.txt s3://dst/ --no-progress --tags k v")
+            .file("x.txt", "hello\n")
+            .bucket("dst"),
+        sc("sync-upload-tags", "s3 sync dir s3://dst --no-progress --tags k v")
+            .file("dir/a.txt", "a\n")
+            .file("dir/b.txt", "b\n")
+            .bucket("dst"),
+        sc("cp-download-tags-bad", "s3 cp s3://src/a.txt out --tags k v").obj("src", "a.txt", "a"),
+        sc("cp-copy-tags-bad", "s3 cp s3://src/a.txt s3://dst/ --tags k v").obj("src", "a.txt", "a").bucket("dst"),
         sc("cp-upload-no-bucket", "s3 cp x.txt s3://nope/ --no-progress").file("x.txt", "hello\n"),
         sc("cp-upload-dryrun", "s3 cp x.txt s3://dst/ --dryrun")
             .file("x.txt", "hello\n")

@@ -296,6 +296,9 @@ fn validate_path_args(p: &mut Params) -> Result<(), S3Fail> {
     if p.t("checksum_mode") {
         check("checksum-mode", &["s3local"], &pt)?;
     }
+    if p.t("tags") {
+        check("tags", &["locals3"], &pt)?;
+    }
     if pt == "locals3" && !p.t("is_stream") {
         if std::fs::metadata(p.src()).is_err() {
             return Err(S3Fail::Other(anyhow::anyhow!(
@@ -1442,6 +1445,7 @@ struct Handler<'a> {
 #[derive(Clone)]
 struct Tx {
     loc: Loc,
+    if_none_match: bool,
     size: Option<i64>,
 }
 
@@ -1673,7 +1677,7 @@ impl<'a> Handler<'a> {
         match r {
             Ok(()) => self.send(TResult::Success(tx.loc.clone())),
             Err(TransferError::Interrupted) => self.send(TResult::CtrlC),
-            Err(e) if e.precondition_failed() => self.send(TResult::Skip),
+            Err(e) if tx.if_none_match && e.precondition_failed() => self.send(TResult::Skip),
             Err(e) => self.send(TResult::Failure(tx.loc.clone(), e.to_string())),
         }
     }
@@ -1774,6 +1778,7 @@ impl<'a> Handler<'a> {
                 src,
                 dest: Some(dest),
             },
+            if_none_match: extra.contains_key("IfNoneMatch"),
             size,
         };
         // on_queued: the queued result, then the content type.
@@ -2110,6 +2115,7 @@ impl<'a> Handler<'a> {
                 src,
                 dest: Some(dest),
             },
+            if_none_match: extra.contains_key("IfNoneMatch"),
             size: if is_stream { None } else { f.size },
         };
         self.queued(&tx);
@@ -2347,6 +2353,7 @@ impl<'a> Handler<'a> {
                 src,
                 dest: Some(dest),
             },
+            if_none_match: extra.contains_key("IfNoneMatch"),
             size: f.size,
         };
         let is_move = self.p.truthy("is_move");
@@ -2807,6 +2814,7 @@ impl<'a> Handler<'a> {
                 src,
                 dest: None,
             },
+            if_none_match: extra.contains_key("IfNoneMatch"),
             size: f.size,
         };
         self.queued(&Tx {

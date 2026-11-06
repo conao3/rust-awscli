@@ -842,6 +842,12 @@ impl Session {
                                 "Unable to locate authorization token",
                             )
                         })?;
+                if !req.url.starts_with("https") {
+                    return Err(SessionError::new(
+                        ErrorKind::General,
+                        "Invalid endpoint configuration: Bearer authorization requires an HTTPS endpoint.",
+                    ));
+                }
                 headers::replace(
                     &mut req.headers,
                     "Authorization",

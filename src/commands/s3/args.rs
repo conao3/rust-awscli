@@ -132,6 +132,10 @@ fn transfer_args() -> Vec<ArgDef> {
     let mut no_guess = with_dest(flag("no-guess-mime-type"), "guess_mime_type");
     no_guess.action.kind = Kind::StoreFalse;
     no_guess.action.default = NsVal::Bool(true);
+    let mut tags = opt("tags");
+    tags.action.kind = Kind::Append;
+    tags.action.nargs = Nargs::Exact(2);
+    tags.model = Model::None;
     let mut grants = opt("grants");
     grants.action.nargs = Nargs::OneOrMore;
     grants.model = Model::None;
@@ -184,6 +188,7 @@ fn transfer_args() -> Vec<ArgDef> {
                 "GLACIER_IR",
             ],
         ),
+        tags,
         grants,
         opt("website-redirect"),
         opt("content-type"),

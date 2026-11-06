@@ -464,6 +464,25 @@ pub(crate) mod mapper {
         }
     }
 
+    fn tagging(p: &mut Map, cli: &Args) {
+        if cli.truthy("tags") {
+            let pairs: Vec<(String, String)> = crate::commands::s3::args::tag_list(cli)
+                .iter()
+                .filter_map(|t| {
+                    let t = t.as_map()?;
+                    Some((
+                        t.get("Key")?.as_str()?.to_string(),
+                        t.get("Value")?.as_str()?.to_string(),
+                    ))
+                })
+                .collect();
+            p.insert(
+                "Tagging".into(),
+                Value::str(crate::session::url::percent_encode_sequence(&pairs)),
+            );
+        }
+    }
+
     fn sse(p: &mut Map, cli: &Args) {
         if cli.truthy("sse") {
             set(p, "ServerSideEncryption", cli.get("sse").unwrap());
@@ -530,6 +549,7 @@ pub(crate) mod mapper {
     pub(crate) fn put_object(p: &mut Map, cli: &Args) -> Result<(), Fail> {
         general(p, cli)?;
         metadata(p, cli);
+        tagging(p, cli);
         sse(p, cli);
         sse_c(p, cli);
         request_payer(p, cli);

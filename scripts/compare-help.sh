@@ -14,7 +14,7 @@
 # per page that matches only with the line breaks taken out, and the counts.
 # Both run with an empty HOME and without AWS_* or PAGER settings, and with
 # stdout not a terminal, so the pager passes the page through.
-set -euo pipefail
+set -euxo pipefail -o posix
 
 list="$1"
 jobs="${2:-8}"

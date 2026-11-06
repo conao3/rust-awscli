@@ -5,7 +5,7 @@
 #
 # Usage: scripts/update-reference.sh VERSION
 #   Run outside the devShell (it enters the devShell of the new pin).
-set -euo pipefail
+set -euxo pipefail -o posix
 
 version="$1"
 current="$(cat models/VERSION)"
@@ -27,7 +27,7 @@ awk -v src="$src_hash" -v exe="$exe_hash" '
 ' flake.nix >flake.nix.new
 mv flake.nix.new flake.nix
 
-nix develop --command bash -euo pipefail -c '
+nix develop --command bash -euxo pipefail -o posix -c '
   [ "$(aws --version | cut -d" " -f1)" = "aws-cli/'"$version"'" ]
   scripts/vendor-models.sh "$AWSR_REFERENCE_SRC"
   cargo update --workspace

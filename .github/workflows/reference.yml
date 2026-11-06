@@ -17,6 +17,10 @@ concurrency:
   group: reference
   cancel-in-progress: false
 
+defaults:
+  run:
+    shell: bash --noprofile --norc -euxo pipefail -o posix {0}
+
 jobs:
   update:
     name: Update the reference AWS CLI
@@ -43,9 +47,11 @@ jobs:
           else
             echo "update=true" >>"$GITHUB_OUTPUT"
           fi
-          echo "current=$current" >>"$GITHUB_OUTPUT"
-          echo "version=$version" >>"$GITHUB_OUTPUT"
-          echo "branch=$branch" >>"$GITHUB_OUTPUT"
+          {
+            echo "current=$current"
+            echo "version=$version"
+            echo "branch=$branch"
+          } >>"$GITHUB_OUTPUT"
       - if: steps.target.outputs.update
         uses: cachix/install-nix-action@v31.11.3
       - if: steps.target.outputs.update
@@ -65,7 +71,7 @@ jobs:
         id: difftest
         continue-on-error: true
         run: |
-          nix develop --command bash -euo pipefail -c '
+          nix develop --command bash -euxo pipefail -o posix -c '
             cargo build --release
             cargo run -q --release -p awsr-difftest -- corpus --awsr-bin target/release/awsr --seeds 4 --formats json,text,table \
               $(sed "s/^/--service /" "$RUNNER_TEMP/services.txt") 2>"$RUNNER_TEMP/difftest.err" | tee "$RUNNER_TEMP/difftest.log"
@@ -74,7 +80,7 @@ jobs:
         id: help
         continue-on-error: true
         run: |
-          nix develop --command bash -euo pipefail -c '
+          nix develop --command bash -euxo pipefail -o posix -c '
             HOME="$(mktemp -d)" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 scripts/list-help-pages.py \
               | awk "NR == FNR { c[\$1]; next } \$1 in c" "$RUNNER_TEMP/commands.txt" - >"$RUNNER_TEMP/help-pages.txt"
             scripts/compare-help.sh "$RUNNER_TEMP/help-pages.txt" "$(nproc)" | tee "$RUNNER_TEMP/help.log"

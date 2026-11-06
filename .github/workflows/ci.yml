@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash --noprofile --norc -euxo pipefail -o posix {0}
+
 jobs:
   check:
     runs-on: ubuntu-latest

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: scripts/vendor-models.sh <aws-cli source checkout at the reference tag>
 # Needs the devShell (jq, zstd, and a Python that imports the checkout).
-set -euo pipefail
+set -euxo pipefail -o posix
 
 src="$1"
 data="$src/awscli/botocore/data"

@@ -15,6 +15,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+defaults:
+  run:
+    shell: bash --noprofile --norc -euxo pipefail -o posix {0}
+
 jobs:
   version-bump:
     name: Version Bump
@@ -130,7 +134,7 @@ jobs:
           else
             cargo build --release -p awsr --target ${{ matrix.target }}
           fi
-        shell: bash
+        shell: bash --noprofile --norc -euxo pipefail -o posix {0}
       - run: |
           cd target/${{ matrix.target }}/release
           tar czf ../../../awsr-${{ matrix.target }}.tar.gz awsr

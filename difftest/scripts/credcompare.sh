@@ -6,7 +6,7 @@
 #
 # Usage: difftest/scripts/credcompare.sh [CASE_FILTER]
 # Needs the devShell (python3, the reference `aws`) and a built awsr.
-set -u
+set -euxo pipefail -o posix
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 REF=${AWSR_REFERENCE_AWS:-aws}
 AWSR=${AWSR_BIN:-$ROOT/target/debug/awsr}
@@ -68,8 +68,8 @@ case_() {
     printf '%b' "$input" | env -i PATH="$PATH" HOME="$home" TERM=dumb AWS_EC2_METADATA_DISABLED=true \
       AWS_ENDPOINT_URL_STS=$STUBURL AWS_ENDPOINT_URL_SSO_OIDC=$STUBURL AWS_ENDPOINT_URL_SSO=$STUBURL \
       AWS_ENDPOINT_URL_SIGNIN=$STUBURL BROWSER="$ROOT/difftest/scripts/fakebrowser.sh" \
-      ${CASE_ENV:-} timeout 60 setsid "$bin" "$@" >"$home.out" 2>"$home.err"
-    echo $? >"$home.rc"
+      ${CASE_ENV:-} timeout 60 setsid "$bin" "$@" >"$home.out" 2>"$home.err" \
+      && echo 0 >"$home.rc" || echo $? >"$home.rc"
     snapshot "$home" | normalize >"$home.snap"
   done
   if diff -u "$WORK/$name/ref.snap" "$WORK/$name/awsr.snap" >"$WORK/$name.diff"; then

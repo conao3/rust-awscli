@@ -87,6 +87,30 @@ jobs:
             ! grep -q "^DIFF" "$RUNNER_TEMP/help.log"
           '
       - if: steps.target.outputs.update
+        id: scenarios
+        continue-on-error: true
+        run: |
+          nix develop --command bash -euxo pipefail -o posix -c '
+            status=0
+            cargo run -q --release -p awsr-difftest -- scenario --awsr-bin target/release/awsr difftest/scenarios/*.json \
+              2>"$RUNNER_TEMP/scenario.err" | tee "$RUNNER_TEMP/scenario.log" || status=1
+            cargo run -q --release -p awsr-difftest -- s3 --awsr-bin target/release/awsr \
+              2>"$RUNNER_TEMP/s3.err" | tee "$RUNNER_TEMP/s3.log" || status=1
+            AWSR_BIN=target/release/awsr difftest/scripts/credcompare.sh 2>"$RUNNER_TEMP/credcompare.err" | tee "$RUNNER_TEMP/credcompare.log"
+            grep -q "^passed: [0-9]* failed: 0$" "$RUNNER_TEMP/credcompare.log" || status=1
+            exit "$status"
+          '
+      - if: steps.target.outputs.update
+        env:
+          CURRENT: ${{ steps.target.outputs.current }}
+          VERSION: ${{ steps.target.outputs.version }}
+        run: |
+          src="$(nix develop --command printenv AWSR_REFERENCE_SRC)"
+          awk -v version="$VERSION" -v current="$CURRENT" \
+            '$0 == version { on = 1 } $0 == current { on = 0 } on && /^\* / && !/^\* api-change:/' \
+            "$src/CHANGELOG.rst" >"$RUNNER_TEMP/changes.txt"
+          cat "$RUNNER_TEMP/changes.txt"
+      - if: steps.target.outputs.update
         env:
           CURRENT: ${{ steps.target.outputs.current }}
           VERSION: ${{ steps.target.outputs.version }}
@@ -94,6 +118,7 @@ jobs:
           CHECK: ${{ steps.check.outcome }}
           DIFFTEST: ${{ steps.difftest.outcome }}
           HELP: ${{ steps.help.outcome }}
+          SCENARIOS: ${{ steps.scenarios.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           git config user.name "github-actions[bot]"
@@ -110,6 +135,15 @@ jobs:
             echo "| \`make check\` | $CHECK |"
             echo "| \`awsr-difftest corpus\` (the changed services) | $DIFFTEST |"
             echo "| \`scripts/compare-help.sh\` (the pages of the changed services) | $HELP |"
+            echo "| \`awsr-difftest scenario\`, \`awsr-difftest s3\`, \`difftest/scripts/credcompare.sh\` | $SCENARIOS |"
+            echo
+            if [ -s "$RUNNER_TEMP/changes.txt" ]; then
+              echo "Changes outside the models (\`CHANGELOG.rst\`), to port in this PR:"
+              echo
+              cat "$RUNNER_TEMP/changes.txt"
+            else
+              echo "The changelog lists no change outside the models."
+            fi
             echo
             echo "Run: $RUN_URL"
             echo
@@ -117,9 +151,10 @@ jobs:
             grep -E '^test result|FAILED|panicked' "$RUNNER_TEMP/check.log" | head -n 40 || true
             sed -n '/^[0-9]* cases:/,/^reports:/p' "$RUNNER_TEMP/difftest.log" | head -n 60 || true
             { grep '^DIFF' "$RUNNER_TEMP/help.log" | head -n 40; grep '^match:' "$RUNNER_TEMP/help.log"; } || true
+            grep -E "^FAIL|passed" "$RUNNER_TEMP/scenario.log" "$RUNNER_TEMP/s3.log" "$RUNNER_TEMP/credcompare.log" | head -n 60 || true
             echo '```'
           } >"$RUNNER_TEMP/body.md"
           draft=()
-          if [ "$CHECK$DIFFTEST$HELP" != successsuccesssuccess ]; then draft=(--draft); fi
+          if [ "$CHECK$DIFFTEST$HELP$SCENARIOS" != successsuccesssuccesssuccess ] || [ -s "$RUNNER_TEMP/changes.txt" ]; then draft=(--draft); fi
           gh pr create "${draft[@]}" --base master --head "$BRANCH" \
             --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md"

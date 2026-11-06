@@ -44,8 +44,15 @@ impl Arg {
 
 pub type Table = HashMap<String, ServiceEntry>;
 
-pub fn default_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../target/difftest/cli-table.json")
+pub fn default_path() -> Result<PathBuf> {
+    let reference = std::env::var_os("AWSR_REFERENCE_SRC")
+        .context("AWSR_REFERENCE_SRC is not set (use the devShell)")?;
+    let name = Path::new(&reference)
+        .file_name()
+        .context("AWSR_REFERENCE_SRC has no file name")?;
+    Ok(Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../target/difftest")
+        .join(format!("cli-table-{}.json", name.to_string_lossy())))
 }
 
 /// Load the table from `path`, generating it with the reference Python

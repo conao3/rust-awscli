@@ -1,5 +1,5 @@
 .. meta::
-   :description: Use the AWS CLI 2.39.5 to run the sts get-caller-identity command.
+   :description: Use the AWS CLI 2.39.6 to run the sts get-caller-identity command.
 
 
 
@@ -63,6 +63,7 @@ Synopsis
   [--cli-auto-prompt]
   [--no-cli-auto-prompt]
   [--cli-error-format <value>]
+  [--help]
 
 
 
@@ -200,6 +201,10 @@ The formatting style for error output. By default, errors are displayed in enhan
 
 *   enhanced
 
+
+``--help`` (boolean)
+
+Display help for the command/subcommand.
 
 
 

@@ -1,5 +1,5 @@
 .. meta::
-   :description: Use the AWS CLI 2.39.5 to run the configure list command.
+   :description: Use the AWS CLI 2.39.6 to run the configure list command.
 
 
 
@@ -164,6 +164,10 @@ The formatting style for error output. By default, errors are displayed in enhan
 
 *   enhanced
 
+
+``--help`` (boolean)
+
+Display help for the command/subcommand.
 
 
 

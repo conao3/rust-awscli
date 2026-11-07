@@ -64,15 +64,15 @@ p256 = { version = "0.14", features = ["ecdsa", "pem", "pkcs8"] }
 xxhash-rust = { version = "0.8.19", features = ["xxh64", "xxh3"] }
 
 [build-dependencies]
-awsr-models = { path = "models", version = "=2.39.5" }
-awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.5" }
-awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.5" }
+awsr-models = { path = "models", version = "=2.39.6" }
+awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.6" }
+awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.6" }
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 zstd = "0.13"
 
 [dev-dependencies]
-awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.5" }
-awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.5" }
+awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.6" }
+awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.6" }
 tempfile = "3"
 tokio = { version = "1", features = ["test-util"] }
 

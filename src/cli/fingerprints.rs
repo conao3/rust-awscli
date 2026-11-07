@@ -146,7 +146,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "athena",
-        "46227edcd1520ef2a2929c9353dc14c0752e971f41c0641d6969d780700d7f68",
+        "cc3a7230bd7bcd2148e0c141d1c99c944cae233906ffefc97147d758a7956a92",
     ),
     (
         "auditmanager",
@@ -154,7 +154,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "autoscaling",
-        "2abdaa025877bb20fb878069da9a9b8678bd2759c8d995b19a44b9402153c0e3",
+        "92cf7581dfa678503610775db6476de1db024c9d6fcfb71e1f64c54e9dadc926",
     ),
     (
         "autoscaling-plans",
@@ -202,7 +202,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-agent",
-        "37a27de4691616c342f65470413cd5ae16c57763268cac98f181513a761df579",
+        "ceb80e845d721bbc43fdd57517376fe069bd9cd849e6c3078672a974e011765d",
     ),
     (
         "bedrock-agent-runtime",
@@ -430,7 +430,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "connectcases",
-        "fe2eeaffaace9b047879eea11cedf189209c0499de30c83a3f404cf77d9d0e1e",
+        "6a7fdb0b8b2917ba8b51fdce786ba3fb0e9ebf57b66c8d385bac0a3bebb2a74c",
     ),
     (
         "connecthealth",
@@ -1022,7 +1022,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "mediaconvert",
-        "111a4387e35a0f5f5395e6e6f7c4446ac9c6757d2278afdb4a01ba53264c9d88",
+        "2b07f481c69bd871f50867f2430030e76c99637cbca68e22e585c499820dd1ed",
     ),
     (
         "medialive",
@@ -1298,7 +1298,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ram",
-        "1b775bcbf0b49185bfdd6158a6908750a28300583ea1351a70f894f7a4ace874",
+        "e5bbb41518921ec00b8e63b6c42be8bb9105c94b11202ab8e6b93349359b4a35",
     ),
     (
         "rbin",
@@ -1558,7 +1558,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ssm",
-        "7886a3d1a6ec4b1fd2b07b91580c61c13cfcccb0d31a9edf0019303afb79a4e4",
+        "b902afc7c9d779fbefc4201e449fff9af0ef0a3edb90d718492a18e22e5048bc",
     ),
     (
         "ssm-contacts",

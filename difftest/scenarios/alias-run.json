@@ -1,0 +1,484 @@
+[
+ {
+  "name": "alias run s3 sync without --delete",
+  "argv": [
+   "s3",
+   "sync",
+   "{dir}/src",
+   "s3://b",
+   "--delete",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run s3 sync without --size-only",
+  "argv": [
+   "s3",
+   "sync",
+   "{dir}/src",
+   "s3://b",
+   "--size-only",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run s3 sync without --exact-timestamps",
+  "argv": [
+   "s3",
+   "sync",
+   "{dir}/src",
+   "s3://b",
+   "--exact-timestamps",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run s3 sync --no-overwrite without its strategy",
+  "argv": [
+   "s3",
+   "sync",
+   "s3://src/",
+   "s3://dst/",
+   "--no-overwrite",
+   "--no-progress",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>src</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>dst</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a</Key><LastModified>2020-01-01T00:00:00.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><LastModified>2024-01-01T00:00:00.000Z</LastModified><ETag>&quot;x&quot;</ETag></CopyObjectResult>"
+   }
+  ]
+ },
+ {
+  "name": "s3 sync --no-overwrite with its strategy",
+  "argv": [
+   "s3",
+   "sync",
+   "s3://src/",
+   "s3://dst/",
+   "--no-overwrite",
+   "--no-progress",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>src</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>dst</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a</Key><LastModified>2020-01-01T00:00:00.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><LastModified>2024-01-01T00:00:00.000Z</LastModified><ETag>&quot;x&quot;</ETag></CopyObjectResult>"
+   }
+  ]
+ },
+ {
+  "name": "alias run emr ssh without the configuration override",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run emr socks without the configuration override",
+  "argv": [
+   "emr",
+   "socks",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "emr ssh with the configuration override",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--command",
+   "true",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"ReleaseLabel\": \"emr-6.0.0\"}}"
+   }
+  ]
+ },
+ {
+  "name": "alias run wait usage",
+  "argv": [
+   "ec2",
+   "wait",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run wait alias of the command wait section",
+  "argv": [
+   "ec2",
+   "wait",
+   "slow",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><instancesSet><item><instanceId>i-2</instanceId><instanceState><code>16</code><name>running</name></instanceState></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ],
+  "user_agent_command": true
+ },
+ {
+  "name": "alias run wait alias of the ec2 wait section",
+  "argv": [
+   "ec2",
+   "wait",
+   "fast",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run subcommand usage",
+  "argv": [
+   "codecommit",
+   "credential-helper",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run wizard usage",
+  "argv": [
+   "dynamodb",
+   "wizard",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run iam wizard usage",
+  "argv": [
+   "iam",
+   "wizard",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  }
+ },
+ {
+  "name": "alias run user agent operation",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ],
+  "user_agent_command": true
+ },
+ {
+  "name": "alias run user agent s3",
+  "argv": [
+   "s3",
+   "ls",
+   "s3://b",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   }
+  ],
+  "user_agent_command": true
+ },
+ {
+  "name": "alias run user agent emr",
+  "argv": [
+   "emr",
+   "describe-cluster",
+   "--cluster-id",
+   "j-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key",
+   "home/.aws/cli/alias": "[command s3]\nsync = sync\nls = ls\n[command emr]\nssh = ssh\nsocks = socks\ndescribe-cluster = describe-cluster\n[command ec2]\nwait = wait\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n[command wait]\nslow = instance-running --instance-ids i-2\n[command sts]\nget-caller-identity = get-caller-identity\n[command codecommit]\ncredential-helper = credential-helper\n[command dynamodb]\nwizard = wizard\n[command iam]\nwizard = wizard\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"ReleaseLabel\": \"emr-6.0.0\"}}"
+   }
+  ],
+  "user_agent_command": true
+ },
+ {
+  "name": "configure wizard",
+  "argv": [
+   "configure",
+   "wizard",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ },
+ {
+  "name": "configure wizard argument",
+  "argv": [
+   "configure",
+   "wizard",
+   "extra",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ },
+ {
+  "name": "iam wizard invalid",
+  "argv": [
+   "iam",
+   "wizard",
+   "foo",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ },
+ {
+  "name": "iam wizard new-role",
+  "argv": [
+   "iam",
+   "wizard",
+   "new-role",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ },
+ {
+  "name": "lambda wizard new-function",
+  "argv": [
+   "lambda",
+   "wizard",
+   "new-function",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ },
+ {
+  "name": "lambda wizard unknown option",
+  "argv": [
+   "lambda",
+   "wizard",
+   "new-function",
+   "--bogus",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ },
+ {
+  "name": "lambda wizard usage",
+  "argv": [
+   "lambda",
+   "wizard",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nemr =\n  key_name = k\n  key_pair_file = {dir}/k.pem\n",
+   "src/a.txt": "abc",
+   "k.pem": "key"
+  }
+ }
+]

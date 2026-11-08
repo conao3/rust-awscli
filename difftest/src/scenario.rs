@@ -66,6 +66,32 @@ pub struct Scenario {
     /// codes, runs of whitespace, and hyphenations at line ends taken out.
     #[serde(default)]
     pub help_page: bool,
+    /// Compare the `md/command#` part of the user agents (the command
+    /// lineage), which the comparison otherwise masks with the rest of
+    /// the user agent.
+    #[serde(default)]
+    pub user_agent_command: bool,
+}
+
+/// The `md/command#` part of the user agent of `request`, as a header the
+/// comparison does not mask.
+fn add_user_agent_command(request: &mut crate::server::Recorded) {
+    let command = request
+        .headers
+        .iter()
+        .find(|(k, _)| k.eq_ignore_ascii_case("user-agent"))
+        .map(|(_, v)| {
+            String::from_utf8_lossy(v)
+                .split(' ')
+                .filter(|p| p.starts_with("md/command#"))
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
+    request.headers.push((
+        "x-difftest-user-agent-command".to_string(),
+        command.into_bytes(),
+    ));
 }
 
 /// `compare-help.sh`'s `flow`.
@@ -293,6 +319,11 @@ pub async fn exec(
     apply_masks(&masks, &mut rb, &mut qb);
     if s.help_page {
         rb.stdout = help_page(&ra.stdout, &rb.stdout);
+    }
+    if s.user_agent_command {
+        qa.iter_mut()
+            .chain(qb.iter_mut())
+            .for_each(add_user_agent_command);
     }
     if let Some(f) = &s.stderr_records {
         let re = regex::Regex::new(f)?;

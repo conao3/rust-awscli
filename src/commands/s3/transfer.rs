@@ -1341,7 +1341,7 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
         if p.t("delete") {
             st.not_at_src = Strategy::Delete;
         }
-        if p.t("no_overwrite") {
+        if p.t("no_overwrite") && super::sync_strategies(ctx) {
             st.at_both = Strategy::NoOverwrite;
         }
         let src = filter1.call(fgen.call(&files));

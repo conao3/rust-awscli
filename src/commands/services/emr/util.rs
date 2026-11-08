@@ -124,9 +124,10 @@ pub(crate) fn emr_configs(ctx: &Context) -> Map {
 }
 
 /// `override_args_required_option`: arguments set in the configuration are
-/// not required.
-pub(crate) fn override_required(ctx: &Context, defs: &mut [ArgDef], args: &[String]) {
-    if args.len() == 1 && args[0] == "help" {
+/// not required. It handles `before-building-argument-table-parser.emr.*`,
+/// which the command `name` an alias proxies to does not emit.
+pub(crate) fn override_required(ctx: &Context, name: &str, defs: &mut [ArgDef], args: &[String]) {
+    if (args.len() == 1 && args[0] == "help") || ctx.session.lineage(&["emr", name]).len() == 1 {
         return;
     }
     let configs = emr_configs(ctx);

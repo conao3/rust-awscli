@@ -191,7 +191,7 @@ fn new_session(globals: &GlobalArgs) -> Result<Session, CliError> {
 pub fn help_request(args: &[String]) -> Option<crate::help::HelpRequest> {
     let (globals, rest) = cli::parse_globals(args).ok()?;
     let session = new_session(&globals).ok()?;
-    match cli::parse_command_shadowed(&rest, &globals, &session, &[]).ok()? {
+    match cli::parse_command_shadowed(&rest, &globals, &session, &[], None).ok()? {
         Command::Help(req) => Some(req),
         _ => None,
     }
@@ -222,7 +222,7 @@ fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
     let mut proxied: Option<Vec<String>> = None;
     let mut depth = 0;
     let command = loop {
-        match cli::parse_command_shadowed(&rest, &globals, &session, &shadow)? {
+        match cli::parse_command_shadowed(&rest, &globals, &session, &shadow, proxied.as_deref())? {
             Command::Alias(cli::alias::Expansion::Dispatch {
                 globals: new_globals,
                 rest: new_rest,
@@ -250,6 +250,9 @@ fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
             command => break cli::driver::aliased_help(command, proxied.as_deref(), globals.help),
         }
     };
+    if let Some(p) = proxied {
+        session.set_proxied(p);
+    }
     run_command(globals, session, command).map(|code| code as i32)
 }
 

@@ -47,7 +47,7 @@ pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode
 /// `Command.__call__` / `Command._run_main` (`emr/command.py`).
 fn command(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
     let mut defs = util::arg_defs(name);
-    util::override_required(ctx, &mut defs, args);
+    util::override_required(ctx, name, &mut defs, args);
     let Some(mut parsed) = basic::parse(ctx, &["emr", name], &defs, args)? else {
         return Ok(ExitCode::Success);
     };

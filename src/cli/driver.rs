@@ -164,6 +164,7 @@ pub(crate) fn aliased_help(command: Command, proxied: Option<&[String]>, help: b
     let path: Vec<&str> = match &req {
         HelpRequest::Operation { service, name, .. } => vec![service, name],
         HelpRequest::Waiter { service, name, .. } => vec![service, "wait", name],
+        HelpRequest::Wait(service) => vec![service, "wait"],
         HelpRequest::Custom(path) => path.iter().map(String::as_str).collect(),
         _ => Vec::new(),
     };
@@ -430,13 +431,15 @@ fn wait_command(
     if args.len() == 1 && args[0] == "help" {
         return Ok(Command::Help(HelpRequest::Wait(cli.to_string())));
     }
+    let path = [cli, "wait"];
+    let lineage = super::lineage(ctx.proxied, &path);
     let mut parser = Parser::new();
     let mut sub = Action::positional("subcommand", Nargs::Optional);
     // `WaitCommand._build_subcommand_table` adds the waiters after the
     // `building-command-table` handlers: an alias named like a waiter is
     // replaced by it.
     let mut choices: Vec<String> = Vec::new();
-    super::alias::extend_choices(&[cli, "wait"], &mut choices)?;
+    super::alias::extend_choices(lineage, &mut choices)?;
     for (n, _) in &waiters {
         if !choices.contains(n) {
             choices.push(n.clone());
@@ -464,7 +467,8 @@ fn wait_command(
             ));
         }
         return Err(Fail::ParamValidation(format!(
-            "usage: awsr [options] {cli} wait <subcommand> [parameters]\nawsr: [ERROR]: too few arguments"
+            "usage: awsr [options] {} <subcommand> [parameters]\nawsr: [ERROR]: too few arguments",
+            lineage.join(" ")
         )));
     };
     let mut new_args = args.to_vec();
@@ -472,7 +476,7 @@ fn wait_command(
         new_args.remove(p);
     }
     if !waiters.iter().any(|(n, _)| n == sub)
-        && let Some(value) = super::alias::find(&[cli, "wait"], sub)?
+        && let Some(value) = super::alias::find(lineage, sub)?
     {
         return Ok(Command::Alias(super::alias::subcommand(
             &[cli, "wait"],

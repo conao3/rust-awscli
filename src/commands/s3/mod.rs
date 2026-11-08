@@ -116,13 +116,20 @@ fn help_unavailable() -> String {
     "Could not find executable named \"groff or mandoc\"".to_string()
 }
 
+/// Whether `register_sync_strategies` ran: it handles
+/// `building-command-table.s3_sync`, which a `sync` an alias proxies to
+/// does not emit.
+pub(crate) fn sync_strategies(ctx: &Context) -> bool {
+    ctx.session.lineage(&["s3", "sync"]).len() != 1
+}
+
 /// Run `aws s3 <name> <args>` (also used by `rb --force` for `rm`).
 pub(crate) fn run_subcommand(
     ctx: &Context,
     name: &str,
     args: &[String],
 ) -> Result<ExitCode, S3Fail> {
-    let parsed = match args::parse(name, args)? {
+    let parsed = match args::parse(name, args, sync_strategies(ctx))? {
         args::ParseOutcome::Help => return Err(Fail::General(help_unavailable()).into()),
         args::ParseOutcome::Args(a) => a,
     };

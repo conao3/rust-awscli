@@ -468,7 +468,7 @@ pub(crate) fn usage_error(ctx: &Context, lineage: &[&str]) -> CliError {
         ctx,
         &format!(
             "usage: awsr [options] {} <subcommand> [parameters]\nawsr: [ERROR]: too few arguments",
-            lineage.join(" ")
+            ctx.session.lineage(lineage).join(" ")
         ),
     )
 }

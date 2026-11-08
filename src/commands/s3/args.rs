@@ -380,12 +380,20 @@ pub(crate) fn build_parser(table: &[ArgDef]) -> Parser {
 
 /// `BasicCommand.__call__` without subcommands: parse, unpack each value
 /// (`load-cli-arg` file references, then the argument model), and reject
-/// leftovers.
-pub(crate) fn parse(command: &str, args: &[String]) -> Result<ParseOutcome, Fail> {
+/// leftovers. Without `sync_strategies` (a `sync` whose lineage is not
+/// `s3 sync`), the arguments of the sync strategies are not in the table.
+pub(crate) fn parse(
+    command: &str,
+    args: &[String],
+    sync_strategies: bool,
+) -> Result<ParseOutcome, Fail> {
     if args.len() == 1 && args[0] == "help" {
         return Ok(ParseOutcome::Help);
     }
-    let table = arg_table(command);
+    let mut table = arg_table(command);
+    if !sync_strategies {
+        table.retain(|a| !matches!(a.name, "size-only" | "exact-timestamps" | "delete"));
+    }
     let parser = build_parser(&table);
     let (ns, extras) = match parser
         .parse_known_args(args)

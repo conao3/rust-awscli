@@ -57,6 +57,9 @@ pub struct Session {
     credentials: tokio::sync::OnceCell<Option<Credentials>>,
     session_id: String,
     command: Mutex<Option<String>>,
+    /// The path of the command an alias that replaced it in its command
+    /// table proxies to (`InternalAliasSubCommand._proxied_sub_command`).
+    proxied: Option<Vec<String>>,
     features: Mutex<Vec<Feature>>,
     /// `S3RegionRedirectorv2._cache` of each S3 client (keyed by the
     /// client's id): bucket to region.
@@ -213,6 +216,7 @@ impl Session {
             credentials: tokio::sync::OnceCell::new(),
             session_id: useragent::new_session_id(),
             command: Mutex::new(None),
+            proxied: None,
             features: Mutex::new(Vec::new()),
             s3_redirect_cache: Mutex::new(HashMap::new()),
         })
@@ -243,9 +247,25 @@ impl Session {
         self.config.region().ok().flatten()
     }
 
-    /// The CLI command names for `md/command#<service>.<operation>`.
+    /// The CLI command names for `md/command#<service>.<operation>`
+    /// (`add_command_lineage_to_user_agent_extra` with the command's
+    /// lineage).
     pub fn set_command(&self, cli_service: &str, cli_operation: &str) {
-        *self.command.lock().unwrap() = Some(format!("{cli_service}.{cli_operation}"));
+        let path: Vec<&str> = std::iter::once(cli_service)
+            .chain(cli_operation.split('.'))
+            .collect();
+        *self.command.lock().unwrap() = Some(self.lineage(&path).join("."));
+    }
+
+    /// Record the command path an alias proxies to.
+    pub fn set_proxied(&mut self, path: Vec<String>) {
+        self.proxied = Some(path);
+    }
+
+    /// `lineage_names` of the command at `path`: the names from the
+    /// command an alias proxies to, whose lineage is only itself.
+    pub fn lineage<'p>(&self, path: &'p [&'p str]) -> &'p [&'p str] {
+        crate::cli::lineage(self.proxied.as_deref(), path)
     }
 
     /// Record a user agent feature (e.g. `Feature::Paginator`).

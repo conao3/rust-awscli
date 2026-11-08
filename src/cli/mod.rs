@@ -154,23 +154,38 @@ pub fn parse_command(
     globals: &GlobalArgs,
     config: &dyn ConfigLookup,
 ) -> Result<Command, CliError> {
-    parse_command_shadowed(rest, globals, config, &[])
+    parse_command_shadowed(rest, globals, config, &[], None)
 }
 
 /// [`parse_command`] after aliases that proxy to the built-in commands at
-/// the command paths `shadow`.
+/// the command paths `shadow`, the last of them replaced by its alias at
+/// `proxied`.
 pub fn parse_command_shadowed(
     rest: &[String],
     globals: &GlobalArgs,
     config: &dyn ConfigLookup,
     shadow: &[Vec<String>],
+    proxied: Option<&[String]>,
 ) -> Result<Command, CliError> {
     let ctx = Ctx {
         globals,
         config,
         shadow,
+        proxied,
     };
     driver::dispatch(rest, &ctx).map_err(|f| render::render(f, Some(globals), Some(config)))
+}
+
+/// `lineage_names` of the command at `path` when an alias proxies to the
+/// command at `proxied`: the names from that command on, as its lineage
+/// is only itself.
+pub(crate) fn lineage<'p>(proxied: Option<&[String]>, path: &'p [&'p str]) -> &'p [&'p str] {
+    match proxied {
+        Some(p) if path.len() >= p.len() && path.iter().zip(p).all(|(a, b)| a == b) => {
+            &path[p.len() - 1..]
+        }
+        _ => path,
+    }
 }
 
 #[allow(unused_imports)]
@@ -194,6 +209,7 @@ pub(crate) fn parse_operation_with(
         globals,
         config,
         shadow: &[],
+        proxied: None,
     };
     driver::customized_operation(cli_service, name, args, &ctx, hooks)
         .map_err(|f| render::render(f, Some(globals), Some(config)))
@@ -225,6 +241,8 @@ pub(crate) struct Ctx<'a> {
     pub config: &'a dyn ConfigLookup,
     /// The command path an alias proxies to (its alias is not looked up).
     pub shadow: &'a [Vec<String>],
+    /// The command path the alias that replaced it proxies to.
+    pub proxied: Option<&'a [String]>,
 }
 
 thread_local! {

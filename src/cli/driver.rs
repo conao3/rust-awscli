@@ -38,7 +38,7 @@ pub(crate) fn dispatch(rest: &[String], ctx: &Ctx<'_>) -> Result<Command, Fail> 
     match find_main(command) {
         Some(MainCommand::Service(cli, service)) => service_command(cli, service, remaining, ctx),
         Some(MainCommand::Custom(name)) => {
-            if let Some(command) = custom_subcommand_alias(name, remaining, ctx)? {
+            if let Some(command) = custom_alias(&[name], remaining, ctx)? {
                 return Ok(command);
             }
             Ok(Command::Custom {
@@ -52,28 +52,124 @@ pub(crate) fn dispatch(rest: &[String], ctx: &Ctx<'_>) -> Result<Command, Fail> 
     }
 }
 
-/// `BasicCommand.__call__` of a command with subcommands when its
-/// subcommand table has aliases (`AliasSubCommandInjector`): the alias
-/// the `subcommand` positional names, if any.
-fn custom_subcommand_alias(
-    name: &str,
+/// `BasicCommand.__call__` down the subcommands of the custom command at
+/// `path` while their command tables have aliases
+/// (`AliasSubCommandInjector` on `building-command-table.<lineage>`): the
+/// alias the `subcommand` positional names, if any. A `TopLevelWizardCommand`
+/// adds its wizards after the aliases, and a `SingleWizardCommand` has no
+/// command table.
+fn custom_alias(path: &[&str], args: &[String], ctx: &Ctx<'_>) -> Result<Option<Command>, Fail> {
+    let mut path: Vec<String> = path.iter().map(|s| s.to_string()).collect();
+    let mut args = args.to_vec();
+    loop {
+        let names: Vec<&str> = path.iter().map(String::as_str).collect();
+        let lineage = super::lineage(ctx.proxied, &names);
+        if !super::alias::has_below(lineage)?
+            || (names.len() >= 2 && names[names.len() - 2] == "wizard")
+        {
+            return Ok(None);
+        }
+        let Some(table) = crate::help::custom_table(&names) else {
+            return Ok(None);
+        };
+        let aliases = super::alias::get(lineage)?;
+        let wizard = names.last() == Some(&"wizard");
+        let mut choices: Vec<String> = if wizard {
+            Vec::new()
+        } else {
+            table.subcommands.clone()
+        };
+        super::alias::extend_choices(lineage, &mut choices)?;
+        if wizard {
+            for w in &table.subcommands {
+                if !choices.contains(w) {
+                    choices.push(w.clone());
+                }
+            }
+        }
+        if choices.is_empty() {
+            return Ok(None);
+        }
+        if table.positional {
+            return Err(Fail::General(
+                "'required' is an invalid argument for positionals".to_string(),
+            ));
+        }
+        if args.len() == 1 && args[0] == "help" {
+            return Ok(None);
+        }
+        let mut parser = Parser::new();
+        for (name, flag, nargs) in &table.options {
+            let option = format!("--{name}");
+            let mut action = if *flag {
+                Action::flag(&option, super::argparse::Kind::StoreTrue)
+            } else {
+                Action::option(&option)
+            };
+            if let Some(n) = nargs {
+                action.nargs = *n;
+            }
+            parser.add(action);
+        }
+        let mut sub = Action::positional("subcommand", Nargs::Optional);
+        sub.choices = Some(choices);
+        parser.add(sub);
+        let ns = match parser
+            .parse_known_args(&args)
+            .map_err(|e| argparse_error(&e.to_string()))?
+        {
+            Parsed::Args { ns, .. } => ns,
+            Parsed::Version => unreachable!("no version action"),
+        };
+        let NsVal::Str(sub) = &ns["subcommand"] else {
+            return Ok(None);
+        };
+        let sub = sub.clone();
+        if let Some(p) = args.iter().position(|a| *a == sub) {
+            args.remove(p);
+        }
+        let mut sub_path = names.clone();
+        sub_path.push(&sub);
+        let overridden = wizard && table.subcommands.contains(&sub);
+        if !overridden
+            && !shadowed(ctx, &sub_path)
+            && let Some((_, value)) = aliases.iter().find(|(n, _)| *n == sub)
+        {
+            return Ok(Some(Command::Alias(super::alias::subcommand(
+                &names,
+                &sub,
+                value,
+                &args,
+                ctx.globals,
+                table.subcommands.contains(&sub),
+            )?)));
+        }
+        path.push(sub);
+    }
+}
+
+/// `ServiceOperation.__call__`'s `_parse_potential_subcommand` when the
+/// command table of the operation at `path` (`building-command-table.<lineage>`)
+/// has aliases: the alias the `subcommand` positional names, if any.
+fn operation_alias(
+    path: &[&str],
+    op: &crate::model::Operation<'_>,
+    command: CommandPath<'_>,
     args: &[String],
     ctx: &Ctx<'_>,
 ) -> Result<Option<Command>, Fail> {
-    let subcommands: &[&str] = match name {
-        "s3" => crate::commands::s3::SUBCOMMANDS,
-        "configure" => crate::commands::configure::SUBCOMMANDS,
-        _ => return Ok(None),
-    };
-    let aliases = super::alias::get(&[name])?;
+    let lineage = super::lineage(ctx.proxied, path);
+    let aliases = super::alias::get(lineage)?;
     if aliases.is_empty() || (args.len() == 1 && args[0] == "help") {
         return Ok(None);
     }
-    let mut choices: Vec<String> = subcommands.iter().map(|s| s.to_string()).collect();
-    super::alias::extend_choices(&[name], &mut choices)?;
-    let mut parser = Parser::new();
+    let (mut table, _) = super::arguments::build_argument_table_with(op, command, &mut |_| {});
+    for arg in table.values_mut() {
+        arg.required = false;
+    }
+    let mut parser = super::arguments::operation_parser(&table, false);
     let mut sub = Action::positional("subcommand", Nargs::Optional);
-    sub.choices = Some(choices);
+    sub.choices = Some(aliases.iter().map(|(n, _)| n.clone()).collect());
     parser.add(sub);
     let ns = match parser
         .parse_known_args(args)
@@ -85,23 +181,18 @@ fn custom_subcommand_alias(
     let NsVal::Str(sub) = &ns["subcommand"] else {
         return Ok(None);
     };
-    if shadowed(ctx, &[name, sub]) {
-        return Ok(None);
-    }
-    let Some((_, value)) = aliases.iter().find(|(n, _)| n == sub) else {
-        return Ok(None);
-    };
     let mut new_args = args.to_vec();
     if let Some(p) = new_args.iter().position(|a| a == sub) {
         new_args.remove(p);
     }
+    let value = &aliases.iter().find(|(n, _)| n == sub).expect("choice").1;
     Ok(Some(Command::Alias(super::alias::subcommand(
-        &[name],
+        path,
         sub,
         value,
         &new_args,
         ctx.globals,
-        subcommands.contains(&sub.as_str()),
+        false,
     )?)))
 }
 
@@ -288,6 +379,11 @@ fn service_command(
         .expect("choice");
     match entry {
         ServiceEntry::Operation(op) => {
+            let op = model.operation(&op).expect("operation");
+            let path = CommandPath { parent: cli, name };
+            if let Some(command) = operation_alias(&[cli, name], &op, path, &remaining, ctx)? {
+                return Ok(command);
+            }
             if super::commands::is_customized(cli, name) {
                 if let Some(help) = custom_help(cli, name, &remaining, ctx) {
                     return Ok(help);
@@ -297,8 +393,6 @@ fn service_command(
                     args: remaining.to_vec(),
                 });
             }
-            let op = model.operation(&op).expect("operation");
-            let path = CommandPath { parent: cli, name };
             match operation::run_with(
                 &op,
                 path,
@@ -320,6 +414,25 @@ fn service_command(
         }
         ServiceEntry::Wait => wait_command(cli, &model, &remaining, ctx),
         ServiceEntry::Custom => {
+            let operation = super::alias::has_below(super::lineage(ctx.proxied, &[cli, name]))?
+                .then(|| {
+                    model
+                        .operation_names()
+                        .into_iter()
+                        .find(|o| super::arguments::xform_name(o, '-') == *name)
+                        .and_then(|o| model.operation(o))
+                })
+                .flatten();
+            let command = match operation {
+                Some(op) if crate::help::custom_table(&[cli, name]).is_none() => {
+                    let path = CommandPath { parent: cli, name };
+                    operation_alias(&[cli, name], &op, path, &remaining, ctx)?
+                }
+                _ => custom_alias(&[cli, name], &remaining, ctx)?,
+            };
+            if let Some(command) = command {
+                return Ok(command);
+            }
             if let Some(help) = custom_help(cli, name, &remaining, ctx) {
                 return Ok(help);
             }
@@ -501,6 +614,9 @@ fn wait_command(
         parent: "wait",
         name: sub,
     };
+    if let Some(command) = operation_alias(&[cli, "wait", sub], &op, path, &new_args, ctx)? {
+        return Ok(command);
+    }
     match operation::run(&op, path, &new_args, ctx)? {
         Invocation::Print(text) => Ok(Command::Print(text)),
         Invocation::Help { clear_required } => Ok(Command::Help(HelpRequest::Waiter {

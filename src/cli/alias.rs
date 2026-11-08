@@ -73,6 +73,16 @@ pub(crate) fn get(lineage: &[&str]) -> Result<Vec<(String, String)>, Fail> {
         .unwrap_or_default())
 }
 
+/// Whether a `command` section belongs to `lineage` or to a command below
+/// it.
+pub(crate) fn has_below(lineage: &[&str]) -> Result<bool, Fail> {
+    Ok(sections()?.keys().any(|k| {
+        k.first().is_some_and(|c| c == "command")
+            && k.len() > lineage.len()
+            && k[1..].iter().zip(lineage).all(|(a, b)| a == b)
+    }))
+}
+
 /// The value of the alias `name` of `lineage`.
 pub(crate) fn find(lineage: &[&str], name: &str) -> Result<Option<String>, Fail> {
     Ok(get(lineage)?

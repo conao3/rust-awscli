@@ -146,6 +146,63 @@ pub fn custom_request(path: &[String], args: &[String], flag: bool) -> Option<He
     None
 }
 
+/// The parts of the custom command at `path` that `SubCommandArgParser`
+/// reads: its subcommands, whether its argument table has a positional,
+/// and its options (name, whether it is a flag, `nargs`).
+pub(crate) struct CustomTable {
+    pub subcommands: Vec<String>,
+    pub positional: bool,
+    pub options: Vec<(String, bool, Option<crate::cli::argparse::Nargs>)>,
+}
+
+/// The [`CustomTable`] of the custom command at `path`, from the help data.
+pub(crate) fn custom_table(path: &[&str]) -> Option<CustomTable> {
+    use crate::cli::argparse::Nargs;
+    let custom = HelpData::load("_custom")?;
+    let name = path.join(" ");
+    let spec = custom.command(&name)?;
+    let prefix = format!("{name} ");
+    let subcommands = custom
+        .command_paths()
+        .into_iter()
+        .filter_map(|p| p.strip_prefix(&prefix))
+        .filter(|p| !p.contains(' '))
+        .map(str::to_string)
+        .collect();
+    let mut positional = false;
+    let mut options = Vec::new();
+    for record in spec
+        .get("args")
+        .and_then(Node::as_array)
+        .unwrap_or(Node::empty_array())
+        .iter()
+    {
+        if record.get("p").and_then(Node::as_bool) == Some(true) {
+            positional = true;
+            continue;
+        }
+        let nargs = match (record["na"].as_u64(), record["na"].as_str()) {
+            (Some(n), _) => Some(Nargs::Exact(n as usize)),
+            (_, Some("+")) => Some(Nargs::OneOrMore),
+            (_, Some("*")) => Some(Nargs::ZeroOrMore),
+            (_, Some("?")) => Some(Nargs::Optional),
+            _ => None,
+        };
+        let boolean = custom.model(&record["s"]).and_then(|m| {
+            let top = m.get("top")?.as_str()?;
+            m.get("shapes")?.get(top)?.get("type")?.as_str()
+        }) == Some("boolean")
+            || record["t"].as_str() == Some("boolean");
+        let name = record["n"].as_str().unwrap_or_default().to_string();
+        options.push((name, boolean && nargs.is_none(), nargs));
+    }
+    Some(CustomTable {
+        subcommands,
+        positional,
+        options,
+    })
+}
+
 /// An argument `argparse` matches as a positional in a parser without
 /// options (`_parse_optional`: not starting with `-`, `-` alone, a
 /// negative number, or containing a space).

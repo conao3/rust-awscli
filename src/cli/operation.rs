@@ -180,7 +180,7 @@ pub(crate) fn run_with<'m>(
         build_argument_table_with(op, path, &mut |table| hooks.table(op, table));
     let clear_required = override_required_args(&mut table, args);
 
-    if args.len() == 1 && args[0] == "help" {
+    if ctx.globals.help || (args.len() == 1 && args[0] == "help") {
         return Ok(Invocation::Help { clear_required });
     }
     let parser = operation_parser(&table, true);

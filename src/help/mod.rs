@@ -64,35 +64,85 @@ pub(crate) fn topic_names() -> Vec<String> {
 
 /// The `help` request for the custom command at `path` called with
 /// `args`, if they ask for its help (`ArgTableArgParser.parse_known_args`
-/// with `['help']` after the subcommands).
-pub fn custom_request(path: &[String], args: &[String]) -> Option<HelpRequest> {
+/// with `['help']` after the subcommands), or, with `flag` (`--help`), the
+/// help of the command the subcommands in `args` lead to
+/// (`BasicCommand.__call__` with `help_requested`). `None` when a
+/// subcommand is not one of the command's subcommands.
+pub fn custom_request(path: &[String], args: &[String], flag: bool) -> Option<HelpRequest> {
     let custom = HelpData::load("_custom")?;
     let mut path = path.to_vec();
-    let mut rest = args;
+    let mut rest = args.to_vec();
     loop {
         if rest.len() == 1 && rest[0] == "help" {
             break;
+        }
+        if flag {
+            let Some(command) = custom.command(&path.join(" ")) else {
+                break;
+            };
+            if command
+                .get("commands")
+                .and_then(Node::as_array)
+                .is_none_or(|c| c.is_empty())
+            {
+                break;
+            }
+            let Some(i) = rest.iter().position(|a| is_positional(a)) else {
+                break;
+            };
+            custom.command(&format!("{} {}", path.join(" "), rest[i]))?;
+            path.push(rest.remove(i));
+            continue;
         }
         custom.command(&path.join(" "))?;
         let next = rest.first()?;
         custom.command(&format!("{} {next}", path.join(" ")))?;
         path.push(next.clone());
-        rest = &rest[1..];
+        rest.remove(0);
     }
     if custom.command(&path.join(" ")).is_some() {
         return Some(HelpRequest::Custom(path));
     }
     if path.len() == 2
         && let Some(data) = HelpData::load(&path[0])
-        && data.args("operations", &path[1]).is_some()
+        && let Some(table) = data.args("operations", &path[1])
     {
         return Some(HelpRequest::Operation {
             service: path[0].clone(),
             name: path[1].clone(),
-            clear_required: false,
+            clear_required: flag && clears_required(table, &rest),
         });
     }
     None
+}
+
+/// An argument `argparse` matches as a positional in a parser without
+/// options (`_parse_optional`: not starting with `-`, `-` alone, a
+/// negative number, or containing a space).
+fn is_positional(arg: &str) -> bool {
+    let Some(tail) = arg.strip_prefix('-') else {
+        return true;
+    };
+    let digits = |s: &str| s.bytes().all(|b| b.is_ascii_digit());
+    let negative = match tail.split_once('.') {
+        Some((int, frac)) => digits(int) && !frac.is_empty() && digits(frac),
+        None => !tail.is_empty() && digits(tail),
+    };
+    tail.is_empty() || negative || arg.contains(' ')
+}
+
+/// `OverrideRequiredArgsArgument.override_required_args` of the
+/// arguments `table` for `args`.
+fn clears_required(table: &Arr, args: &[String]) -> bool {
+    let has = |name: &str| table.iter().any(|a| a["n"].as_str() == Some(name));
+    ["cli-input-json", "cli-input-yaml"]
+        .iter()
+        .any(|n| has(n) && args.iter().any(|a| *a == format!("--{n}")))
+        || (has("generate-cli-skeleton")
+            && args
+                .iter()
+                .position(|a| a == "--generate-cli-skeleton")
+                .is_some_and(|i| args.get(i + 1).map(String::as_str) != Some("output")))
 }
 
 /// Owned shapes that the argument models of an argument table borrow.
@@ -629,7 +679,9 @@ pub(crate) fn render_text(req: &HelpRequest) -> Result<String, String> {
 }
 
 /// `HelpCommand.__call__`: render the page with the `cli_help_output`
-/// renderer.
+/// renderer. The provider page of the `help` command is the one of the
+/// command table, created before `--profile` applies; `--help` creates it
+/// after (`CLIDriver._get_command`).
 pub(crate) fn run(
     ctx: &crate::driver::Context,
     req: &HelpRequest,
@@ -642,7 +694,18 @@ pub(crate) fn run(
             crate::output::errors::render_general_error(&e),
         )
     };
-    match ctx.session.config_variable("cli_help_output").as_deref() {
+    let format =
+        if *req == HelpRequest::Provider && !ctx.globals.help && ctx.globals.profile.is_some() {
+            crate::config::Config::new(&crate::cli::GlobalArgs {
+                profile: None,
+                ..ctx.globals.clone()
+            })
+            .ok()
+            .and_then(|c| c.config_variable("cli_help_output"))
+        } else {
+            ctx.session.config_variable("cli_help_output")
+        };
+    match format.as_deref() {
         Some("browser") => {
             render::open_in_browser(&convert(req, "html").map_err(fail)?).map_err(fail)?
         }
@@ -696,17 +759,29 @@ mod tests {
     fn custom_requests() {
         let s = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
         assert_eq!(
-            custom_request(&s(&["s3"]), &s(&["cp", "help"])),
+            custom_request(&s(&["s3"]), &s(&["cp", "help"]), false),
             Some(HelpRequest::Custom(s(&["s3", "cp"])))
         );
         assert_eq!(
-            custom_request(&s(&["ecs", "execute-command"]), &s(&["help"])),
+            custom_request(&s(&["ecs", "execute-command"]), &s(&["help"]), false),
             Some(HelpRequest::Operation {
                 service: "ecs".to_string(),
                 name: "execute-command".to_string(),
                 clear_required: false,
             })
         );
-        assert_eq!(custom_request(&s(&["s3"]), &s(&["cp", "a", "b"])), None);
+        assert_eq!(
+            custom_request(&s(&["s3"]), &s(&["cp", "a", "b"]), false),
+            None
+        );
+        assert_eq!(
+            custom_request(&s(&["s3"]), &s(&["--debug", "cp", "a"]), true),
+            Some(HelpRequest::Custom(s(&["s3", "cp"])))
+        );
+        assert_eq!(
+            custom_request(&s(&["s3"]), &[], true),
+            Some(HelpRequest::Custom(s(&["s3"])))
+        );
+        assert_eq!(custom_request(&s(&["s3"]), &s(&["nosuch"]), true), None);
     }
 }

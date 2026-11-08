@@ -292,10 +292,12 @@ fn run_command(
         Command::Operation(inv) => run_operation(&ctx, inv),
         Command::Wait(inv) => run_wait(&ctx, inv),
         Command::Help(req) => crate::help::run(&ctx, &req),
-        Command::Custom { path, args } => match crate::help::custom_request(&path, &args) {
-            Some(req) => crate::help::run(&ctx, &req),
-            None => crate::commands::run(&ctx, &path, &args),
-        },
+        Command::Custom { path, args } => {
+            match crate::help::custom_request(&path, &args, ctx.globals.help) {
+                Some(req) => crate::help::run(&ctx, &req),
+                None => crate::commands::run(&ctx, &path, &args),
+            }
+        }
         Command::Alias(_) => unreachable!("expanded by run_inner"),
     }
 }

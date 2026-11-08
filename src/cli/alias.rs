@@ -109,10 +109,14 @@ pub enum Expansion {
 }
 
 /// `ExternalAliasCommand.__call__`: the alias value without the `!` and
-/// the arguments quoted for the shell.
-pub(crate) fn external(value: &str, args: &[String]) -> Expansion {
+/// the arguments quoted for the shell, with `--help` when it was given
+/// (`awscli/commands.py` `call_command`).
+pub(crate) fn external(value: &str, args: &[String], help: bool) -> Expansion {
     let mut parts = vec![value[1..].to_string()];
     parts.extend(args.iter().map(|a| shlex_quote(a)));
+    if help {
+        parts.push("--help".to_string());
+    }
     Expansion::External(parts.join(" "))
 }
 
@@ -148,6 +152,7 @@ pub(crate) fn update_globals(
     super::globals::validate(alias)?;
     let mut out = globals.clone();
     out.version |= alias.version;
+    out.help |= alias.help;
     fn set<T: Clone + PartialEq>(out: &mut T, value: &T, default: &T) {
         if value != default {
             *out = value.clone();
@@ -190,7 +195,7 @@ pub(crate) fn toplevel(
     globals: &GlobalArgs,
 ) -> Result<Expansion, Fail> {
     if value.starts_with('!') {
-        return Ok(external(value, args));
+        return Ok(external(value, args, globals.help));
     }
     let alias_args = alias_args(name, value)?;
     let (alias_globals, mut rest) = super::globals::parse_alias(&alias_args)?;
@@ -223,7 +228,7 @@ pub(crate) fn subcommand(
     proxied: bool,
 ) -> Result<Expansion, Fail> {
     if value.starts_with('!') {
-        return Ok(external(value, args));
+        return Ok(external(value, args, globals.help));
     }
     let alias_args = alias_args(name, value)?;
     // `_process_global_args`: the alias value parsed after

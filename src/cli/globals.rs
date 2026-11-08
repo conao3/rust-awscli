@@ -54,17 +54,50 @@ fn option_action(name: &str, data: &Obj) -> Action {
     a
 }
 
-/// `MainArgParser`.
-fn main_parser() -> Parser {
+/// `MainArgParser`; with `help_mode` the command and the values of the
+/// options are optional.
+fn main_parser(help_mode: bool) -> Parser {
     let mut p = Parser::new();
     for (name, data) in cli_options() {
-        p.add(option_action(&name, data));
+        let mut a = option_action(&name, data);
+        if help_mode && a.nargs == Nargs::One {
+            a.nargs = Nargs::Optional;
+        }
+        p.add(a);
     }
     p.add(Action::flag("--version", Kind::Version));
-    let mut command = Action::positional("command", Nargs::One);
+    let nargs = if help_mode {
+        Nargs::Optional
+    } else {
+        Nargs::One
+    };
+    let mut command = Action::positional("command", nargs);
     command.choices = Some(main_choices());
     p.add(command);
     p
+}
+
+/// `MainArgParser.parse_known_args`: a command line that does not parse
+/// still asks for help when it parses with `help_mode` and gives `--help`
+/// (`_parse_help_request`).
+fn parse_main(args: &[String]) -> Result<Parsed, super::argparse::ArgumentError> {
+    let err = match main_parser(false).parse_known_args(args) {
+        Ok(parsed) => return Ok(parsed),
+        Err(e) => e,
+    };
+    match main_parser(true).parse_known_args(args) {
+        Ok(Parsed::Args { ns, extras }) if ns_bool(&ns, "help") => Ok(Parsed::Args { ns, extras }),
+        Ok(Parsed::Version) => Ok(Parsed::Version),
+        _ => Err(err),
+    }
+}
+
+/// The command name (`help` for none, as `CLIDriver._get_command` does
+/// for `--help`) followed by the arguments the parser did not consume.
+fn command_rest(ns: &indexmap::IndexMap<String, NsVal>, extras: Vec<String>) -> Vec<String> {
+    let mut rest = vec![ns_str(ns, "command").unwrap_or_else(|| "help".to_string())];
+    rest.extend(extras);
+    rest
 }
 
 fn ns_str(ns: &indexmap::IndexMap<String, NsVal>, key: &str) -> Option<String> {
@@ -135,9 +168,8 @@ pub(crate) fn parse(
     if let Err(f) = super::alias::get(&[]) {
         return Err(render(f, None, None));
     }
-    let parsed = main_parser()
-        .parse_known_args(args)
-        .map_err(|e| render(argparse_error(&e.to_string()), None, error_config))?;
+    let parsed =
+        parse_main(args).map_err(|e| render(argparse_error(&e.to_string()), None, error_config))?;
     let (ns, extras) = match parsed {
         Parsed::Version => {
             return Ok((
@@ -154,10 +186,7 @@ pub(crate) fn parse(
     if let Err(f) = top_level_args_parsed(&globals) {
         return Err(render(f, Some(&globals), error_config));
     }
-    let command = ns_str(&ns, "command").expect("command");
-    let mut rest = vec![command];
-    rest.extend(extras);
-    Ok((globals, rest))
+    Ok((globals, command_rest(&ns, extras)))
 }
 
 fn globals_from_ns(ns: &indexmap::IndexMap<String, NsVal>) -> GlobalArgs {
@@ -181,6 +210,7 @@ fn globals_from_ns(ns: &indexmap::IndexMap<String, NsVal>) -> GlobalArgs {
         cli_auto_prompt: ns_bool(ns, "cli_auto_prompt"),
         no_cli_auto_prompt: ns_bool(ns, "no_cli_auto_prompt"),
         cli_error_format: ns_str(ns, "cli_error_format"),
+        help: ns_bool(ns, "help"),
     }
 }
 
@@ -188,9 +218,7 @@ fn globals_from_ns(ns: &indexmap::IndexMap<String, NsVal>) -> GlobalArgs {
 /// (`awscli/alias.py`): the globals it gives and the command name
 /// followed by the arguments the parser did not consume.
 pub(crate) fn parse_alias(args: &[String]) -> Result<(GlobalArgs, Vec<String>), Fail> {
-    let parsed = main_parser()
-        .parse_known_args(args)
-        .map_err(|e| argparse_error(&e.to_string()))?;
+    let parsed = parse_main(args).map_err(|e| argparse_error(&e.to_string()))?;
     let (ns, extras) = match parsed {
         Parsed::Version => {
             return Ok((
@@ -203,10 +231,7 @@ pub(crate) fn parse_alias(args: &[String]) -> Result<(GlobalArgs, Vec<String>), 
         }
         Parsed::Args { ns, extras } => (ns, extras),
     };
-    let command = ns_str(&ns, "command").expect("command");
-    let mut rest = vec![command];
-    rest.extend(extras);
-    Ok((globals_from_ns(&ns), rest))
+    Ok((globals_from_ns(&ns), command_rest(&ns, extras)))
 }
 
 /// `emit_top_level_args_parsed_event` for globals parsed from an alias.
@@ -242,4 +267,58 @@ fn top_level_args_parsed(globals: &GlobalArgs) -> Result<(), Fail> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use super::super::{Command, parse_command};
+    use super::parse;
+    use crate::help::HelpRequest;
+
+    fn s(v: &[&str]) -> Vec<String> {
+        v.iter().map(|s| s.to_string()).collect()
+    }
+
+    fn help(args: &[&str]) -> Option<HelpRequest> {
+        let (globals, rest) = parse(&s(args), None).ok()?;
+        match parse_command(&rest, &globals, &HashMap::new()).ok()? {
+            Command::Help(req) => Some(req),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn help_flag() {
+        assert_eq!(help(&["--help"]), Some(HelpRequest::Provider));
+        assert_eq!(help(&["--query", "--help"]), Some(HelpRequest::Provider));
+        assert_eq!(help(&["--output", "--help"]), Some(HelpRequest::Provider));
+        assert_eq!(help(&["--help", "topics"]), None);
+        assert!(parse(&s(&["--query"]), None).is_err());
+        assert_eq!(
+            help(&["ec2", "--help"]),
+            Some(HelpRequest::Service("ec2".to_string()))
+        );
+        assert_eq!(
+            help(&["ec2", "describe-instances", "--instance-ids", "--help"]),
+            Some(HelpRequest::Operation {
+                service: "ec2".to_string(),
+                name: "describe-instances".to_string(),
+                clear_required: false,
+            })
+        );
+        assert_eq!(
+            help(&["ec2", "wait", "--help"]),
+            Some(HelpRequest::Wait("ec2".to_string()))
+        );
+        assert_eq!(
+            help(&["ec2", "wait", "instance-running", "--help"]),
+            Some(HelpRequest::Waiter {
+                service: "ec2".to_string(),
+                name: "instance-running".to_string(),
+                clear_required: false,
+            })
+        );
+    }
 }

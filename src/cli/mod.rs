@@ -61,6 +61,7 @@ pub struct GlobalArgs {
     pub cli_auto_prompt: bool,
     pub no_cli_auto_prompt: bool,
     pub cli_error_format: Option<String>,
+    pub help: bool,
 }
 
 #[derive(Debug, Clone)]

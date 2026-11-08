@@ -156,10 +156,10 @@ fn provider_help(args: &[String]) -> Result<Command, Fail> {
     }))
 }
 
-/// The help request of `help` for a customization's command (`args` is
-/// exactly `['help']` after its subcommands).
-fn custom_help(cli: &str, name: &str, args: &[String]) -> Option<Command> {
-    crate::help::custom_request(&[cli.to_string(), name.to_string()], args).map(Command::Help)
+/// The help request of `help` or `--help` for a customization's command.
+fn custom_help(cli: &str, name: &str, args: &[String], ctx: &Ctx<'_>) -> Option<Command> {
+    crate::help::custom_request(&[cli.to_string(), name.to_string()], args, ctx.globals.help)
+        .map(Command::Help)
 }
 
 /// `ServiceCommand.__call__`.
@@ -175,7 +175,12 @@ fn service_command(
     super::alias::extend_choices(&[cli], &mut choices)?;
     choices.push("help".to_string());
     let mut parser = Parser::new();
-    let mut operation = Action::positional("operation", Nargs::One);
+    let nargs = if ctx.globals.help {
+        Nargs::Optional
+    } else {
+        Nargs::One
+    };
+    let mut operation = Action::positional("operation", nargs);
     operation.choices = Some(choices);
     parser.add(operation);
     let (ns, remaining) = match parser
@@ -186,7 +191,7 @@ fn service_command(
         Parsed::Version => unreachable!("no version action"),
     };
     let NsVal::Str(name) = &ns["operation"] else {
-        unreachable!("required positional")
+        return Ok(Command::Help(HelpRequest::Service(cli.to_string())));
     };
     if name == "help" {
         return Ok(Command::Help(HelpRequest::Service(cli.to_string())));
@@ -212,7 +217,7 @@ fn service_command(
     match entry {
         ServiceEntry::Operation(op) => {
             if super::commands::is_customized(cli, name) {
-                if let Some(help) = custom_help(cli, name, &remaining) {
+                if let Some(help) = custom_help(cli, name, &remaining, ctx) {
                     return Ok(help);
                 }
                 return Ok(Command::Custom {
@@ -243,7 +248,7 @@ fn service_command(
         }
         ServiceEntry::Wait => wait_command(cli, &model, &remaining, ctx),
         ServiceEntry::Custom => {
-            if let Some(help) = custom_help(cli, name, &remaining) {
+            if let Some(help) = custom_help(cli, name, &remaining, ctx) {
                 return Ok(help);
             }
             Ok(Command::Custom {
@@ -376,6 +381,9 @@ fn wait_command(
         Parsed::Version => unreachable!("no version action"),
     };
     let NsVal::Str(sub) = &ns["subcommand"] else {
+        if ctx.globals.help {
+            return Ok(Command::Help(HelpRequest::Wait(cli.to_string())));
+        }
         if !remaining.is_empty() {
             return Err(Fail::ParamValidation(
                 operation::format_unknown_options_error(

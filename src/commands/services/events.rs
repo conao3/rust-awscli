@@ -5,7 +5,7 @@ use crate::error::{CliError, ExitCode};
 
 pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
     match name {
-        "wizard" => super::dynamodb::wizard(ctx, "events", args),
+        "wizard" => super::wizard::run(ctx, "events", args),
         _ => Err(crate::commands::not_implemented()),
     }
 }

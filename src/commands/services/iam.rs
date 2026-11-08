@@ -13,6 +13,9 @@ use crate::value::{Map, Value};
 const CHOICES: [&str; 2] = ["QRCodePNG", "Base32StringSeed"];
 
 pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
+    if name == "wizard" {
+        return super::wizard::run(ctx, "iam", args);
+    }
     if name != "create-virtual-mfa-device" {
         return Err(crate::commands::not_implemented());
     }

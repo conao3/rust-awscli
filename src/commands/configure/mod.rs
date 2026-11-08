@@ -191,6 +191,7 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
             "sso-session" => sso::configure_sso_session(ctx, &rest),
             "mfa-login" => mfa_login(ctx, &rest),
             "export-credentials" => export_credentials(ctx, &rest),
+            "wizard" => crate::commands::services::wizard::run(ctx, "configure", &rest),
             _ => Err(crate::commands::not_implemented()),
         };
     }

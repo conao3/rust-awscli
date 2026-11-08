@@ -47,6 +47,7 @@ mod servicecatalog;
 mod ses;
 mod ssm;
 mod translate;
+pub(crate) mod wizard;
 
 use crate::driver::Context;
 use crate::error::{CliError, ExitCode};

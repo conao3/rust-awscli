@@ -18,6 +18,9 @@ use crate::value::{Map, Value};
 const ERROR_MSG: &str = "--zip-file must be a zip file with the fileb:// prefix.\nExample usage:  --zip-file fileb://path/to/file.zip";
 
 pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode, CliError> {
+    if name == "wizard" {
+        return super::wizard::run(ctx, "lambda", args);
+    }
     let mut hooks = match name {
         "create-function" => ZipFile::hoist("Code", name),
         "publish-layer-version" => ZipFile::hoist("Content", name),

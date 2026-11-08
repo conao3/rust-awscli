@@ -1,0 +1,326 @@
+[
+ {
+  "name": "alias help top level",
+  "argv": [
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help top level flag",
+  "argv": [
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help service",
+  "argv": [
+   "sts",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help service flag",
+  "argv": [
+   "sts",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help service with a customization",
+  "argv": [
+   "dynamodb",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help service waiters",
+  "argv": [
+   "ec2",
+   "wait",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help operation",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help operation flag",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help operation through another alias",
+  "argv": [
+   "sts",
+   "me",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help operation through a top-level alias",
+  "argv": [
+   "whoami",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help operation without globals",
+  "argv": [
+   "s3api",
+   "get-object",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help customized operation",
+  "argv": [
+   "ecs",
+   "execute-command",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help service customization",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help service customization help",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help customization with subcommands",
+  "argv": [
+   "dynamodb",
+   "wizard",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help subcommand of a proxied command",
+  "argv": [
+   "dynamodb",
+   "wizard",
+   "new-table",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help s3 subcommand",
+  "argv": [
+   "s3",
+   "ls",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help configure subcommand with its own examples",
+  "argv": [
+   "configure",
+   "get",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help s3 sync without the sync strategies",
+  "argv": [
+   "s3",
+   "sync",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help configure wizard",
+  "argv": [
+   "configure",
+   "wizard",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help waiter",
+  "argv": [
+   "ec2",
+   "wait",
+   "instance-running",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "alias help url operation",
+  "argv": [
+   "--profile",
+   "url",
+   "sts",
+   "get-caller-identity",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "alias help url customization with subcommands",
+  "argv": [
+   "--profile",
+   "url",
+   "dynamodb",
+   "wizard",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "alias help url subcommand of a proxied command",
+  "argv": [
+   "--profile",
+   "url",
+   "dynamodb",
+   "wizard",
+   "new-table",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "alias help url s3 subcommand",
+  "argv": [
+   "--profile",
+   "url",
+   "s3",
+   "ls",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n\n[profile url]\nregion = us-east-1\ncli_help_output = url\n",
+   "home/.aws/cli/alias": "[toplevel]\nsts = sts --output text\nec2 = ec2\nwhoami = sts get-caller-identity\n[command sts]\nget-caller-identity = get-caller-identity --output yaml\nme = get-caller-identity\n[command s3]\nls = ls --human-readable\nsync = sync\n[command s3api]\nget-object = get-object\n[command emr]\ncreate-cluster = create-cluster\n[command cloudformation]\ndeploy = deploy\n[command ecs]\nexecute-command = execute-command\n[command dynamodb]\nwizard = wizard\n[command configure]\nget = get region\nwizard = wizard\n[command ec2 wait]\ninstance-running = instance-running --instance-ids i-1\n"
+  }
+ }
+]

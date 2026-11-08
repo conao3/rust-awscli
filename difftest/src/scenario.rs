@@ -60,6 +60,44 @@ pub struct Scenario {
     /// regular expression, with the timestamps masked (`--debug`).
     #[serde(default)]
     pub stderr_records: Option<String>,
+    /// Compare stdout as a help page the way `scripts/compare-help.sh`
+    /// does: the candidate's name turned back into `aws`, and, when the
+    /// longer name moved the line breaks, with the bold and underline
+    /// codes, runs of whitespace, and hyphenations at line ends taken out.
+    #[serde(default)]
+    pub help_page: bool,
+}
+
+/// `compare-help.sh`'s `flow`.
+fn flow(page: &str) -> String {
+    let page = regex::Regex::new("\x1b\\[[0-9;]*m")
+        .expect("regex")
+        .replace_all(page, "");
+    let page = regex::Regex::new("\\s+")
+        .expect("regex")
+        .replace_all(&page, " ");
+    regex::Regex::new("([[:alpha:]])- ")
+        .expect("regex")
+        .replace_all(&page, "$1")
+        .into_owned()
+}
+
+/// The candidate's help page `candidate` as the reference's `reference`
+/// when they match the way [`Scenario::help_page`] compares them.
+fn help_page(reference: &[u8], candidate: &[u8]) -> Vec<u8> {
+    let candidate = String::from_utf8_lossy(candidate);
+    let candidate = regex::Regex::new("(?m)awsr([^[:alnum:]_]|$)")
+        .expect("regex")
+        .replace_all(&candidate, "aws$1");
+    let candidate = regex::Regex::new("(?m)AWSR([^[:alnum:]_]|$)")
+        .expect("regex")
+        .replace_all(&candidate, "AWS$1")
+        .into_owned();
+    let reference_text = String::from_utf8_lossy(reference);
+    if candidate != reference_text && flow(&candidate) == flow(&reference_text) {
+        return reference.to_vec();
+    }
+    candidate.into_bytes()
 }
 
 /// Keep the `logging` records of `stderr` that match `filter`.
@@ -253,6 +291,9 @@ pub async fn exec(
         .collect::<Result<Vec<_>, _>>()?;
     apply_masks(&masks, &mut ra, &mut qa);
     apply_masks(&masks, &mut rb, &mut qb);
+    if s.help_page {
+        rb.stdout = help_page(&ra.stdout, &rb.stdout);
+    }
     if let Some(f) = &s.stderr_records {
         let re = regex::Regex::new(f)?;
         ra.stderr = filter_records(&ra.stderr, &re);

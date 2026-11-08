@@ -52,7 +52,38 @@ pub enum HelpRequest {
     },
     /// `help` of a `BasicCommand` at the command path.
     Custom(Vec<String>),
+    /// `page` without the commands of its command table that aliases
+    /// replaced (`BaseAliasCommand._UNDOCUMENTED`).
+    Undocumented {
+        page: Box<HelpRequest>,
+        names: Vec<String>,
+    },
+    /// `page` of a command reached through the alias that replaced it in
+    /// its command table (`InternalAliasSubCommand._proxied_sub_command`):
+    /// its lineage, and so its `event_class`, starts at the command path's
+    /// element `lineage`.
+    Proxied {
+        page: Box<HelpRequest>,
+        lineage: usize,
+    },
 }
+
+impl HelpRequest {
+    /// The page without the alias wrappers.
+    pub(crate) fn base(&self) -> &HelpRequest {
+        match self {
+            HelpRequest::Undocumented { page, .. } | HelpRequest::Proxied { page, .. } => {
+                page.base()
+            }
+            req => req,
+        }
+    }
+}
+
+/// The arguments of `s3 sync` that the sync strategies add on
+/// `building-arg-table.s3_sync` (`syncstrategy/register.py`), which a
+/// `sync` with its own lineage does not emit.
+const SYNC_STRATEGY_ARGS: &[&str] = &["size-only", "exact-timestamps", "delete"];
 
 /// `WaitCommand.DESCRIPTION`.
 const WAIT_DESCRIPTION: &str = "Wait until a particular condition is satisfied. Each subcommand polls an API until the listed requirement is met.";
@@ -393,7 +424,34 @@ fn waiter_description(config: &Map<String, Json>) -> String {
 /// The reStructuredText of the help page `req` (`doc.getvalue()` after
 /// `generate_events`).
 pub fn document(req: &HelpRequest) -> Result<String, String> {
+    document_with(req, &|_| {})
+}
+
+/// [`document`] with `adjust` applied to the page before it is generated.
+fn document_with(req: &HelpRequest, adjust: &dyn Fn(&mut Page<'_>)) -> Result<String, String> {
     let rst = match req {
+        HelpRequest::Undocumented { page, names } => {
+            return document_with(page, &|p: &mut Page<'_>| {
+                adjust(p);
+                p.commands.retain(|c| !names.contains(c));
+            });
+        }
+        HelpRequest::Proxied { page, lineage } => {
+            let sync = **page == HelpRequest::Custom(vec!["s3".to_string(), "sync".to_string()]);
+            return document_with(page, &|p: &mut Page<'_>| {
+                adjust(p);
+                if sync {
+                    p.args
+                        .retain(|a| !SYNC_STRATEGY_ARGS.contains(&a.name.as_str()));
+                }
+                p.event_class = p
+                    .event_class
+                    .split('.')
+                    .skip(*lineage)
+                    .collect::<Vec<_>>()
+                    .join(".");
+            });
+        }
         HelpRequest::Provider => {
             let cli = crate::model::cli_data();
             let s = |k: &str| {
@@ -426,13 +484,18 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 .collect();
             page.has_commands = true;
             page.related_items = vec!["awsr help topics".to_string()];
+            adjust(&mut page);
             page.generate()
         }
         HelpRequest::TopicLister => {
-            Page::new("topics", "topics", Kind::TopicLister, Vec::new()).generate()
+            let mut page = Page::new("topics", "topics", Kind::TopicLister, Vec::new());
+            adjust(&mut page);
+            page.generate()
         }
         HelpRequest::Topic(name) => {
-            Page::new(name, &format!("topics.{name}"), Kind::Topic, Vec::new()).generate()
+            let mut page = Page::new(name, &format!("topics.{name}"), Kind::Topic, Vec::new());
+            adjust(&mut page);
+            page.generate()
         }
         HelpRequest::Service(cli) => {
             let model = ServiceModel::load(service_name(cli)?).map_err(|e| e.to_string())?;
@@ -456,6 +519,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 .filter(|c| !undocumented.contains(&c.as_str()))
                 .collect();
             page.has_commands = true;
+            adjust(&mut page);
             page.generate()
         }
         HelpRequest::Operation {
@@ -498,6 +562,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 },
                 args,
             )
+            .adjusted(adjust)
             .generate()
         }
         HelpRequest::Wait(cli) => {
@@ -529,6 +594,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 .filter(|(_, w)| !deprecated(w))
                 .map(|(n, _)| n)
                 .collect();
+            adjust(&mut page);
             page.generate()
         }
         HelpRequest::Waiter {
@@ -577,6 +643,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 },
                 args,
             )
+            .adjusted(adjust)
             .generate()
         }
         HelpRequest::Custom(path) => {
@@ -625,6 +692,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
                 .into_iter()
                 .filter(|c| !undocumented.contains(c))
                 .collect();
+            adjust(&mut page);
             page.generate()
         }
     };
@@ -633,7 +701,7 @@ pub fn document(req: &HelpRequest) -> Result<String, String> {
 
 /// Whether the page's command table has entries (`BasicHelp.url`).
 fn has_commands(req: &HelpRequest) -> bool {
-    match req {
+    match req.base() {
         HelpRequest::Custom(path) => HelpData::load("_custom")
             .and_then(|c| {
                 c.command(&path.join(" "))
@@ -693,17 +761,19 @@ pub(crate) fn run(
             crate::output::errors::render_general_error(&e),
         )
     };
-    let format =
-        if *req == HelpRequest::Provider && !ctx.globals.help && ctx.globals.profile.is_some() {
-            crate::config::Config::new(&crate::cli::GlobalArgs {
-                profile: None,
-                ..ctx.globals.clone()
-            })
-            .ok()
-            .and_then(|c| c.config_variable("cli_help_output"))
-        } else {
-            ctx.session.config_variable("cli_help_output")
-        };
+    let format = if *req.base() == HelpRequest::Provider
+        && !ctx.globals.help
+        && ctx.globals.profile.is_some()
+    {
+        crate::config::Config::new(&crate::cli::GlobalArgs {
+            profile: None,
+            ..ctx.globals.clone()
+        })
+        .ok()
+        .and_then(|c| c.config_variable("cli_help_output"))
+    } else {
+        ctx.session.config_variable("cli_help_output")
+    };
     match format.as_deref() {
         Some("browser") => {
             render::open_in_browser(&convert(req, "html").map_err(fail)?).map_err(fail)?

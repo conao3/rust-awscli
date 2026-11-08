@@ -459,6 +459,12 @@ mod shorthand {
 }
 
 impl<'a> Page<'a> {
+    /// The page after `adjust`.
+    pub(crate) fn adjusted(mut self, adjust: &dyn Fn(&mut Page<'a>)) -> Page<'a> {
+        adjust(&mut self);
+        self
+    }
+
     pub(crate) fn new(
         name: &str,
         event_class: &str,

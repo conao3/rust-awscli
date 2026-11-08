@@ -219,6 +219,7 @@ fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
     }
     let mut session = new_session(&globals)?;
     let mut shadow: Vec<Vec<String>> = Vec::new();
+    let mut proxied: Option<Vec<String>> = None;
     let mut depth = 0;
     let command = loop {
         match cli::parse_command_shadowed(&rest, &globals, &session, &shadow)? {
@@ -226,6 +227,7 @@ fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
                 globals: new_globals,
                 rest: new_rest,
                 shadow: new_shadow,
+                proxied: new_proxied,
             }) => {
                 depth += 1;
                 if depth > MAX_ALIAS_DEPTH {
@@ -238,11 +240,14 @@ fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
                 session = new_session(&globals)?;
                 rest = new_rest;
                 shadow.extend(new_shadow);
+                if new_proxied.is_some() {
+                    proxied = new_proxied;
+                }
             }
             Command::Alias(cli::alias::Expansion::External(command)) => {
                 return Ok(run_external_alias(&command));
             }
-            command => break command,
+            command => break cli::driver::aliased_help(command, proxied.as_deref(), globals.help),
         }
     };
     run_command(globals, session, command).map(|code| code as i32)

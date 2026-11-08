@@ -258,6 +258,14 @@ pub(crate) fn url(req: &HelpRequest, has_commands: bool) -> String {
         HelpRequest::Waiter { service, name, .. } => {
             format!("{base}/reference/{service}/wait/{name}.html")
         }
+        HelpRequest::Undocumented { page, .. } => url(page, has_commands),
+        HelpRequest::Proxied { page, lineage } => {
+            let prefix = format!("{base}/reference/");
+            let inner = url(page, has_commands);
+            let path = inner.strip_prefix(&prefix).unwrap_or(&inner);
+            let path: Vec<&str> = path.split('/').skip(*lineage).collect();
+            format!("{prefix}{}", path.join("/"))
+        }
         HelpRequest::Custom(path) => {
             if has_commands {
                 format!("{base}/reference/{}/index.html", path.join("/"))

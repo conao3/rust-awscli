@@ -129,6 +129,77 @@ pub(crate) fn binary_format(ctx: &Ctx<'_>) -> String {
         .unwrap_or_else(|| "base64".to_string())
 }
 
+/// The help page `command` shows as aliases change it: the pages of the
+/// top-level and service command tables leave out the commands aliases
+/// replaced, and a command reached through the alias that replaced it
+/// (`proxied`) is documented with its own lineage.
+pub(crate) fn aliased_help(command: Command, proxied: Option<&[String]>, help: bool) -> Command {
+    let req = match command {
+        Command::Help(req) => req,
+        Command::Custom { path, args } if proxied.is_some() => {
+            match crate::help::custom_request(&path, &args, help) {
+                Some(req) => req,
+                None => return Command::Custom { path, args },
+            }
+        }
+        command => return command,
+    };
+    let req = match &req {
+        HelpRequest::Provider => undocumented(req, &[], |n| find_main(n).is_some()),
+        HelpRequest::Service(cli) if super::alias::get(&[cli]).is_ok_and(|a| !a.is_empty()) => {
+            let cli = cli.clone();
+            match find_main(&cli) {
+                Some(MainCommand::Service(_, service)) => match ServiceModel::load(service) {
+                    Ok(model) => {
+                        let table = service_commands(&cli, &model);
+                        undocumented(req, &[&cli], |n| table.iter().any(|(t, _)| t == n))
+                    }
+                    Err(_) => req,
+                },
+                _ => req,
+            }
+        }
+        _ => req,
+    };
+    let path: Vec<&str> = match &req {
+        HelpRequest::Operation { service, name, .. } => vec![service, name],
+        HelpRequest::Waiter { service, name, .. } => vec![service, "wait", name],
+        HelpRequest::Custom(path) => path.iter().map(String::as_str).collect(),
+        _ => Vec::new(),
+    };
+    Command::Help(match proxied {
+        Some(p) if path.len() >= p.len() && path.iter().zip(p).all(|(a, b)| a == b) => {
+            HelpRequest::Proxied {
+                page: Box::new(req),
+                lineage: p.len() - 1,
+            }
+        }
+        _ => req,
+    })
+}
+
+/// `req` without the aliases of `lineage` that replaced a command of its
+/// table (`in_table`).
+fn undocumented(
+    req: HelpRequest,
+    lineage: &[&str],
+    in_table: impl Fn(&str) -> bool,
+) -> HelpRequest {
+    let names: Vec<String> = super::alias::get(lineage)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(n, _)| n)
+        .filter(|n| in_table(n))
+        .collect();
+    if names.is_empty() {
+        return req;
+    }
+    HelpRequest::Undocumented {
+        page: Box::new(req),
+        names,
+    }
+}
+
 /// `ProviderHelpCommand.__call__`: a topic from the subcommand table
 /// (`topics` and the topic names), or the provider page.
 fn provider_help(args: &[String]) -> Result<Command, Fail> {

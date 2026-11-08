@@ -98,11 +98,14 @@ pub(crate) fn extend_choices(lineage: &[&str], choices: &mut Vec<String>) -> Res
 pub enum Expansion {
     /// Dispatch `rest` (a command name and its arguments) again with the
     /// updated globals; `shadow` are command paths whose aliases are
-    /// skipped from then on (the built-in commands the alias proxies to).
+    /// skipped from then on (the built-in commands the alias proxies to);
+    /// `proxied` is the path of the command the alias replaced in its
+    /// command table, if it proxies to it.
     Dispatch {
         globals: Box<GlobalArgs>,
         rest: Vec<String>,
         shadow: Vec<Vec<String>>,
+        proxied: Option<Vec<String>>,
     },
     /// `ExternalAliasCommand`: the shell command line.
     External(String),
@@ -213,6 +216,7 @@ pub(crate) fn toplevel(
         globals: Box::new(globals),
         rest,
         shadow,
+        proxied: None,
     })
 }
 
@@ -244,12 +248,14 @@ pub(crate) fn subcommand(
     // The command object of the table is called directly: the aliases of
     // the tables above it are not looked up again.
     let mut shadow: Vec<Vec<String>> = (1..=lineage.len()).map(|n| lineage[..n].to_vec()).collect();
+    let mut proxied_path = None;
     if proxied {
         new_rest.push(name.to_string());
         new_rest.extend(cmd_args.into_iter().skip(1));
         let mut path = lineage;
         path.push(name.to_string());
-        shadow.push(path);
+        shadow.push(path.clone());
+        proxied_path = Some(path);
     } else {
         new_rest.extend(cmd_args);
     }
@@ -257,6 +263,7 @@ pub(crate) fn subcommand(
         globals: Box::new(globals),
         rest: new_rest,
         shadow,
+        proxied: proxied_path,
     })
 }
 

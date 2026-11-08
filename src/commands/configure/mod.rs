@@ -34,6 +34,7 @@ pub(crate) const SUBCOMMANDS: &[&str] = &[
     "mfa-login",
     "export-credentials",
     "agent-toolkit",
+    "wizard",
 ];
 
 pub(crate) const NOT_SET: &str = "<not set>";

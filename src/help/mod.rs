@@ -77,20 +77,19 @@ pub fn custom_request(path: &[String], args: &[String], flag: bool) -> Option<He
             break;
         }
         if flag {
-            let Some(command) = custom.command(&path.join(" ")) else {
-                break;
-            };
-            if command
-                .get("commands")
-                .and_then(Node::as_array)
-                .is_none_or(|c| c.is_empty())
+            let prefix = format!("{} ", path.join(" "));
+            if custom.command(prefix.trim_end()).is_none()
+                || !custom
+                    .command_paths()
+                    .iter()
+                    .any(|p| p.starts_with(&prefix))
             {
                 break;
             }
             let Some(i) = rest.iter().position(|a| is_positional(a)) else {
                 break;
             };
-            custom.command(&format!("{} {}", path.join(" "), rest[i]))?;
+            custom.command(&format!("{prefix}{}", rest[i]))?;
             path.push(rest.remove(i));
             continue;
         }
@@ -783,5 +782,9 @@ mod tests {
             Some(HelpRequest::Custom(s(&["s3"])))
         );
         assert_eq!(custom_request(&s(&["s3"]), &s(&["nosuch"]), true), None);
+        assert_eq!(
+            custom_request(&s(&["cli-dev"]), &s(&["wizard-dev"]), true),
+            Some(HelpRequest::Custom(s(&["cli-dev", "wizard-dev"])))
+        );
     }
 }

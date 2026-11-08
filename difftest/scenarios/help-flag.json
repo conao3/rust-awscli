@@ -654,6 +654,18 @@
   }
  },
  {
+  "name": "help flag cli-dev wizard-dev",
+  "argv": [
+   "cli-dev",
+   "wizard-dev",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
   "name": "help flag login",
   "argv": [
    "login",

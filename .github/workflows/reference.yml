@@ -28,7 +28,6 @@ jobs:
     timeout-minutes: 360
     permissions:
       contents: write
-      issues: write
       pull-requests: write
     env:
       GH_TOKEN: ${{ github.token }}
@@ -56,17 +55,26 @@ jobs:
       - if: steps.target.outputs.update
         uses: cachix/install-nix-action@v31.11.3
       - if: steps.target.outputs.update
+        id: old
+        run: echo "src=$(nix develop --command printenv AWSR_REFERENCE_SRC)" >>"$GITHUB_OUTPUT"
+      - if: steps.target.outputs.update
         run: scripts/update-reference.sh "${{ steps.target.outputs.version }}"
       - if: steps.target.outputs.update
         id: check
         continue-on-error: true
         run: nix develop --command make check 2>&1 | tee "$RUNNER_TEMP/check.log"
       - if: steps.target.outputs.update
+        env:
+          OLD_SRC: ${{ steps.old.outputs.src }}
         run: |
+          scripts/classify-reference-changes.sh "$OLD_SRC" "$(nix develop --command printenv AWSR_REFERENCE_SRC)" >"$RUNNER_TEMP/classified.txt"
+          sed -n 's/^port //p' "$RUNNER_TEMP/classified.txt" >"$RUNNER_TEMP/port.txt"
+          cat "$RUNNER_TEMP/port.txt"
           git status --porcelain --untracked-files=all -- models/services-a-l models/services-m-z \
             | awk '{print $2}' | grep '\.json\.zst$' | xargs -r -n 1 basename | sed 's/\.json\.zst$//' | sort >"$RUNNER_TEMP/services.txt"
           tr -d ' \n' <src/cli/tables.rs | grep -oE '\("[^"]*",Some\("[^"]*"\),?\)' | sed -E 's/\("([^"]*)",Some\("([^"]*)"\),?\)/\2 \1/' \
-            | awk 'NR == FNR { s[$1]; next } $1 in s { print $2 }' "$RUNNER_TEMP/services.txt" - >"$RUNNER_TEMP/commands.txt"
+            | awk 'NR == FNR { s[$1]; next } $1 in s { print $2 }' "$RUNNER_TEMP/services.txt" - \
+            | { cat; sed -n 's/^help //p' "$RUNNER_TEMP/classified.txt"; } | sort -u >"$RUNNER_TEMP/commands.txt"
           echo "Changed services: $(wc -l <"$RUNNER_TEMP/services.txt")"
       - if: steps.target.outputs.update
         id: difftest
@@ -135,11 +143,19 @@ jobs:
             echo "|---|---|"
             echo "| \`make check\` | $CHECK |"
             echo "| \`awsr-difftest corpus\` (the changed services) | $DIFFTEST |"
-            echo "| \`scripts/compare-help.sh\` (the pages of the changed services) | $HELP |"
+            echo "| \`scripts/compare-help.sh\` (the pages of the changed services and of the commands whose examples or topics changed) | $HELP |"
             echo "| \`awsr-difftest scenario\`, \`awsr-difftest s3\`, \`difftest/scripts/credcompare.sh\` | $SCENARIOS |"
             echo
+            if [ -s "$RUNNER_TEMP/port.txt" ]; then
+              echo "Files of the reference that \`scripts/update-reference.sh\` does not carry over (\`scripts/classify-reference-changes.sh\`), to port in this PR:"
+              echo
+              sed 's/.*/* `&`/' "$RUNNER_TEMP/port.txt"
+            else
+              echo "\`scripts/classify-reference-changes.sh\` finds no change of the reference that \`scripts/update-reference.sh\` does not carry over."
+            fi
+            echo
             if [ -s "$RUNNER_TEMP/changes.txt" ]; then
-              echo "Changes outside the models (\`CHANGELOG.rst\`), to port:"
+              echo "Changes outside the models (\`CHANGELOG.rst\`):"
               echo
               cat "$RUNNER_TEMP/changes.txt"
             else
@@ -155,7 +171,7 @@ jobs:
             grep -E "^FAIL|passed" "$RUNNER_TEMP/scenario.log" "$RUNNER_TEMP/s3.log" "$RUNNER_TEMP/credcompare.log" | head -n 60 || true
             echo '```'
           } >"$RUNNER_TEMP/body.md"
-          if [ "$CHECK$DIFFTEST$HELP$SCENARIOS" != successsuccesssuccesssuccess ]; then
+          if [ "$CHECK$DIFFTEST$HELP$SCENARIOS" != successsuccesssuccesssuccess ] || [ -s "$RUNNER_TEMP/port.txt" ]; then
             gh pr create --draft --base master --head "$BRANCH" \
               --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md"
             exit 0
@@ -163,11 +179,3 @@ jobs:
           pr="$(gh pr create --base master --head "$BRANCH" \
             --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md")"
           gh pr merge "$pr" --merge
-          if [ -s "$RUNNER_TEMP/changes.txt" ]; then
-            {
-              echo "$pr moved the reference AWS CLI to $VERSION. Changes outside the models (\`CHANGELOG.rst\`), to port:"
-              echo
-              cat "$RUNNER_TEMP/changes.txt"
-            } >"$RUNNER_TEMP/issue.md"
-            gh issue create --title "Port the changes of the AWS CLI $VERSION outside the models" --body-file "$RUNNER_TEMP/issue.md"
-          fi

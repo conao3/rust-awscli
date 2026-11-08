@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 360
     permissions:
       contents: write
+      issues: write
       pull-requests: write
     env:
       GH_TOKEN: ${{ github.token }}
@@ -138,7 +139,7 @@ jobs:
             echo "| \`awsr-difftest scenario\`, \`awsr-difftest s3\`, \`difftest/scripts/credcompare.sh\` | $SCENARIOS |"
             echo
             if [ -s "$RUNNER_TEMP/changes.txt" ]; then
-              echo "Changes outside the models (\`CHANGELOG.rst\`), to port in this PR:"
+              echo "Changes outside the models (\`CHANGELOG.rst\`), to port:"
               echo
               cat "$RUNNER_TEMP/changes.txt"
             else
@@ -154,7 +155,19 @@ jobs:
             grep -E "^FAIL|passed" "$RUNNER_TEMP/scenario.log" "$RUNNER_TEMP/s3.log" "$RUNNER_TEMP/credcompare.log" | head -n 60 || true
             echo '```'
           } >"$RUNNER_TEMP/body.md"
-          draft=()
-          if [ "$CHECK$DIFFTEST$HELP$SCENARIOS" != successsuccesssuccesssuccess ] || [ -s "$RUNNER_TEMP/changes.txt" ]; then draft=(--draft); fi
-          gh pr create "${draft[@]}" --base master --head "$BRANCH" \
-            --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md"
+          if [ "$CHECK$DIFFTEST$HELP$SCENARIOS" != successsuccesssuccesssuccess ]; then
+            gh pr create --draft --base master --head "$BRANCH" \
+              --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md"
+            exit 0
+          fi
+          pr="$(gh pr create --base master --head "$BRANCH" \
+            --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md")"
+          gh pr merge "$pr" --merge
+          if [ -s "$RUNNER_TEMP/changes.txt" ]; then
+            {
+              echo "$pr moved the reference AWS CLI to $VERSION. Changes outside the models (\`CHANGELOG.rst\`), to port:"
+              echo
+              cat "$RUNNER_TEMP/changes.txt"
+            } >"$RUNNER_TEMP/issue.md"
+            gh issue create --title "Port the changes of the AWS CLI $VERSION outside the models" --body-file "$RUNNER_TEMP/issue.md"
+          fi

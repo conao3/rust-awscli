@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     env:
@@ -179,3 +180,4 @@ jobs:
           pr="$(gh pr create --base master --head "$BRANCH" \
             --title "Move the reference AWS CLI to $VERSION" --body-file "$RUNNER_TEMP/body.md")"
           gh pr merge "$pr" --merge
+          gh workflow run release.yml --ref master -f version_bump=patch

@@ -1,0 +1,425 @@
+[
+ {
+  "name": "nested alias codecommit credential-helper",
+  "argv": [
+   "codecommit",
+   "credential-helper",
+   "g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias codecommit credential-helper help flag",
+  "argv": [
+   "codecommit",
+   "credential-helper",
+   "g",
+   "--help",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias codecommit credential-helper unknown option",
+  "argv": [
+   "codecommit",
+   "credential-helper",
+   "--bogus",
+   "g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias operation external",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "foo",
+   "a",
+   "b",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias operation internal",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "bar",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias operation invalid subcommand",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "zzz",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias operation help",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "help",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias operation option values",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--instance-ids",
+   "i-1",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias operation flag",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--dry-run",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias operation of a proxied command",
+  "argv": [
+   "iam",
+   "get-user",
+   "u",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias waiter",
+  "argv": [
+   "ec2",
+   "wait",
+   "instance-running",
+   "y",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias waiter invalid subcommand",
+  "argv": [
+   "ec2",
+   "wait",
+   "instance-running",
+   "zz",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias command with a positional",
+  "argv": [
+   "s3",
+   "cp",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias command with a positional help",
+  "argv": [
+   "s3",
+   "cp",
+   "help",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias command with a positional help flag",
+  "argv": [
+   "s3",
+   "cp",
+   "--help",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias configure get with a positional",
+  "argv": [
+   "configure",
+   "get",
+   "z",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias configure list",
+  "argv": [
+   "configure",
+   "list",
+   "k",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias configure list without the alias",
+  "argv": [
+   "configure",
+   "list",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias configure wizard",
+  "argv": [
+   "configure",
+   "wizard",
+   "x",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias wizard alias",
+  "argv": [
+   "dynamodb",
+   "wizard",
+   "nt",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias wizard named like an alias",
+  "argv": [
+   "dynamodb",
+   "wizard",
+   "new-table",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias single wizard",
+  "argv": [
+   "dynamodb",
+   "wizard",
+   "new-table",
+   "q",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias servicecatalog generate",
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "p",
+   "--help",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  },
+  "help_page": true
+ },
+ {
+  "name": "nested alias logs tail with a positional",
+  "argv": [
+   "logs",
+   "tail",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias emr create-cluster",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "a",
+   "z",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias emr create-cluster option values",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--instance-count",
+   "1",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias ecs execute-command",
+  "argv": [
+   "ecs",
+   "execute-command",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias ssm start-session",
+  "argv": [
+   "ssm",
+   "start-session",
+   "a",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias deploy push",
+  "argv": [
+   "deploy",
+   "push",
+   "b",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias cloudformation deploy",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "b",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ },
+ {
+  "name": "nested alias s3 subcommand through an s3 alias",
+  "argv": [
+   "s3",
+   "myls",
+   "w",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/cli/alias": "[command codecommit credential-helper]\ng = get\n[command sts get-caller-identity]\nfoo = !echo op-sub\nbar = get-caller-identity --output text\n[command s3 cp]\nx = !echo cp-sub\n[command ec2 wait instance-running]\ny = !echo waiter-sub\n[command servicecatalog generate]\np = product\n[command configure get]\nz = !echo cfg-get\n[command configure list]\nk = !echo cfg-list\n[command configure wizard]\nx = !echo cfg-wizard\n[command dynamodb wizard]\nnew-table = !echo shadowed\nnt = new-table\n[command dynamodb wizard new-table]\nq = !echo nt-sub\n[command logs tail]\na = !echo logs-tail\n[command emr create-cluster]\na = !echo emr-cc\n[command ecs execute-command]\na = !echo ecs-exec\n[command ssm start-session]\na = !echo ssm-ss\n[command deploy push]\nb = !echo deploy-push\n[command cloudformation deploy]\nb = !echo cfn-deploy\n[command ec2 describe-instances]\na = !echo ec2-di\n[command s3]\nmyls = ls\n[command s3 ls]\nw = !echo s3-ls\n[command iam]\nget-user = get-user\n[command get-user]\nu = !echo proxied-op\n[command iam get-user]\nu = !echo full-op\n"
+  }
+ }
+]

@@ -1,0 +1,796 @@
+[
+ {
+  "name": "help flag top level",
+  "argv": [
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag top level with help",
+  "argv": [
+   "help",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag top level before help",
+  "argv": [
+   "--help",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag topic",
+  "argv": [
+   "help",
+   "topics",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag topic before",
+  "argv": [
+   "--help",
+   "help",
+   "config-vars"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag unknown topic",
+  "argv": [
+   "help",
+   "nosuchtopic",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag query without value",
+  "argv": [
+   "--query",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag output without value",
+  "argv": [
+   "--output",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag region without value before a service",
+  "argv": [
+   "--region",
+   "--help",
+   "ec2"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag unknown global",
+  "argv": [
+   "--bogus",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag unknown global and an invalid command",
+  "argv": [
+   "--help",
+   "--bogus",
+   "foo"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag invalid output choice",
+  "argv": [
+   "--output",
+   "bogus",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag invalid query",
+  "argv": [
+   "--query",
+   "[[",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag endpoint without scheme",
+  "argv": [
+   "--endpoint-url",
+   "foo",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag read timeout not an int",
+  "argv": [
+   "--cli-read-timeout",
+   "x",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag profile without value",
+  "argv": [
+   "--profile",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag invalid command",
+  "argv": [
+   "nosuch",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag profile of the table help",
+  "argv": [
+   "--profile",
+   "term",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag missing profile with the table help",
+  "argv": [
+   "--profile",
+   "nosuch",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag service",
+  "argv": [
+   "ec2",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag service before",
+  "argv": [
+   "--help",
+   "ec2"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag service with help",
+  "argv": [
+   "ec2",
+   "help",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag invalid operation",
+  "argv": [
+   "ec2",
+   "nosuch",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation option without value",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--instance-ids",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation unknown option",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--bogus",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation extra arguments",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--help",
+   "extra",
+   "args"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation with help",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--help",
+   "help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation required arguments",
+  "argv": [
+   "ec2",
+   "run-instances",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation cli-input-json",
+  "argv": [
+   "ec2",
+   "run-instances",
+   "--cli-input-json",
+   "{}",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag operation query without value",
+  "argv": [
+   "ec2",
+   "describe-instances",
+   "--query",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag wait",
+  "argv": [
+   "ec2",
+   "wait",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag waiter",
+  "argv": [
+   "ec2",
+   "wait",
+   "instance-running",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag waiter after",
+  "argv": [
+   "ec2",
+   "wait",
+   "--help",
+   "instance-running"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag invalid waiter",
+  "argv": [
+   "ec2",
+   "wait",
+   "nosuch",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3",
+  "argv": [
+   "s3",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3 cp",
+  "argv": [
+   "s3",
+   "cp",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3 cp with a path",
+  "argv": [
+   "s3",
+   "cp",
+   "a",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3 unknown option before the subcommand",
+  "argv": [
+   "s3",
+   "--foo",
+   "cp",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3 invalid subcommand",
+  "argv": [
+   "s3",
+   "nosuch",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3 help then argument",
+  "argv": [
+   "s3",
+   "help",
+   "foo",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag s3 cp with help",
+  "argv": [
+   "s3",
+   "cp",
+   "help",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag configure",
+  "argv": [
+   "configure",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag configure get",
+  "argv": [
+   "configure",
+   "get",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag configure sso-session",
+  "argv": [
+   "configure",
+   "sso-session",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag deploy push",
+  "argv": [
+   "deploy",
+   "--help",
+   "push"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag cloudformation deploy",
+  "argv": [
+   "cloudformation",
+   "--help",
+   "deploy"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag customized operation",
+  "argv": [
+   "ecs",
+   "execute-command",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag customized operation cli-input-json",
+  "argv": [
+   "ecs",
+   "execute-command",
+   "--help",
+   "--cli-input-json",
+   "x"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag emr create-cluster with emr config",
+  "argv": [
+   "emr",
+   "create-cluster",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag codecommit credential-helper",
+  "argv": [
+   "codecommit",
+   "credential-helper",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag codecommit credential-helper get",
+  "argv": [
+   "codecommit",
+   "credential-helper",
+   "get",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag servicecatalog generate product",
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "product",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag history list",
+  "argv": [
+   "history",
+   "list",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag login",
+  "argv": [
+   "login",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag sso login",
+  "argv": [
+   "sso",
+   "login",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias toplevel",
+  "argv": [
+   "whoami",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias toplevel before",
+  "argv": [
+   "--help",
+   "whoami"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias with help",
+  "argv": [
+   "h"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias with help and an operation",
+  "argv": [
+   "h",
+   "describe-instances"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias external",
+  "argv": [
+   "ext",
+   "a",
+   "--help",
+   "b"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias subcommand",
+  "argv": [
+   "sts",
+   "me",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias subcommand external",
+  "argv": [
+   "sts",
+   "extsub",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias s3",
+  "argv": [
+   "s3",
+   "myls",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias configure",
+  "argv": [
+   "configure",
+   "myget",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ },
+ {
+  "name": "help flag alias waiter",
+  "argv": [
+   "ec2",
+   "wait",
+   "fast",
+   "--help"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_help_output = url\nemr =\n  key_name = k\n\n[profile term]\nregion = us-east-1\n",
+   "home/.aws/cli/alias": "[toplevel]\nwhoami = sts get-caller-identity --query Account\next = !echo hello\nh = ec2 --help\n[command sts]\nme = get-caller-identity --output text\nextsub = !echo sub\n[command s3]\nmyls = ls --summarize\n[command configure]\nmyget = get region\n[command ec2 wait]\nfast = instance-running --instance-ids i-1\n"
+  }
+ }
+]

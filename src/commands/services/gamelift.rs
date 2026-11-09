@@ -207,6 +207,7 @@ fn get_game_session_log(ctx: &Context, args: &[String]) -> Result<ExitCode, CliE
     )?;
     let url = get_str(ctx, &response, "PreSignedUrl")?;
     let fetched = crate::driver::block_on(&ctx.runtime, async {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let r = reqwest::get(&url).await?;
         let status = r.status();
         let body = r.bytes().await?;

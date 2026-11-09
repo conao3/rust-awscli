@@ -607,19 +607,14 @@ pub(crate) fn parse_xml_inner(body: &[u8]) -> std::result::Result<Element, Strin
             }
             Event::Start(ref e) | Event::Empty(ref e) => {
                 let is_empty = matches!(event, Event::Empty(_));
-                let name = std::str::from_utf8(e.name().as_ref())
-                    .map_err(|_| fail("not well-formed (invalid token)", doc, start))?
-                    .to_string();
+                let name: String = AsRef::<str>::as_ref(&e.name()).to_string();
                 let mut scope = Vec::new();
                 let mut raw_attrs = Vec::new();
                 for attr in e.attributes() {
                     let attr =
                         attr.map_err(|_| fail("not well-formed (invalid token)", doc, start))?;
-                    let key = std::str::from_utf8(attr.key.as_ref())
-                        .map_err(|_| fail("not well-formed (invalid token)", doc, start))?
-                        .to_string();
-                    let raw = std::str::from_utf8(&attr.value)
-                        .map_err(|_| fail("not well-formed (invalid token)", doc, start))?;
+                    let key: String = AsRef::<str>::as_ref(&attr.key).to_string();
+                    let raw: &str = &attr.value;
                     let value = attr_value(raw).map_err(|m| fail(m, doc, start))?;
                     if key == "xmlns" {
                         scope.push((String::new(), value));
@@ -675,16 +670,14 @@ pub(crate) fn parse_xml_inner(body: &[u8]) -> std::result::Result<Element, Strin
                 close(frame, &mut stack, &mut root);
             }
             Event::Text(t) => {
-                let raw = t
-                    .decode()
-                    .map_err(|_| fail("not well-formed (invalid token)", doc, start))?;
-                if !check_chars(&raw) {
+                let raw: &str = AsRef::<str>::as_ref(&t);
+                if !check_chars(raw) {
                     return Err(fail("not well-formed (invalid token)", doc, start));
                 }
                 if in_root {
                     let frame = stack.last_mut().expect("in root");
                     if !frame.has_child {
-                        frame.text.push_str(&normalize_eol(&raw));
+                        frame.text.push_str(&normalize_eol(raw));
                     }
                 } else if !raw.chars().all(|c| matches!(c, ' ' | '\t' | '\n' | '\r')) {
                     let msg = if root.is_some() {
@@ -699,22 +692,18 @@ pub(crate) fn parse_xml_inner(body: &[u8]) -> std::result::Result<Element, Strin
                 if !in_root {
                     return Err(fail("syntax error", doc, start));
                 }
-                let raw = t
-                    .decode()
-                    .map_err(|_| fail("not well-formed (invalid token)", doc, start))?;
+                let raw: &str = AsRef::<str>::as_ref(&t);
                 let frame = stack.last_mut().expect("in root");
                 if !frame.has_child {
-                    frame.text.push_str(&normalize_eol(&raw));
+                    frame.text.push_str(&normalize_eol(raw));
                 }
             }
             Event::GeneralRef(r) => {
                 if !in_root {
                     return Err(fail("syntax error", doc, start));
                 }
-                let name = r
-                    .decode()
-                    .map_err(|_| fail("not well-formed (invalid token)", doc, start))?;
-                let value = resolve_entity(&name).map_err(|m| fail(m, doc, start))?;
+                let name: &str = AsRef::<str>::as_ref(&r);
+                let value = resolve_entity(name).map_err(|m| fail(m, doc, start))?;
                 let frame = stack.last_mut().expect("in root");
                 if !frame.has_child {
                     frame.text.push_str(&value);

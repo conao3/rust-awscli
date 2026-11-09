@@ -9,7 +9,7 @@
 //! tokens (`BearerAuth`).
 
 use chrono::{DateTime, Utc};
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use sha2::{Digest, Sha256};
 
 use super::error::{ErrorKind, SessionError};

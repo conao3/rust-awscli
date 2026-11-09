@@ -30,34 +30,34 @@ hex = "0.4"
 http = "1"
 indexmap = "2"
 md-5 = "0.11"
-num-bigint = "0.4"
+num-bigint = "0.5"
 num-traits = "0.2"
 percent-encoding = "2"
-quick-xml = "0.38"
+quick-xml = "0.42"
 rand = "0.10"
 regex = "1"
 ring = "0.17"
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-native-roots", "rustls-tls", "http2", "gzip"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "http2", "gzip"] }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
-sha1 = "0.10"
-sha2 = "0.10"
+sha1 = "0.11"
+sha2 = "0.11"
 thiserror = "2"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "time", "net", "io-util", "fs", "sync"] }
 url = "2"
 unicode-normalization = "0.1"
 uuid = { version = "1", features = ["v4"] }
-zstd = "0.13"
+zstd = "0.14"
 unsafe-libyaml = "0.2"
 libc = "0.2"
 aws-runtime = "1"
-hmac = "0.12"
+hmac = "0.13"
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
 rustls-native-certs = "0.8"
 tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
 webpki-roots = "1"
-rsa = { version = "0.9", features = ["sha1", "sha2"] }
+rsa = { version = "0.10", features = ["pkcs1v15", "sha1"] }
 p256 = { version = "0.14", features = ["ecdsa", "pem", "pkcs8"] }
 xxhash-rust = { version = "0.8.19", features = ["xxh64", "xxh3"] }
 rusqlite = { version = "0.41.1", features = ["bundled"] }
@@ -67,7 +67,7 @@ awsr-models = { path = "models", version = "=2.39.6" }
 awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.6" }
 awsr-models-services-m-z = { path = "models/services-m-z", version = "=2.39.6" }
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
-zstd = "0.13"
+zstd = "0.14"
 
 [dev-dependencies]
 awsr-models-services-a-l = { path = "models/services-a-l", version = "=2.39.6" }

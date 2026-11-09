@@ -327,7 +327,7 @@ fn url_b64encode(data: &[u8]) -> String {
 }
 
 enum Signer {
-    Rsa(Box<rsa::RsaPrivateKey>, &'static str),
+    Rsa(Box<rsa::PrivateKey>, &'static str),
     Ecdsa(Box<p256::ecdsa::SigningKey>),
 }
 
@@ -348,16 +348,10 @@ impl Signer {
         };
         match self {
             Signer::Rsa(key, "SHA1") => key
-                .sign(
-                    rsa::Pkcs1v15Sign::new::<sha1::Sha1>(),
-                    &sha1::Sha1::digest(message),
-                )
+                .pkcs1v15_sign_prehash::<sha1::Sha1>(&sha1::Sha1::digest(message))
                 .map_err(|e| failed(e.to_string())),
             Signer::Rsa(key, _) => key
-                .sign(
-                    rsa::Pkcs1v15Sign::new::<sha2::Sha256>(),
-                    &sha2::Sha256::digest(message),
-                )
+                .pkcs1v15_sign_prehash::<sha2::Sha256>(&sha2::Sha256::digest(message))
                 .map_err(|e| failed(e.to_string())),
             Signer::Ecdsa(key) => {
                 use p256::ecdsa::signature::hazmat::PrehashSigner as _;
@@ -393,15 +387,15 @@ fn pem_der(block: &str) -> Option<Vec<u8>> {
     base64::engine::general_purpose::STANDARD.decode(body).ok()
 }
 
-fn rsa_from_pem(pem: &str) -> Option<rsa::RsaPrivateKey> {
+fn rsa_from_pem(pem: &str) -> Option<rsa::PrivateKey> {
     use rsa::pkcs1::DecodeRsaPrivateKey as _;
     use rsa::pkcs8::DecodePrivateKey as _;
     let block = pem_block(pem, &["RSA PRIVATE KEY", "PRIVATE KEY"])?;
     let der = pem_der(&block)?;
     if block.contains("BEGIN RSA PRIVATE KEY") {
-        rsa::RsaPrivateKey::from_pkcs1_der(&der).ok()
+        rsa::PrivateKey::from_pkcs1_der(&der).ok()
     } else {
-        rsa::RsaPrivateKey::from_pkcs8_der(&der).ok()
+        rsa::PrivateKey::from_pkcs8_der(&der).ok()
     }
 }
 

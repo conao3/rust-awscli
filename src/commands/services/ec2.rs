@@ -5,7 +5,7 @@
 //! (`ec2/bundleinstance.py`).
 
 use base64::Engine as _;
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use indexmap::IndexMap;
 use num_bigint::BigUint;
 use sha1::Sha1;

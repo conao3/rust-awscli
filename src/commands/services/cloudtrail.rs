@@ -409,7 +409,12 @@ impl<'c> Traverser<'c> {
             p.insert("Bucket".into(), Value::str(bucket));
             p.insert("Marker".into(), Value::str(&marker));
             p.insert("Prefix".into(), Value::str(&list_prefix));
-            let page = client.call("ListObjects", p)?;
+            let page = {
+                let _context = crate::session::useragent::ContextGuard::new(&[
+                    crate::session::useragent::Feature::Paginator,
+                ]);
+                client.call("ListObjects", p)?
+            };
             let contents = page
                 .get("Contents")
                 .and_then(Value::as_list)

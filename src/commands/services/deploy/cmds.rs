@@ -654,7 +654,13 @@ fn deregister(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
                     if let Some(m) = &marker {
                         p.push(("Marker", m.clone()));
                     }
-                    let Some(page) = ignore_missing(raw(&iam, list_op, map(p))?)? else {
+                    let listed = {
+                        let _context = crate::session::useragent::ContextGuard::new(&[
+                            crate::session::useragent::Feature::Paginator,
+                        ]);
+                        raw(&iam, list_op, map(p))?
+                    };
+                    let Some(page) = ignore_missing(listed)? else {
                         break;
                     };
                     for item in page

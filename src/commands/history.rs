@@ -172,7 +172,10 @@ fn show(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     let mut formatter = DetailedFormatter::new(include, exclude, colorize);
     let mut out = String::new();
     for r in &records {
-        formatter.display(r, &mut out);
+        if let Err(e) = formatter.display(r, &mut out) {
+            crate::driver::write_paged(ctx, out.as_bytes(), "FRX")?;
+            return Err(runtime_error(ctx, &e));
+        }
     }
     crate::driver::write_paged(ctx, out.as_bytes(), "FRX")?;
     Ok(ExitCode::Success)

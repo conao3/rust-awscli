@@ -112,18 +112,19 @@ impl DetailedFormatter {
         }
     }
 
-    /// `Formatter.display`.
-    pub(crate) fn display(&mut self, record: &Record, out: &mut String) {
+    /// `Formatter.display`: `Err` is the `ExpatError` the pretty printing
+    /// of an XML body raises, after the values before it are written.
+    pub(crate) fn display(&mut self, record: &Record, out: &mut String) -> Result<(), String> {
         let shown = match (&self.include, &self.exclude) {
             (Some(i), _) if !i.is_empty() => i.contains(&record.event_type),
             (_, Some(e)) if !e.is_empty() => !e.contains(&record.event_type),
             _ => true,
         };
         if !shown {
-            return;
+            return Ok(());
         }
         let Some((title, values)) = section(&record.event_type) else {
-            return;
+            return Ok(());
         };
         if let Some(title) = title {
             self.title(title, record, out);
@@ -134,7 +135,7 @@ impl DetailedFormatter {
                 None => record.payload.clone(),
             };
             let mut text = self.description(description);
-            text.push_str(&format_value(&value, record, *format));
+            text.push_str(&format_value(&value, record, *format)?);
             if *filtered {
                 text = signature_filter()
                     .replace_all(&text, "Signature=${1}...")
@@ -142,6 +143,7 @@ impl DetailedFormatter {
             }
             out.push_str(&text);
         }
+        Ok(())
     }
 
     fn title(&mut self, title: &str, record: &Record, out: &mut String) {
@@ -182,14 +184,14 @@ impl DetailedFormatter {
 }
 
 /// `_format_value`.
-fn format_value(value: &Value, record: &Record, format: Format) -> String {
+fn format_value(value: &Value, record: &Record, format: Format) -> Result<String, String> {
     let mut out = match format {
         Format::Plain => crate::pyfmt::py_str(value),
         Format::Dictionary => dictionary(value),
-        Format::HttpBody => http_body(value, record),
+        Format::HttpBody => http_body(value, record)?,
     };
     out.push('\n');
-    out
+    Ok(out)
 }
 
 /// `_pformat_timestamp`: local time with milliseconds.
@@ -223,27 +225,25 @@ fn sorted(value: &Value) -> Value {
 }
 
 /// `_pformat_http_body`.
-fn http_body(body: &Value, record: &Record) -> String {
+fn http_body(body: &Value, record: &Record) -> Result<String, String> {
     if !body.is_truthy() {
-        return "There is no associated body".to_string();
+        return Ok("There is no associated body".to_string());
     }
     if record
         .payload
         .get("streaming")
         .is_some_and(Value::is_truthy)
     {
-        return "The body is a stream and will not be displayed".to_string();
+        return Ok("The body is a stream and will not be displayed".to_string());
     }
     let text = crate::pyfmt::py_str(body);
-    if super::minidom::is_xml(&text)
-        && let Some(pretty) = super::minidom::pretty_xml(&text)
-    {
+    if let Some(pretty) = super::minidom::pretty_xml(&text) {
         return pretty;
     }
     if text.starts_with('{')
         && let Ok(obj) = crate::cli::pyjson::loads(&text)
     {
-        return dictionary(&obj);
+        return Ok(dictionary(&obj));
     }
-    text
+    Ok(text)
 }

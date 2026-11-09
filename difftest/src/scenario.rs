@@ -37,6 +37,10 @@ use crate::server::Stub;
 pub struct Scenario {
     pub name: String,
     pub argv: Vec<String>,
+    /// Command lines run before `argv` in the same directory, whose
+    /// outputs are not compared (their requests are).
+    #[serde(default)]
+    pub setup: Vec<Vec<String>>,
     #[serde(default)]
     pub files: BTreeMap<String, String>,
     #[serde(default)]
@@ -260,6 +264,10 @@ async fn run_side(
             .write(true)
             .open(&path)?
             .set_modified(fixture_mtime())?;
+    }
+    for step in &s.setup {
+        let step: Vec<String> = step.iter().map(|a| subst(a)).collect();
+        run::run(bin, &step, &dir, env, None, None).await?;
     }
     let argv: Vec<String> = s.argv.iter().map(|a| subst(a)).collect();
     let mut out = run::run(bin, &argv, &dir, env, None, None).await?;

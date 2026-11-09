@@ -8,6 +8,7 @@ pub mod endpoint;
 pub mod error;
 pub mod handlers;
 pub mod help;
+pub(crate) mod history;
 pub mod jmes;
 pub mod model;
 pub mod output;

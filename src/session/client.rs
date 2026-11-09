@@ -176,6 +176,13 @@ impl<'a> ApiClient<'a> {
         let op = model
             .operation(operation)
             .ok_or_else(|| general(format!("unknown operation {operation}")))?;
+        if crate::history::enabled() {
+            let mut payload = crate::value::Map::new();
+            payload.insert("service".into(), Value::Str(model.name.clone()));
+            payload.insert("operation".into(), Value::Str(op.name.to_string()));
+            payload.insert("params".into(), params.clone());
+            crate::history::record("API_CALL", Value::Map(payload), "BOTOCORE");
+        }
         if let Some(input) = op.input()
             && let Some(report) = crate::cli::validate::validate(params, &input)
         {
@@ -272,10 +279,17 @@ impl<'a> ApiClient<'a> {
             env: self.config.env_map().clone(),
             proxy_use_forwarding_for_https: false,
         })?;
+        if crate::history::enabled() {
+            super::record_request(&op, &req);
+        }
         let response = http
             .send(&req.method, &req.url, &req.headers, &req.body)
             .await?;
         let options = ParseOptions::default();
+        if crate::history::enabled() {
+            super::record_response(&op, &response);
+            super::record_parsed(model, &op, &response, &options);
+        }
         if response.status >= 300 {
             let error = protocol::parse_error(model, &op, &response, &options).map_err(general)?;
             let code = if error.code.is_empty() {

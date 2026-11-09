@@ -15,7 +15,7 @@ mod cloudsearch;
 mod cloudtrail;
 mod cloudwatch;
 mod codeartifact;
-mod codecommit;
+pub(crate) mod codecommit;
 mod configservice;
 mod datapipeline;
 mod deploy;

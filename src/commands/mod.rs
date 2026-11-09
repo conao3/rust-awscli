@@ -4,6 +4,7 @@
 //! operations whose arguments a customization reshapes.
 
 pub(crate) mod configure;
+mod history;
 mod login;
 mod logout;
 pub(crate) mod s3;
@@ -19,6 +20,7 @@ pub(crate) fn run(ctx: &Context, path: &[String], args: &[String]) -> Result<Exi
     let path: Vec<&str> = path.iter().map(String::as_str).collect();
     match path.as_slice() {
         ["configure"] => configure::run(ctx, args),
+        ["history"] => history::run(ctx, args),
         ["sso", "login"] => sso::login(ctx, args),
         ["sso", "logout"] => sso::logout(ctx, args),
         ["login"] => login::run(ctx, args),

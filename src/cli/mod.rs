@@ -87,6 +87,9 @@ pub struct OperationInvocation {
     /// client with it, so the parameters are still validated and the
     /// response goes through the normal output path).
     pub stub_response: Option<Value>,
+    /// The parameters before `provide-client-params`, which the
+    /// `API_CALL` history event records (only with history enabled).
+    pub history_params: Option<Box<Value>>,
 }
 
 #[derive(Debug, Clone)]

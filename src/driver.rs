@@ -30,6 +30,14 @@ use crate::waiter;
 /// code.
 pub fn run(args: Vec<String>) -> i32 {
     let result = run_inner(args);
+    crate::history::record(
+        "CLI_RC",
+        Value::Int(match &result {
+            Ok(code) => (*code).into(),
+            Err(e) => (e.code as i32).into(),
+        }),
+        "CLI",
+    );
     crate::output::stdout::flush();
     if crate::output::colorama::initialized() && std::io::stdout().is_terminal() {
         let mut stdout = std::io::stdout().lock();
@@ -218,6 +226,15 @@ fn run_inner(args: Vec<String>) -> Result<i32, CliError> {
         }
     }
     let mut session = new_session(&globals)?;
+    if !globals.version {
+        crate::history::attach(session.config(), rest.first().map(String::as_str));
+    }
+    crate::history::record("CLI_VERSION", Value::Str(version_string()), "CLI");
+    crate::history::record(
+        "CLI_ARGUMENTS",
+        Value::List(args.iter().cloned().map(Value::Str).collect()),
+        "CLI",
+    );
     let mut shadow: Vec<Vec<String>> = Vec::new();
     let mut proxied: Option<Vec<String>> = None;
     let mut depth = 0;
@@ -595,9 +612,29 @@ impl<'a> Caller<'a> {
         self.prepare(params).map(|_| ())
     }
 
+    /// `history_recorder.record('API_CALL', ...)` of `_make_api_call`.
+    pub(crate) fn record_api_call(&self, params: &Value) {
+        if !crate::history::enabled() {
+            return;
+        }
+        let params = crate::history::take_api_params().unwrap_or_else(|| params.clone());
+        let mut payload = crate::value::Map::new();
+        payload.insert("service".into(), Value::Str(self.model.name.clone()));
+        payload.insert(
+            "operation".into(),
+            Value::Str(self.operation.name.to_string()),
+        );
+        payload.insert(
+            "params".into(),
+            crate::history::api_params(&self.operation, &params),
+        );
+        crate::history::record("API_CALL", Value::Map(payload), "BOTOCORE");
+    }
+
     /// `BaseClient._make_api_call`.
     pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
+        self.record_api_call(params);
         let original_params = params.clone();
         let (params, call_ctx, mut endpoint) = self.prepare(params)?;
 
@@ -785,8 +822,10 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
         &cli::arguments::xform_name(&inv.operation, '-'),
     );
 
+    crate::history::set_api_params(inv.history_params.as_deref().cloned());
     let response = if let Some(stub) = inv.stub_response.clone() {
         let caller = Caller::new(ctx, &model, &inv.operation).map_err(|e| ctx.general_error(&e))?;
+        caller.record_api_call(&inv.params);
         caller
             .check(&inv.params)
             .map_err(|e| ctx.general_error(&e))?;
@@ -945,6 +984,12 @@ pub(crate) fn display_response_mapped(
 /// `OutputStreamFactory.get_output_stream`: the pager when stdout is a tty
 /// and a pager is configured, else stdout.
 pub(crate) fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> {
+    write_paged(ctx, bytes, "FRX")
+}
+
+/// [`write_stdout`] with `less_flags` for `LESS` when it is unset
+/// (`OutputStreamFactory(default_less_flags=...)`).
+pub(crate) fn write_paged(ctx: &Context, bytes: &[u8], less_flags: &str) -> Result<(), CliError> {
     let pager = ctx
         .session
         .config_variable("pager")
@@ -956,7 +1001,7 @@ pub(crate) fn write_stdout(ctx: &Context, bytes: &[u8]) -> Result<(), CliError> 
         let mut child = Process::new("sh");
         child.arg("-c").arg(&pager).stdin(Stdio::piped());
         if std::env::var_os("LESS").is_none() {
-            child.env("LESS", "FRX");
+            child.env("LESS", less_flags);
         }
         match child.spawn() {
             Ok(mut proc) => {

@@ -20,6 +20,7 @@
 - `src/protocol/`: serializers and parsers for json, rest-json, smithy-rpc-v2-cbor, query, ec2, rest-xml.
 - `src/handlers.rs`: botocore handlers keyed by model traits and the service-specific handlers.
 - `src/paginate.rs`, `src/waiter.rs`, `src/jmes.rs`: pagination, waiters, JMESPath.
+- `src/history.rs`: the CLI history (`cli_history = enabled`) that `aws history` reads (`src/commands/history.rs`).
 - `src/output/`: formatters and error rendering.
 - `src/help/`: the help pages: the document builders (`clidocs.py`, `bcdoc`), the docutils rst parser and manpage writer (`docutils/`), and groff / mandoc and the pager. `scripts/compare-help.sh` compares them with the reference.
 - `src/driver.rs`: one command line end to end.

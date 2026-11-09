@@ -332,6 +332,7 @@ pub(crate) fn run_with<'m>(
                 let mut params = std::mem::take(&mut state.params);
                 hooks.before_call(&mut params)?;
                 let mut params = Value::Map(params);
+                let history_params = crate::history::enabled().then(|| Box::new(params.clone()));
                 client_params(op, &mut params, ctx)?;
                 return Ok(Invocation::Call(Box::new(OperationInvocation {
                     cli_service: String::new(),
@@ -342,6 +343,7 @@ pub(crate) fn run_with<'m>(
                     pagination: PaginationConfig::default(),
                     outfile: state.outfile,
                     stub_response: Some(fake),
+                    history_params,
                 })));
             }
         }
@@ -375,6 +377,7 @@ pub(crate) fn run_with<'m>(
     }
     hooks.before_call(&mut params)?;
     let mut params = Value::Map(params);
+    let history_params = crate::history::enabled().then(|| Box::new(params.clone()));
     client_params(op, &mut params, ctx)?;
     Ok(Invocation::Call(Box::new(OperationInvocation {
         cli_service: String::new(),
@@ -385,6 +388,7 @@ pub(crate) fn run_with<'m>(
         pagination,
         outfile: state.outfile,
         stub_response: None,
+        history_params,
     })))
 }
 

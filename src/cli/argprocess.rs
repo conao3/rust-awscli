@@ -362,6 +362,9 @@ fn unpack_scalar(shape: &Shape<'_>, value: &Value, cli_name: &str) -> Result<Val
                     "Blob values must be a path to a file.",
                 ));
             }
+            if crate::history::enabled() {
+                crate::history::set_streaming_file(&path);
+            }
             std::fs::read(&path)
                 .map(Value::Bytes)
                 .map_err(|e| Fail::General(paramfile::os_error(&e, &path)))

@@ -24,6 +24,7 @@ use crate::config::{Config, ConfigLookup};
 use crate::endpoint::Endpoint;
 use crate::model::{Operation, ServiceModel};
 use crate::protocol::{HttpRequest, HttpResponse};
+use crate::value::Value;
 
 pub mod cache;
 pub mod client;
@@ -115,6 +116,45 @@ pub fn has_streaming_input(operation: &Operation<'_>) -> bool {
     input
         .member_shape(payload)
         .is_some_and(|s| s.type_name() == "blob")
+}
+
+/// `OperationModel.get_streaming_output`: the payload member of the
+/// output when it is a blob.
+fn streaming_output_member(operation: &Operation<'_>) -> Option<String> {
+    let output = operation.output()?;
+    let payload = output.shape_get("payload").and_then(|p| p.as_str())?;
+    output
+        .member_shape(payload)
+        .filter(|s| s.type_name() == "blob")
+        .map(|_| payload.to_string())
+}
+
+/// `repr()` of a `StreamingBody`, as `PayloadSerializer` writes it.
+const STREAMING_BODY_REPR: &str = "<botocore.response.StreamingBody object at 0x7f0000000000>";
+
+/// `history_recorder.record('HTTP_RESPONSE', ...)`: `convert_to_response_dict`
+/// with `streaming`.
+pub(crate) fn record_response(operation: &Operation<'_>, response: &HttpResponse) {
+    let streaming = streaming_output_member(operation).is_some();
+    let mut context = crate::value::Map::new();
+    context.insert(
+        "operation_name".into(),
+        Value::Str(operation.name.to_string()),
+    );
+    let mut payload = crate::value::Map::new();
+    payload.insert("headers".into(), crate::history::headers(&response.headers));
+    payload.insert("status_code".into(), Value::Int(response.status.into()));
+    payload.insert("context".into(), Value::Map(context));
+    payload.insert(
+        "body".into(),
+        if streaming && response.status < 300 {
+            Value::Str(STREAMING_BODY_REPR.to_string())
+        } else {
+            Value::Bytes(response.body.clone())
+        },
+    );
+    payload.insert("streaming".into(), Value::Bool(streaming));
+    crate::history::record("HTTP_RESPONSE", Value::Map(payload), "BOTOCORE");
 }
 
 fn str_list(v: Option<&crate::bjson::Node>) -> Option<Vec<String>> {
@@ -726,13 +766,31 @@ impl Session {
                 if let Some(wait) = state.before_send() {
                     tokio::time::sleep(wait).await;
                 }
+                if crate::history::enabled() {
+                    record_request(operation, &req);
+                }
                 let result = http
                     .send(&req.method, &req.url, &req.headers, &req.body)
                     .await;
                 let received = Utc::now();
                 let (response, exception) = match result {
                     Ok(mut r) => {
+                        if crate::history::enabled() {
+                            record_response(operation, &r);
+                        }
                         adjust(&mut r);
+                        if crate::history::enabled() {
+                            let options = crate::protocol::ParseOptions {
+                                timestamp_format: match self
+                                    .config_variable("cli_timestamp_format")
+                                    .as_deref()
+                                {
+                                    Some("wire") => crate::protocol::TimestampFormat::Wire,
+                                    _ => crate::protocol::TimestampFormat::Iso8601,
+                                },
+                            };
+                            record_parsed(model, operation, &r, &options);
+                        }
                         (Some(r), None)
                     }
                     Err(e) => (None, Some(e)),
@@ -833,7 +891,60 @@ impl Session {
             }
         }
     }
+}
 
+/// `history_recorder.record('HTTP_REQUEST', ...)` of
+/// `Endpoint._do_get_response`.
+pub(crate) fn record_request(operation: &Operation<'_>, req: &SignableRequest) {
+    let mut payload = crate::value::Map::new();
+    payload.insert("method".into(), Value::Str(req.method.clone()));
+    payload.insert("headers".into(), crate::history::headers(&req.headers));
+    payload.insert(
+        "streaming".into(),
+        Value::Bool(has_streaming_input(operation)),
+    );
+    payload.insert("url".into(), Value::Str(req.url.clone()));
+    payload.insert(
+        "body".into(),
+        if req.body.is_empty() {
+            Value::Null
+        } else {
+            Value::Bytes(req.body.clone())
+        },
+    );
+    crate::history::record("HTTP_REQUEST", Value::Map(payload), "BOTOCORE");
+}
+
+/// `history_recorder.record('PARSED_RESPONSE', parsed_response)`: the
+/// response parsed with the `before-parse` handlers, before
+/// `RetryAttempts` is set.
+pub(crate) fn record_parsed(
+    model: &ServiceModel,
+    operation: &Operation<'_>,
+    response: &HttpResponse,
+    options: &crate::protocol::ParseOptions,
+) {
+    let mut response = response.clone();
+    let customized = crate::handlers::before_parse(model, operation, &mut response);
+    let Ok(mut parsed) = crate::protocol::parse(model, operation, &response, options) else {
+        return;
+    };
+    if let Some(map) = parsed.as_map_mut() {
+        map.extend(customized);
+        if let Some(Value::Map(meta)) = map.get_mut("ResponseMetadata") {
+            meta.shift_remove("RetryAttempts");
+        }
+        if response.status < 300
+            && let Some(member) = streaming_output_member(operation)
+            && map.contains_key(&member)
+        {
+            map.insert(member, Value::Str(STREAMING_BODY_REPR.to_string()));
+        }
+    }
+    crate::history::record("PARSED_RESPONSE", parsed, "BOTOCORE");
+}
+
+impl Session {
     async fn sign(
         &self,
         req: &mut SignableRequest,

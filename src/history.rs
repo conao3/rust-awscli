@@ -7,6 +7,7 @@
 pub(crate) mod minidom;
 pub(crate) mod redact;
 pub(crate) mod show;
+pub(crate) mod xmlrole;
 
 use std::cell::RefCell;
 use std::sync::Mutex;

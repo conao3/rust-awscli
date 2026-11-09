@@ -5,9 +5,14 @@
 
 use std::collections::HashMap;
 
+use super::xmlrole::{
+    PrologState, Role, Tok, prolog_tok, scan_comment, scan_end_tag, scan_percent, scan_pi,
+    scan_ref, scan_start_tag,
+};
+
 /// The characters expat (pyexpat of the reference) starts a name with,
 /// besides `:`.
-const NAME_START: &[(u32, u32)] = &[
+pub(crate) const NAME_START: &[(u32, u32)] = &[
     (0x41, 0x5A),
     (0x5F, 0x5F),
     (0x61, 0x7A),
@@ -215,7 +220,7 @@ const NAME_START: &[(u32, u32)] = &[
     (0xAC00, 0xD7A3),
 ];
 /// The characters expat continues a name with, besides `:`.
-const NAME_CHAR: &[(u32, u32)] = &[
+pub(crate) const NAME_CHAR: &[(u32, u32)] = &[
     (0x2D, 0x2E),
     (0x30, 0x39),
     (0x41, 0x5A),
@@ -512,6 +517,7 @@ const INVALID_TOKEN: &str = "not well-formed (invalid token)";
 const SYNTAX: &str = "syntax error";
 const NO_ELEMENTS: &str = "no element found";
 const UNCLOSED_TOKEN: &str = "unclosed token";
+const UNCLOSED_CDATA_SECTION: &str = "unclosed CDATA section";
 const TAG_MISMATCH: &str = "mismatched tag";
 const DUPLICATE_ATTRIBUTE: &str = "duplicate attribute";
 const JUNK_AFTER_DOC_ELEMENT: &str = "junk after document element";
@@ -545,8 +551,8 @@ impl ExpatError {
     /// `str(ExpatError)` for the error in `text`.
     fn display(&self, text: &[char]) -> String {
         let before = &text[..self.offset.min(text.len())];
-        let line = before.iter().filter(|c| **c == '\n').count() + 1;
-        let column = match before.iter().rposition(|c| *c == '\n') {
+        let line = before.iter().filter(|c| matches!(c, '\n' | '\r')).count() + 1;
+        let column = match before.iter().rposition(|c| matches!(c, '\n' | '\r')) {
             Some(i) => before.len() - i - 1,
             None => before.len(),
         };
@@ -587,7 +593,7 @@ struct Entity {
     open: bool,
 }
 
-fn in_ranges(ranges: &[(u32, u32)], c: char) -> bool {
+pub(crate) fn in_ranges(ranges: &[(u32, u32)], c: char) -> bool {
     let c = c as u32;
     ranges
         .binary_search_by(|(lo, hi)| {
@@ -617,10 +623,6 @@ fn is_s(c: char) -> bool {
 /// `Char` of XML 1.0.
 fn is_char(c: char) -> bool {
     matches!(c, '\t' | '\n' | '\r' | '\u{20}'..='\u{d7ff}' | '\u{e000}'..='\u{fffd}' | '\u{10000}'..)
-}
-
-fn is_pubid_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || " \n-'()+,./:=?;!*#@$_%".contains(c)
 }
 
 /// A name with at most one colon that neither starts nor ends it
@@ -666,42 +668,6 @@ fn name(s: &[char], pos: &mut usize) -> Option<String> {
     Some(s[start..*pos].iter().collect())
 }
 
-fn nmtoken(s: &[char], pos: &mut usize) -> Option<String> {
-    let start = *pos;
-    while s.get(*pos).is_some_and(|c| is_name_char(*c)) {
-        *pos += 1;
-    }
-    (*pos > start).then(|| s[start..*pos].iter().collect())
-}
-
-/// The end of a name token of the prolog: expat's tokenizer ends one
-/// only at these characters (`prologTok`).
-/// The end of a `)` token, after its quantifier.
-fn close_paren_end(s: &[char], pos: usize) -> Result<(), ExpatError> {
-    match s.get(pos) {
-        None => Ok(()),
-        Some(c) if is_s(*c) || ">,|)".contains(*c) => Ok(()),
-        Some(_) => fail(INVALID_TOKEN, pos),
-    }
-}
-
-fn name_end(s: &[char], pos: usize) -> Result<(), ExpatError> {
-    match s.get(pos) {
-        None => Ok(()),
-        Some(c) if is_s(*c) || ">),|[%+*?".contains(*c) => Ok(()),
-        Some(_) => fail(INVALID_TOKEN, pos),
-    }
-}
-
-/// A name of the prolog.
-fn prolog_name(s: &[char], pos: &mut usize) -> Result<Option<String>, ExpatError> {
-    let n = name(s, pos);
-    if n.is_some() {
-        name_end(s, *pos)?;
-    }
-    Ok(n)
-}
-
 /// The name of an entity reference after its `&`: a colon is not a name
 /// character there (`XML_NS` tokenizer).
 fn ref_name(s: &[char], pos: &mut usize) -> Result<Option<String>, ExpatError> {
@@ -715,31 +681,12 @@ fn ref_name(s: &[char], pos: &mut usize) -> Result<Option<String>, ExpatError> {
     Ok(n)
 }
 
-/// `S` that must be there.
-fn require_s(s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-    if skip_s(s, pos) {
-        Ok(())
-    } else {
-        fail(SYNTAX, *pos)
-    }
-}
-
 fn expect(s: &[char], pos: &mut usize, c: char) -> Result<(), ExpatError> {
     if s.get(*pos) == Some(&c) {
         *pos += 1;
         Ok(())
     } else {
         fail(INVALID_TOKEN, *pos)
-    }
-}
-
-fn keyword(s: &[char], pos: &mut usize, word: &str) -> Result<bool, ExpatError> {
-    if starts(s, *pos, word) && !s.get(*pos + word.len()).is_some_and(|c| is_name_char(*c)) {
-        name_end(s, *pos + word.len())?;
-        *pos += word.len();
-        Ok(true)
-    } else {
-        Ok(false)
     }
 }
 
@@ -782,6 +729,45 @@ fn predefined(name: &str) -> Option<char> {
     }
 }
 
+/// The processing instruction of the token `text` (`<?target data?>`, the
+/// white space after the target skipped).
+fn pi_node(text: &[char]) -> Node {
+    let body = &text[2..text.len() - 2];
+    let end = body
+        .iter()
+        .position(|c| is_s(*c) || *c == '\r')
+        .unwrap_or(body.len());
+    let mut data = end;
+    while body.get(data).is_some_and(|c| is_s(*c) || *c == '\r') {
+        data += 1;
+    }
+    Node::Pi {
+        target: body[..end].iter().collect(),
+        data: body[data..].iter().collect(),
+    }
+}
+
+/// The comment of the token `text` (`<!--data-->`).
+fn comment_node(text: &[char]) -> Node {
+    Node::Comment(text[4..text.len() - 3].iter().collect())
+}
+
+/// The public id of the literal token `s[start..end]`: `XmlIsPublicId`
+/// (the error is at the character it rejects), then `normalizePublicId`.
+fn public_id_value(s: &[char], start: usize, end: usize) -> Result<String, ExpatError> {
+    for (i, c) in s[start + 1..end - 1].iter().enumerate() {
+        if !(c.is_ascii_alphanumeric() || " \r\n-'()+,./:=?;!*#@$_%".contains(*c)) {
+            return fail(PUBLICID, start + 1 + i);
+        }
+    }
+    let value: String = s[start + 1..end - 1].iter().collect();
+    Ok(value
+        .split([' ', '\r', '\n'])
+        .filter(|p| !p.is_empty())
+        .collect::<Vec<_>>()
+        .join(" "))
+}
+
 fn push_text(out: &mut Vec<Node>, text: &str) {
     if let Some(Node::Text(prev)) = out.last_mut() {
         prev.push_str(text);
@@ -790,8 +776,14 @@ fn push_text(out: &mut Vec<Node>, text: &str) {
     }
 }
 
-/// The public and system ids of an `ExternalID`.
-type ExternalId = (Option<String>, Option<String>);
+/// A pseudo-attribute of the XML declaration.
+struct PseudoAttribute {
+    name: String,
+    name_at: usize,
+    value: String,
+    value_at: usize,
+    next: usize,
+}
 
 struct Parser {
     entities: HashMap<String, Entity>,
@@ -812,643 +804,332 @@ impl Parser {
         !self.has_param_entity_refs || self.standalone
     }
 
+    /// `prologProcessor` (`doProlog` over `prologTok` and the role state
+    /// machine), the document element, and `epilogProcessor`.
     fn document(&mut self, s: &[char]) -> Result<Vec<Node>, ExpatError> {
-        let mut pos = 0;
-        if s.first() == Some(&'\u{feff}') {
-            pos = 1;
-        }
-        if starts(s, pos, "<?xml") && s.get(pos + 5).is_some_and(|c| is_s(*c) || *c == '?') {
-            self.xml_decl(s, &mut pos)?;
-        }
+        let mut pos = usize::from(s.first() == Some(&'\u{feff}'));
+        let mut state = PrologState::new();
         let mut document = Vec::new();
-        let mut doctype = false;
+        let mut doctype_name = String::new();
+        let (mut public_id, mut system_id) = (None, None);
+        let mut subset: Option<(usize, usize)> = None;
+        let mut in_subset = false;
+        let mut decl_entity: Option<String> = None;
+        let mut attlist_element = String::new();
+        let mut attribute = String::new();
+        let mut attribute_cdata = false;
+        let mut connectors: Vec<char> = Vec::new();
         loop {
-            skip_s(s, &mut pos);
-            if pos >= s.len() {
-                return fail(NO_ELEMENTS, pos);
+            let (tok, next) = prolog_tok(s, pos);
+            match tok {
+                Tok::Invalid => return fail(INVALID_TOKEN, next),
+                Tok::Partial => return fail(UNCLOSED_TOKEN, pos),
+                Tok::None => return fail(NO_ELEMENTS, pos),
+                _ => {}
             }
-            if starts(s, pos, "<!--") {
-                document.push(self.comment(s, &mut pos)?);
-            } else if starts(s, pos, "<?") {
-                document.push(self.pi(s, &mut pos)?);
-            } else if starts(s, pos, "<!DOCTYPE") && !doctype {
-                doctype = true;
-                document.push(self.doctype(s, &mut pos)?);
-            } else if starts(s, pos, "<!") {
-                return fail(SYNTAX, pos);
-            } else if s[pos] == '<' {
-                break;
-            } else if is_char(s[pos]) {
-                return fail(SYNTAX, pos);
-            } else {
-                return fail(INVALID_TOKEN, pos);
+            let text = &s[pos..next];
+            let role = state.role(tok, text);
+            let literal = || -> String {
+                text[1..text.len().saturating_sub(1).max(1)]
+                    .iter()
+                    .collect()
+            };
+            match role {
+                Role::Error => {
+                    return fail(
+                        match tok {
+                            Tok::ParamEntityRef => PARAM_ENTITY_REF,
+                            Tok::XmlDecl => MISPLACED_XML_PI,
+                            _ => SYNTAX,
+                        },
+                        pos,
+                    );
+                }
+                Role::XmlDecl => self.xml_decl(s, pos, next)?,
+                Role::InstanceStart => break,
+                Role::Pi if !in_subset => document.push(pi_node(text)),
+                Role::Comment if !in_subset => document.push(comment_node(text)),
+                Role::DoctypeName => doctype_name = text.iter().collect(),
+                Role::DoctypePublicId => {
+                    self.has_param_entity_refs = true;
+                    public_id = Some(public_id_value(s, pos, next)?);
+                }
+                Role::DoctypeSystemId => {
+                    self.has_param_entity_refs = true;
+                    system_id = Some(literal());
+                }
+                Role::DoctypeInternalSubset => {
+                    subset = Some((next, next));
+                    in_subset = true;
+                }
+                Role::DoctypeNone if tok == Tok::CloseBracket => {
+                    if let Some((start, _)) = subset {
+                        subset = Some((start, pos));
+                    }
+                    in_subset = false;
+                }
+                Role::DoctypeClose => {
+                    let name = match doctype_name.split_once(':') {
+                        Some((_, local)) => local.to_string(),
+                        None => doctype_name.clone(),
+                    };
+                    document.push(Node::DocumentType {
+                        name,
+                        public_id: public_id.take(),
+                        system_id: system_id.take(),
+                        internal_subset: subset.map(|(a, b)| s[a..b].iter().collect()),
+                    });
+                }
+                Role::GeneralEntityName => {
+                    let name: String = text.iter().collect();
+                    decl_entity = None;
+                    if predefined(&name).is_none()
+                        && self.keep_processing
+                        && !self.entities.contains_key(&name)
+                    {
+                        self.entities.insert(
+                            name.clone(),
+                            Entity {
+                                text: None,
+                                notation: false,
+                                open: false,
+                            },
+                        );
+                        decl_entity = Some(name);
+                    }
+                }
+                Role::ParamEntityName => decl_entity = None,
+                Role::EntityValue if self.keep_processing => {
+                    let value = self.entity_value(s, pos + 1, next - 1)?;
+                    if let Some(e) = decl_entity.as_ref().and_then(|n| self.entities.get_mut(n)) {
+                        e.text = Some(value);
+                    }
+                }
+                Role::EntityPublicId | Role::NotationPublicId => {
+                    public_id_value(s, pos, next)?;
+                }
+                Role::EntityNotationName if self.keep_processing => {
+                    if let Some(e) = decl_entity.as_ref().and_then(|n| self.entities.get_mut(n)) {
+                        e.notation = true;
+                    }
+                }
+                Role::AttlistElementName => attlist_element = text.iter().collect(),
+                Role::AttributeName => {
+                    attribute = text.iter().collect();
+                    attribute_cdata = false;
+                }
+                Role::AttributeTypeCdata => attribute_cdata = true,
+                Role::ImpliedAttributeValue | Role::RequiredAttributeValue
+                    if self.keep_processing =>
+                {
+                    self.cdata
+                        .entry((attlist_element.clone(), attribute.clone()))
+                        .or_insert(attribute_cdata);
+                }
+                Role::DefaultAttributeValue | Role::FixedAttributeValue if self.keep_processing => {
+                    self.att_value(s, &mut (pos + 1), Some(s[pos]), pos, false)?;
+                    self.cdata
+                        .entry((attlist_element.clone(), attribute.clone()))
+                        .or_insert(attribute_cdata);
+                }
+                Role::GroupOpen => {
+                    connectors.resize(state.level + 1, '\0');
+                    connectors[state.level] = '\0';
+                }
+                Role::GroupSequence | Role::GroupChoice => {
+                    let (own, other) = if role == Role::GroupSequence {
+                        (',', '|')
+                    } else {
+                        ('|', ',')
+                    };
+                    connectors.resize(state.level + 1, '\0');
+                    if connectors[state.level] == other {
+                        return fail(SYNTAX, pos);
+                    }
+                    connectors[state.level] = own;
+                }
+                Role::ParamEntityRef => {
+                    self.has_param_entity_refs = true;
+                    self.keep_processing = self.standalone;
+                }
+                _ => {}
             }
+            pos = next;
         }
         let root = self.element(s, &mut pos, None)?;
         document.push(root);
         loop {
-            skip_s(s, &mut pos);
-            if pos >= s.len() {
-                break;
+            let (tok, next) = prolog_tok(s, pos);
+            match tok {
+                Tok::None => break,
+                Tok::PrologS => {}
+                Tok::Pi => document.push(pi_node(&s[pos..next])),
+                Tok::Comment => document.push(comment_node(&s[pos..next])),
+                Tok::Invalid => return fail(INVALID_TOKEN, next),
+                Tok::Partial => return fail(UNCLOSED_TOKEN, pos),
+                _ => return fail(JUNK_AFTER_DOC_ELEMENT, pos),
             }
-            if starts(s, pos, "<!--") {
-                document.push(self.comment(s, &mut pos)?);
-            } else if starts(s, pos, "<?") {
-                document.push(self.pi(s, &mut pos)?);
-            } else if is_char(s[pos]) {
-                return fail(JUNK_AFTER_DOC_ELEMENT, pos);
-            } else {
-                return fail(INVALID_TOKEN, pos);
-            }
+            pos = next;
         }
         Ok(document)
     }
 
-    /// `XMLDecl`.
-    fn xml_decl(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        *pos += 5;
-        let pseudo = |pos: &mut usize, attr: &str| -> Result<Option<String>, ExpatError> {
-            let mut p = *pos;
-            if !skip_s(s, &mut p) || !starts(s, p, attr) {
+    /// `processXmlDecl` of the declaration `s[start..end]`
+    /// (`doParseXmlDecl` with `parsePseudoAttribute`); `standalone="yes"`
+    /// makes the document standalone.
+    fn xml_decl(&mut self, s: &[char], start: usize, end: usize) -> Result<(), ExpatError> {
+        let end = end - 2;
+        let space = |p: usize| p < end && matches!(s[p], ' ' | '\r' | '\n' | '\t');
+        let at = |p: usize| (p < end).then(|| s[p]);
+        let pseudo = |mut p: usize| -> Result<Option<PseudoAttribute>, usize> {
+            if p == end {
                 return Ok(None);
             }
-            p += attr.len();
-            skip_s(s, &mut p);
-            if s.get(p) != Some(&'=') {
-                return fail(XML_DECL, p);
+            if !space(p) {
+                return Err(p);
             }
-            p += 1;
-            skip_s(s, &mut p);
-            let quote = match s.get(p) {
-                Some(q @ ('"' | '\'')) => *q,
-                _ => return fail(XML_DECL, p),
-            };
-            p += 1;
-            let start = p;
-            while s.get(p).is_some_and(|c| *c != quote) {
+            while space(p) {
                 p += 1;
             }
-            if p >= s.len() {
-                return fail(XML_DECL, start);
+            if p == end {
+                return Ok(None);
             }
-            let value: String = s[start..p].iter().collect();
-            *pos = p + 1;
-            Ok(Some(value))
-        };
-        let start = *pos;
-        match pseudo(pos, "version")? {
-            Some(v)
-                if v.strip_prefix("1.")
-                    .is_some_and(|d| !d.is_empty() && d.chars().all(|c| c.is_ascii_digit())) => {}
-            _ => return fail(XML_DECL, start),
-        }
-        if let Some(encoding) = pseudo(pos, "encoding")?
-            && !(encoding
-                .chars()
-                .next()
-                .is_some_and(|c| c.is_ascii_alphabetic())
-                && encoding
-                    .chars()
-                    .all(|c| c.is_ascii_alphanumeric() || "._-".contains(c)))
-        {
-            return fail(XML_DECL, *pos);
-        }
-        match pseudo(pos, "standalone")?.as_deref() {
-            None => {}
-            Some("yes") => self.standalone = true,
-            Some("no") => {}
-            Some(_) => return fail(XML_DECL, *pos),
-        }
-        skip_s(s, pos);
-        if starts(s, *pos, "?>") {
-            *pos += 2;
-            Ok(())
-        } else {
-            fail(XML_DECL, *pos)
-        }
-    }
-
-    fn comment(&mut self, s: &[char], pos: &mut usize) -> Result<Node, ExpatError> {
-        let open = *pos;
-        *pos += 4;
-        let start = *pos;
-        loop {
-            match s.get(*pos) {
-                None => return fail(UNCLOSED_TOKEN, open),
-                Some('-') if s.get(*pos + 1) == Some(&'-') => {
-                    if s.get(*pos + 2) == Some(&'>') {
-                        let data = s[start..*pos].iter().collect();
-                        *pos += 3;
-                        return Ok(Node::Comment(data));
-                    }
-                    return fail(INVALID_TOKEN, *pos + 2);
-                }
-                Some(c) if !is_char(*c) => return fail(INVALID_TOKEN, *pos),
-                Some(_) => *pos += 1,
-            }
-        }
-    }
-
-    fn pi(&mut self, s: &[char], pos: &mut usize) -> Result<Node, ExpatError> {
-        let open = *pos;
-        *pos += 2;
-        let Some(target) = name(s, pos) else {
-            return fail(INVALID_TOKEN, *pos);
-        };
-        if target.eq_ignore_ascii_case("xml") {
-            return fail(MISPLACED_XML_PI, open);
-        }
-        if target.contains(':') {
-            return fail(INVALID_TOKEN, open + 2);
-        }
-        if starts(s, *pos, "?>") {
-            *pos += 2;
-            return Ok(Node::Pi {
-                target,
-                data: String::new(),
-            });
-        }
-        if !skip_s(s, pos) {
-            return fail(INVALID_TOKEN, *pos + usize::from(s.get(*pos) == Some(&'?')));
-        }
-        let start = *pos;
-        loop {
-            match s.get(*pos) {
-                None => return fail(UNCLOSED_TOKEN, open),
-                Some('?') if s.get(*pos + 1) == Some(&'>') => {
-                    let data = s[start..*pos].iter().collect();
-                    *pos += 2;
-                    return Ok(Node::Pi { target, data });
-                }
-                Some(c) if !is_char(*c) => return fail(INVALID_TOKEN, *pos),
-                Some(_) => *pos += 1,
-            }
-        }
-    }
-
-    /// A quoted literal: `SystemLiteral`, or `PubidLiteral` when `pubid`.
-    fn literal(&mut self, s: &[char], pos: &mut usize, pubid: bool) -> Result<String, ExpatError> {
-        let quote = match s.get(*pos) {
-            Some(q @ ('"' | '\'')) => *q,
-            _ => return fail(SYNTAX, *pos),
-        };
-        let open = *pos;
-        *pos += 1;
-        let start = *pos;
-        loop {
-            match s.get(*pos) {
-                None => return fail(UNCLOSED_TOKEN, open),
-                Some(c) if *c == quote => break,
-                Some(c) if !is_char(*c) => return fail(INVALID_TOKEN, *pos),
-                Some(c) if pubid && !is_pubid_char(*c) => return fail(PUBLICID, open),
-                Some(_) => *pos += 1,
-            }
-        }
-        let value: String = s[start..*pos].iter().collect();
-        *pos += 1;
-        match s.get(*pos) {
-            Some(c) if !(is_s(*c) || ">%[".contains(*c)) => fail(INVALID_TOKEN, *pos),
-            _ => Ok(value),
-        }
-    }
-
-    /// `ExternalID` (with only the public id when `public_only`).
-    fn external_id(
-        &mut self,
-        s: &[char],
-        pos: &mut usize,
-        public_only: bool,
-    ) -> Result<Option<ExternalId>, ExpatError> {
-        if keyword(s, pos, "SYSTEM")? {
-            require_s(s, pos)?;
-            let system = self.literal(s, pos, false)?;
-            return Ok(Some((None, Some(system))));
-        }
-        if keyword(s, pos, "PUBLIC")? {
-            require_s(s, pos)?;
-            let public = self.literal(s, pos, true)?;
-            let public = public
-                .split([' ', '\n'])
-                .filter(|p| !p.is_empty())
-                .collect::<Vec<_>>()
-                .join(" ");
-            let mut p = *pos;
-            if skip_s(s, &mut p) && matches!(s.get(p), Some('"' | '\'')) {
-                *pos = p;
-                let system = self.literal(s, pos, false)?;
-                return Ok(Some((Some(public), Some(system))));
-            }
-            if public_only {
-                return Ok(Some((Some(public), None)));
-            }
-            return fail(SYNTAX, p);
-        }
-        Ok(None)
-    }
-
-    fn doctype(&mut self, s: &[char], pos: &mut usize) -> Result<Node, ExpatError> {
-        let open = *pos;
-        *pos += 9;
-        if !skip_s(s, pos) {
-            return fail(INVALID_TOKEN, *pos);
-        }
-        let name_at = *pos;
-        let Some(raw) = prolog_name(s, pos)? else {
-            return fail(SYNTAX, *pos);
-        };
-        if !is_qname(&raw) {
-            return fail(SYNTAX, name_at);
-        }
-        let name = raw.rsplit(':').next().unwrap_or_default().to_string();
-        let mut p = *pos;
-        let (mut public_id, mut system_id) = (None, None);
-        if skip_s(s, &mut p)
-            && let Some((public, system)) = self.external_id(s, &mut p, false)?
-        {
-            public_id = public;
-            system_id = system;
-            self.has_param_entity_refs = true;
-        }
-        *pos = p;
-        skip_s(s, pos);
-        let mut internal_subset = None;
-        if s.get(*pos) == Some(&'[') {
-            *pos += 1;
-            let start = *pos;
-            self.internal_subset(s, pos)?;
-            internal_subset = Some(s[start..*pos - 1].iter().collect());
-            skip_s(s, pos);
-        }
-        match s.get(*pos) {
-            Some('>') => *pos += 1,
-            None => return fail(UNCLOSED_TOKEN, open),
-            Some(_) => return fail(SYNTAX, *pos),
-        }
-        Ok(Node::DocumentType {
-            name,
-            public_id,
-            system_id,
-            internal_subset,
-        })
-    }
-
-    fn internal_subset(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        loop {
-            skip_s(s, pos);
-            let at = *pos;
-            match s.get(at) {
-                None => return fail(SYNTAX, at),
-                Some(']') => {
-                    *pos += 1;
-                    return Ok(());
-                }
-                Some('%') => {
-                    *pos += 1;
-                    if name(s, pos).is_none() {
-                        return fail(INVALID_TOKEN, *pos);
-                    }
-                    expect(s, pos, ';')?;
-                    self.has_param_entity_refs = true;
-                    self.keep_processing = self.standalone;
-                }
-                Some('<') if starts(s, at, "<!--") => {
-                    self.comment(s, pos)?;
-                }
-                Some('<') if starts(s, at, "<?") => {
-                    self.pi(s, pos)?;
-                }
-                Some('<') if starts(s, at, "<!") => {
-                    *pos += 2;
-                    let kw_start = *pos;
-                    while s
-                        .get(*pos)
-                        .is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')
-                    {
-                        *pos += 1;
-                    }
-                    if *pos == kw_start {
-                        return fail(INVALID_TOKEN, *pos);
-                    }
-                    match s.get(*pos) {
-                        Some('%') if s.get(*pos + 1).is_some_and(|c| is_s(*c) || *c == '%') => {
-                            return fail(INVALID_TOKEN, *pos);
-                        }
-                        Some(c) if is_s(*c) || *c == '%' => {}
-                        _ => return fail(INVALID_TOKEN, *pos),
-                    }
-                    let kw: String = s[kw_start..*pos].iter().collect();
-                    match kw.as_str() {
-                        "ELEMENT" => self.element_decl(s, pos)?,
-                        "ATTLIST" => self.attlist_decl(s, pos)?,
-                        "ENTITY" => self.entity_decl(s, pos)?,
-                        "NOTATION" => self.notation_decl(s, pos)?,
-                        _ => return fail(SYNTAX, at),
-                    }
-                }
-                Some(c) if is_char(*c) => return fail(SYNTAX, at),
-                Some(_) => return fail(INVALID_TOKEN, at),
-            }
-        }
-    }
-
-    fn decl_close(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        skip_s(s, pos);
-        match s.get(*pos) {
-            Some('>') => {
-                *pos += 1;
-                Ok(())
-            }
-            Some(c) if is_char(*c) => fail(SYNTAX, *pos),
-            _ => fail(INVALID_TOKEN, *pos),
-        }
-    }
-
-    fn element_decl(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        require_s(s, pos)?;
-        if prolog_name(s, pos)?.is_none() {
-            return fail(SYNTAX, *pos);
-        }
-        require_s(s, pos)?;
-        if !keyword(s, pos, "EMPTY")? && !keyword(s, pos, "ANY")? {
-            if s.get(*pos) != Some(&'(') {
-                return fail(SYNTAX, *pos);
-            }
-            self.content_model(s, pos, true)?;
-        }
-        self.decl_close(s, pos)
-    }
-
-    /// A content model group from its `(`: `Mixed` (when `top`) or
-    /// `choice` / `seq`, with its quantifier.
-    fn content_model(&mut self, s: &[char], pos: &mut usize, top: bool) -> Result<(), ExpatError> {
-        *pos += 1;
-        skip_s(s, pos);
-        if top && starts(s, *pos, "#PCDATA") {
-            *pos += 7;
-            skip_s(s, pos);
-            if s.get(*pos) == Some(&')') {
-                *pos += 1;
-                if s.get(*pos) == Some(&'*') {
-                    *pos += 1;
-                    return Ok(());
-                }
-                return close_paren_end(s, *pos);
-            }
+            let name_at = p;
+            let name_end;
             loop {
-                skip_s(s, pos);
-                match s.get(*pos) {
-                    Some('|') => {
-                        *pos += 1;
-                        skip_s(s, pos);
-                        if prolog_name(s, pos)?.is_none() {
-                            return fail(SYNTAX, *pos);
+                match at(p) {
+                    Some('=') => {
+                        name_end = p;
+                        break;
+                    }
+                    Some(c) if c.is_ascii() && space(p) => {
+                        name_end = p;
+                        while space(p) {
+                            p += 1;
                         }
+                        if at(p) != Some('=') {
+                            return Err(p);
+                        }
+                        break;
                     }
-                    Some(')') if s.get(*pos + 1) == Some(&'*') => {
-                        *pos += 2;
-                        return Ok(());
-                    }
-                    _ => return fail(SYNTAX, *pos),
+                    Some(c) if c.is_ascii() => p += 1,
+                    _ => return Err(p),
                 }
             }
-        }
-        let mut separator = None;
-        loop {
-            match s.get(*pos) {
-                Some('(') => self.content_model(s, pos, false)?,
-                _ => {
-                    if prolog_name(s, pos)?.is_none() {
-                        return fail(SYNTAX, *pos);
-                    }
-                    if s.get(*pos).is_some_and(|c| matches!(c, '?' | '*' | '+')) {
-                        *pos += 1;
-                    }
-                }
+            if p == name_at {
+                return Err(p);
             }
-            skip_s(s, pos);
-            match s.get(*pos) {
-                Some(')') => {
-                    *pos += 1;
-                    if s.get(*pos).is_some_and(|c| matches!(c, '?' | '*' | '+')) {
-                        *pos += 1;
-                        return Ok(());
-                    }
-                    return close_paren_end(s, *pos);
-                }
-                Some(c @ ('|' | ',')) if separator.is_none_or(|p| p == *c) => {
-                    separator = Some(*c);
-                    *pos += 1;
-                    skip_s(s, pos);
-                }
-                _ => return fail(SYNTAX, *pos),
+            p += 1;
+            while space(p) {
+                p += 1;
             }
-        }
-    }
-
-    fn attlist_decl(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        require_s(s, pos)?;
-        let Some(element) = prolog_name(s, pos)? else {
-            return fail(SYNTAX, *pos);
-        };
-        loop {
-            let spaced = skip_s(s, pos);
-            match s.get(*pos) {
-                Some('>') => {
-                    *pos += 1;
-                    return Ok(());
-                }
-                _ if !spaced => return fail(SYNTAX, *pos),
-                _ => {}
-            }
-            let Some(attribute) = prolog_name(s, pos)? else {
-                return fail(SYNTAX, *pos);
+            let open = match at(p) {
+                Some(q @ ('"' | '\'')) => q,
+                _ => return Err(p),
             };
-            require_s(s, pos)?;
-            let mut cdata = false;
-            let mut tokenized = false;
-            for k in [
-                "IDREFS", "IDREF", "ID", "ENTITY", "ENTITIES", "NMTOKENS", "NMTOKEN",
-            ] {
-                if keyword(s, pos, k)? {
-                    tokenized = true;
-                    break;
+            p += 1;
+            let value_at = p;
+            loop {
+                match at(p) {
+                    Some(c) if c == open => break,
+                    Some(c) if c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_') => p += 1,
+                    _ => return Err(p),
                 }
             }
-            if keyword(s, pos, "CDATA")? {
-                cdata = true;
-            } else if tokenized {
-            } else if keyword(s, pos, "NOTATION")? {
-                require_s(s, pos)?;
-                if s.get(*pos) != Some(&'(') {
-                    return fail(SYNTAX, *pos);
-                }
-                self.enumeration(s, pos, false)?;
-            } else if s.get(*pos) == Some(&'(') {
-                self.enumeration(s, pos, true)?;
-            } else {
-                return fail(SYNTAX, *pos);
-            }
-            require_s(s, pos)?;
-            if !keyword(s, pos, "#REQUIRED")? && !keyword(s, pos, "#IMPLIED")? {
-                if keyword(s, pos, "#FIXED")? {
-                    require_s(s, pos)?;
-                }
-                let quote = match s.get(*pos) {
-                    Some(q @ ('"' | '\'')) => *q,
-                    _ => return fail(SYNTAX, *pos),
-                };
-                let at = *pos;
-                *pos += 1;
-                self.att_value(s, pos, Some(quote), at, false)?;
-            }
-            if self.keep_processing {
-                self.cdata
-                    .entry((element.clone(), attribute))
-                    .or_insert(cdata);
-            }
-        }
-    }
-
-    /// An `Enumeration` (of `Nmtoken`s) or `NotationType` (of `Name`s)
-    /// from its `(`.
-    fn enumeration(
-        &mut self,
-        s: &[char],
-        pos: &mut usize,
-        nmtokens: bool,
-    ) -> Result<(), ExpatError> {
-        *pos += 1;
-        loop {
-            skip_s(s, pos);
-            let token = if nmtokens {
-                nmtoken(s, pos)
-            } else {
-                name(s, pos)
-            };
-            if token.is_some() {
-                name_end(s, *pos)?;
-            }
-            if token.is_none() {
-                return fail(SYNTAX, *pos);
-            }
-            skip_s(s, pos);
-            match s.get(*pos) {
-                Some('|') => *pos += 1,
-                Some(')') => {
-                    *pos += 1;
-                    return close_paren_end(s, *pos);
-                }
-                _ => return fail(SYNTAX, *pos),
-            }
-        }
-    }
-
-    fn entity_decl(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        if !skip_s(s, pos) {
-            let percent = *pos;
-            *pos += 1;
-            if name(s, pos).is_none() || s.get(*pos) != Some(&';') {
-                return fail(INVALID_TOKEN, *pos);
-            }
-            return fail(SYNTAX, percent);
-        }
-        let parameter = s.get(*pos) == Some(&'%');
-        if parameter {
-            let percent = *pos;
-            *pos += 1;
-            if !skip_s(s, pos) {
-                if name(s, pos).is_none() || s.get(*pos) != Some(&';') {
-                    return fail(INVALID_TOKEN, *pos);
-                }
-                return fail(SYNTAX, percent);
-            }
-        }
-        let at = *pos;
-        let Some(entity) = prolog_name(s, pos)? else {
-            return fail(SYNTAX, *pos);
+            Ok(Some(PseudoAttribute {
+                name: s[name_at..name_end].iter().collect(),
+                name_at,
+                value: s[value_at..p].iter().collect(),
+                value_at,
+                next: p + 1,
+            }))
         };
-        if entity.contains(':') {
-            return fail(INVALID_TOKEN, at);
-        }
-        require_s(s, pos)?;
-        let mut value = Entity {
-            text: None,
-            notation: false,
-            open: false,
+        let bad = |p: usize| ExpatError {
+            message: XML_DECL,
+            offset: p,
         };
-        if matches!(s.get(*pos), Some('"' | '\'')) {
-            value.text = Some(self.entity_value(s, pos)?);
-        } else if self.external_id(s, pos, false)?.is_some() {
-            let mut p = *pos;
-            if skip_s(s, &mut p) && keyword(s, &mut p, "NDATA")? {
-                if parameter {
-                    return fail(SYNTAX, *pos);
-                }
-                require_s(s, &mut p)?;
-                if prolog_name(s, &mut p)?.is_none() {
-                    return fail(SYNTAX, p);
-                }
-                value.notation = true;
-                *pos = p;
-            }
-        } else {
-            return fail(SYNTAX, *pos);
+        let Some(mut a) = pseudo(start + 5).map_err(bad)? else {
+            return Err(bad(start + 5));
+        };
+        if a.name != "version" {
+            return Err(bad(a.name_at));
         }
-        self.decl_close(s, pos)?;
-        if !parameter && self.keep_processing {
-            self.entities.entry(entity).or_insert(value);
+        if !a
+            .value
+            .strip_prefix("1.")
+            .is_some_and(|d| !d.is_empty() && d.chars().all(|c| c.is_ascii_digit()))
+        {
+            return Err(bad(a.value_at));
+        }
+        match pseudo(a.next).map_err(bad)? {
+            None => return Ok(()),
+            Some(next) => a = next,
+        }
+        if a.name == "encoding" {
+            if !a.value.starts_with(|c: char| c.is_ascii_alphabetic()) {
+                return Err(bad(a.value_at));
+            }
+            match pseudo(a.next).map_err(bad)? {
+                None => return Ok(()),
+                Some(next) => a = next,
+            }
+        }
+        if a.name != "standalone" {
+            return Err(bad(a.name_at));
+        }
+        match a.value.as_str() {
+            "yes" => self.standalone = true,
+            "no" => {}
+            _ => return Err(bad(a.value_at)),
+        }
+        let mut p = a.next;
+        while space(p) {
+            p += 1;
+        }
+        if p != end {
+            return Err(bad(p));
         }
         Ok(())
     }
 
-    /// `EntityValue`: character references replaced, general entity
+    /// `storeEntityValue` of the text `s[start..end]` of a literal
+    /// (`entityValueTok`): character references replaced, general entity
     /// references kept.
-    fn entity_value(&mut self, s: &[char], pos: &mut usize) -> Result<Vec<char>, ExpatError> {
-        let quote = s[*pos];
-        let open = *pos;
-        *pos += 1;
+    fn entity_value(
+        &mut self,
+        s: &[char],
+        start: usize,
+        end: usize,
+    ) -> Result<Vec<char>, ExpatError> {
+        let bounded = &s[..end];
         let mut out = Vec::new();
-        loop {
-            match s.get(*pos) {
-                None => return fail(UNCLOSED_TOKEN, open),
-                Some(c) if *c == quote => {
-                    *pos += 1;
-                    return Ok(out);
-                }
-                Some('%') => return fail(PARAM_ENTITY_REF, *pos),
-                Some('&') => {
-                    let amp = *pos;
-                    *pos += 1;
-                    if s.get(*pos) == Some(&'#') {
-                        *pos += 1;
-                        out.push(char_ref(s, pos, amp)?);
-                    } else {
-                        if ref_name(s, pos)?.is_none() {
-                            return fail(INVALID_TOKEN, *pos);
-                        }
-                        expect(s, pos, ';')?;
-                        out.extend_from_slice(&s[amp..*pos]);
+        let mut p = start;
+        while p < end {
+            match s[p] {
+                '&' => match scan_ref(bounded, p + 1) {
+                    (Tok::Name, next) => {
+                        out.extend_from_slice(&s[p..next]);
+                        p = next;
                     }
-                }
-                Some(c) if !is_char(*c) => return fail(INVALID_TOKEN, *pos),
-                Some(c) => {
-                    out.push(*c);
-                    *pos += 1;
+                    (Tok::PoundName, next) => {
+                        out.push(char_ref(s, &mut (p + 2), p)?);
+                        p = next;
+                    }
+                    (Tok::Invalid, next) => return fail(INVALID_TOKEN, next),
+                    _ => return fail(INVALID_TOKEN, p),
+                },
+                '%' => match scan_percent(bounded, p + 1) {
+                    (Tok::ParamEntityRef, _) => return fail(PARAM_ENTITY_REF, p),
+                    (Tok::Percent | Tok::Invalid, next) => return fail(INVALID_TOKEN, next),
+                    _ => return fail(INVALID_TOKEN, p),
+                },
+                c => {
+                    out.push(c);
+                    p += 1;
                 }
             }
         }
-    }
-
-    fn notation_decl(&mut self, s: &[char], pos: &mut usize) -> Result<(), ExpatError> {
-        require_s(s, pos)?;
-        if prolog_name(s, pos)?.is_none() {
-            return fail(SYNTAX, *pos);
-        }
-        require_s(s, pos)?;
-        if self.external_id(s, pos, true)?.is_none() {
-            return fail(SYNTAX, *pos);
-        }
-        self.decl_close(s, pos)
+        Ok(out)
     }
 
     /// The value of an attribute from after its opening quote (or the
@@ -1494,6 +1175,7 @@ impl Parser {
                         continue;
                     }
                     let report = if quote.is_some() { amp } else { at };
+                    let undefined_at = at;
                     let check = if content {
                         self.check_entity_decl()
                     } else {
@@ -1501,7 +1183,7 @@ impl Parser {
                     };
                     let Some(e) = self.entities.get_mut(&entity) else {
                         if check {
-                            return fail(UNDEFINED_ENTITY, report);
+                            return fail(UNDEFINED_ENTITY, undefined_at);
                         }
                         continue;
                     };
@@ -1521,7 +1203,7 @@ impl Parser {
                     }
                     out.push_str(&r.map_err(|e| ExpatError {
                         message: e.message,
-                        offset: if quote.is_some() { amp } else { at },
+                        offset: at,
                     })?);
                 }
                 '\t' | '\n' | '\r' => {
@@ -1537,6 +1219,35 @@ impl Parser {
                 }
             }
         }
+    }
+
+    /// `addBinding` of the namespace declaration of `prefix` (empty for
+    /// the default namespace) to `uri`, in the start tag at `at`.
+    fn bind(&mut self, prefix: &str, uri: &str, at: usize) -> Result<(), ExpatError> {
+        if uri.is_empty() && !prefix.is_empty() {
+            return fail(UNDECLARING_PREFIX, at);
+        }
+        if prefix == "xmlns" {
+            return fail(RESERVED_PREFIX_XMLNS, at);
+        }
+        if uri.contains(' ') {
+            return fail(SYNTAX, at);
+        }
+        if (prefix == "xml") != (uri == XML_NAMESPACE) {
+            return fail(
+                if prefix == "xml" {
+                    RESERVED_PREFIX_XML
+                } else {
+                    RESERVED_NAMESPACE_URI
+                },
+                at,
+            );
+        }
+        if uri == XMLNS_NAMESPACE {
+            return fail(RESERVED_NAMESPACE_URI, at);
+        }
+        self.bindings.push((prefix.to_string(), uri.to_string()));
+        Ok(())
     }
 
     /// The namespace URI `prefix` is bound to.
@@ -1562,10 +1273,16 @@ impl Parser {
     ) -> Result<Node, ExpatError> {
         let open = *pos;
         let at = entity.unwrap_or(open);
+        match scan_start_tag(s, open + 1) {
+            (Tok::Invalid, next) => return fail(INVALID_TOKEN, entity.unwrap_or(next)),
+            (Tok::Partial, _) => return fail(UNCLOSED_TOKEN, at),
+            _ => {}
+        }
         *pos += 1;
         let Some(tag) = name(s, pos) else {
             return fail(INVALID_TOKEN, entity.unwrap_or(*pos));
         };
+        let scope = self.bindings.len();
         let mut raw: Vec<(String, String, usize)> = Vec::new();
         let empty = loop {
             let spaced = skip_s(s, pos);
@@ -1601,15 +1318,15 @@ impl Parser {
                 _ => return fail(INVALID_TOKEN, entity.unwrap_or(*pos)),
             };
             *pos += 1;
+            if raw.iter().any(|(k, _, _)| *k == attribute) {
+                return fail(DUPLICATE_ATTRIBUTE, entity.unwrap_or(name_at));
+            }
             let mut value =
                 self.att_value(s, pos, Some(quote), at, true)
                     .map_err(|e| ExpatError {
                         message: e.message,
                         offset: entity.unwrap_or(e.offset),
                     })?;
-            if raw.iter().any(|(k, _, _)| *k == attribute) {
-                return fail(DUPLICATE_ATTRIBUTE, entity.unwrap_or(name_at));
-            }
             if self.cdata.get(&(tag.clone(), attribute.clone())) == Some(&false) {
                 value = value
                     .split(' ')
@@ -1617,47 +1334,21 @@ impl Parser {
                     .collect::<Vec<_>>()
                     .join(" ");
             }
+            if let Some(prefix) = (attribute == "xmlns")
+                .then(String::new)
+                .or_else(|| attribute.strip_prefix("xmlns:").map(str::to_string))
+            {
+                self.bind(&prefix, &value, at)?;
+            }
             raw.push((attribute, value, name_at));
         };
-        let scope = self.bindings.len();
         let mut declarations = Vec::new();
         let mut attributes = Vec::new();
         for (attribute, value, name_at) in raw {
-            let prefix = if attribute == "xmlns" {
-                Some(String::new())
+            if attribute == "xmlns" || attribute.starts_with("xmlns:") {
+                declarations.push((attribute, value));
             } else {
-                attribute.strip_prefix("xmlns:").map(str::to_string)
-            };
-            match prefix {
-                Some(prefix) => {
-                    if attribute != "xmlns"
-                        && !(prefix
-                            .chars()
-                            .next()
-                            .is_some_and(|c| in_ranges(NAME_START, c))
-                            && !prefix.contains(':'))
-                    {
-                        return fail(INVALID_TOKEN, entity.unwrap_or(name_at));
-                    }
-                    if prefix == "xmlns" {
-                        return fail(RESERVED_PREFIX_XMLNS, at);
-                    }
-                    if prefix == "xml" && value != XML_NAMESPACE {
-                        return fail(RESERVED_PREFIX_XML, at);
-                    }
-                    if (value == XML_NAMESPACE && prefix != "xml") || value == XMLNS_NAMESPACE {
-                        return fail(RESERVED_NAMESPACE_URI, at);
-                    }
-                    if value.is_empty() && !prefix.is_empty() {
-                        return fail(UNDECLARING_PREFIX, at);
-                    }
-                    if value.contains(' ') {
-                        return fail(SYNTAX, at);
-                    }
-                    self.bindings.push((prefix, value.clone()));
-                    declarations.push((attribute, value));
-                }
-                None => attributes.push((attribute, value, name_at)),
+                attributes.push((attribute, value, name_at));
             }
         }
         if !is_qname(&tag) {
@@ -1715,63 +1406,99 @@ impl Parser {
                 return match (element, entity) {
                     (None, _) => Ok(()),
                     (Some(_), Some(e)) => fail(ASYNC_ENTITY, e),
-                    (Some(_), None) => fail(NO_ELEMENTS, *pos),
+                    (Some(_), None) => {
+                        fail(NO_ELEMENTS, *pos - usize::from(s.last() == Some(&'\r')))
+                    }
                 };
             };
             match c {
                 '<' => match s.get(*pos + 1) {
+                    None => return fail(UNCLOSED_TOKEN, report(*pos)),
                     Some('/') => {
+                        let (tok, next) = scan_end_tag(s, *pos + 2);
+                        match tok {
+                            Tok::Invalid => return fail(INVALID_TOKEN, report(next)),
+                            Tok::Partial => return fail(UNCLOSED_TOKEN, report(*pos)),
+                            _ => {}
+                        }
                         let Some(open) = element else {
                             return fail(ASYNC_ENTITY, report(*pos));
                         };
                         let name_at = *pos + 2;
-                        *pos += 2;
-                        let Some(end) = name(s, pos) else {
-                            return fail(INVALID_TOKEN, report(*pos));
-                        };
+                        let end: String = s[name_at..next - 1]
+                            .iter()
+                            .take_while(|c| !is_s(**c) && **c != '\r')
+                            .collect();
                         if end != open {
                             return fail(TAG_MISMATCH, report(name_at));
                         }
-                        skip_s(s, pos);
-                        if s.get(*pos) != Some(&'>') {
-                            return fail(INVALID_TOKEN, report(*pos));
-                        }
-                        *pos += 1;
+                        *pos = next;
                         return Ok(());
                     }
-                    Some('!') if starts(s, *pos, "<!--") => {
-                        let node = self.comment(s, pos).map_err(|e| ExpatError {
-                            message: e.message,
-                            offset: report(e.offset),
-                        })?;
-                        out.push(node);
-                    }
-                    Some('!') if starts(s, *pos, "<![CDATA[") => {
+                    Some('!') => {
                         let open = *pos;
-                        *pos += 9;
-                        let start = *pos;
-                        loop {
-                            match s.get(*pos) {
-                                None => return fail(UNCLOSED_TOKEN, report(open)),
-                                Some(']') if starts(s, *pos, "]]>") => break,
-                                Some(c) if !is_char(*c) => {
-                                    return fail(INVALID_TOKEN, report(*pos));
+                        match s.get(open + 2) {
+                            None => return fail(UNCLOSED_TOKEN, report(open)),
+                            Some('-') => match scan_comment(s, open + 3) {
+                                (Tok::Comment, next) => {
+                                    out.push(comment_node(&s[open..next]));
+                                    *pos = next;
                                 }
-                                Some(_) => *pos += 1,
+                                (Tok::Invalid, next) => return fail(INVALID_TOKEN, report(next)),
+                                _ => return fail(UNCLOSED_TOKEN, report(open)),
+                            },
+                            Some('[') => {
+                                *pos = open + 3;
+                                for c in "CDATA[".chars() {
+                                    match s.get(*pos) {
+                                        None => return fail(UNCLOSED_TOKEN, report(open)),
+                                        Some(x) if *x == c => *pos += 1,
+                                        Some(_) => return fail(INVALID_TOKEN, report(*pos)),
+                                    }
+                                }
+                                let start = *pos;
+                                loop {
+                                    match s.get(*pos) {
+                                        None => {
+                                            let end = *pos - usize::from(s[*pos - 1] == '\r');
+                                            let tail = s[end.saturating_sub(2)..end]
+                                                .iter()
+                                                .rev()
+                                                .take_while(|c| **c == ']')
+                                                .count()
+                                                .min(end - start);
+                                            return fail(
+                                                UNCLOSED_CDATA_SECTION,
+                                                report(end - tail),
+                                            );
+                                        }
+                                        Some(']') if starts(s, *pos, "]]>") => break,
+                                        Some(c) if !is_char(*c) => {
+                                            return fail(INVALID_TOKEN, report(*pos));
+                                        }
+                                        Some(_) => *pos += 1,
+                                    }
+                                }
+                                let data: String = s[start..*pos].iter().collect();
+                                *pos += 3;
+                                if !data.is_empty() {
+                                    out.push(Node::CData(data));
+                                }
                             }
-                        }
-                        let data: String = s[start..*pos].iter().collect();
-                        *pos += 3;
-                        if !data.is_empty() {
-                            out.push(Node::CData(data));
+                            Some(_) => return fail(INVALID_TOKEN, report(open + 2)),
                         }
                     }
                     Some('?') => {
-                        let node = self.pi(s, pos).map_err(|e| ExpatError {
-                            message: e.message,
-                            offset: report(e.offset),
-                        })?;
-                        out.push(node);
+                        let open = *pos;
+                        match scan_pi(s, open + 2) {
+                            (Tok::Pi, next) => {
+                                out.push(pi_node(&s[open..next]));
+                                *pos = next;
+                            }
+                            (Tok::XmlDecl, _) => return fail(MISPLACED_XML_PI, report(open)),
+                            (Tok::Invalid, next) => return fail(INVALID_TOKEN, report(next)),
+                            _ => return fail(UNCLOSED_TOKEN, report(open)),
+                        }
                     }
                     Some(n) if is_name_start(*n) => {
                         let child = self.element(s, pos, entity)?;
@@ -1781,27 +1508,21 @@ impl Parser {
                 },
                 '&' => {
                     let amp = *pos;
-                    *pos += 1;
-                    if s.get(*pos) == Some(&'#') {
-                        *pos += 1;
-                        let c = char_ref(s, pos, amp).map_err(|e| ExpatError {
-                            message: e.message,
-                            offset: report(e.offset),
-                        })?;
-                        push_text(out, &c.to_string());
-                        continue;
+                    match scan_ref(s, amp + 1) {
+                        (Tok::Invalid, next) => return fail(INVALID_TOKEN, report(next)),
+                        (Tok::Partial, _) => return fail(UNCLOSED_TOKEN, report(amp)),
+                        (Tok::PoundName, next) => {
+                            let c = char_ref(s, &mut (amp + 2), amp).map_err(|e| ExpatError {
+                                message: e.message,
+                                offset: report(e.offset),
+                            })?;
+                            push_text(out, &c.to_string());
+                            *pos = next;
+                            continue;
+                        }
+                        (_, next) => *pos = next,
                     }
-                    let Some(name) = ref_name(s, pos).map_err(|e| ExpatError {
-                        message: e.message,
-                        offset: report(e.offset),
-                    })?
-                    else {
-                        return fail(INVALID_TOKEN, report(*pos));
-                    };
-                    if s.get(*pos) != Some(&';') {
-                        return fail(INVALID_TOKEN, report(*pos));
-                    }
-                    *pos += 1;
+                    let name: String = s[amp + 1..*pos - 1].iter().collect();
                     if let Some(c) = predefined(&name) {
                         push_text(out, &c.to_string());
                         continue;
@@ -1844,7 +1565,10 @@ impl Parser {
                         }
                         *pos += 1;
                     }
-                    let text: String = s[start..*pos].iter().collect();
+                    let text: String = s[start..*pos]
+                        .iter()
+                        .map(|c| if *c == '\r' { '\n' } else { *c })
+                        .collect();
                     push_text(out, &text);
                 }
             }
@@ -1866,7 +1590,48 @@ fn parse(text: &[char]) -> Result<Vec<Node>, ExpatError> {
     parser.document(text)
 }
 
-/// The text expat parses: `\r\n` and `\r` become `\n`.
+/// `minidom.parseString` of a `str`, which pyexpat gives expat as UTF-8:
+/// expat's `initScan` takes bytes that start with a NUL (`00 xx`) for
+/// UTF-16BE and a NUL second byte (`xx 00`) for UTF-16LE, and a lone
+/// first byte for an unclosed token.
+fn parse_body(body: &str) -> (Vec<char>, Result<Vec<Node>, ExpatError>) {
+    let bytes = body.as_bytes();
+    let little = match bytes {
+        [0] => return (vec!['\0'], fail(UNCLOSED_TOKEN, 0)),
+        [0, _, ..] => false,
+        [_, 0, ..] => true,
+        _ => {
+            let text = normalized(body);
+            let parsed = parse(&text);
+            return (text, parsed);
+        }
+    };
+    let units = bytes.as_chunks::<2>().0.iter().map(|p| {
+        if little {
+            u16::from_le_bytes(*p)
+        } else {
+            u16::from_be_bytes(*p)
+        }
+    });
+    let decoded: String = char::decode_utf16(units)
+        .map(|c| c.unwrap_or('\u{ffff}'))
+        .collect();
+    let text = normalized(&decoded);
+    let mut parsed = parse(&text);
+    if bytes.len() % 2 == 1 {
+        parsed = match parsed {
+            Ok(_) => fail(UNCLOSED_TOKEN, text.len()),
+            Err(e) if e.message == NO_ELEMENTS && e.offset == text.len() => {
+                fail(UNCLOSED_TOKEN, text.len())
+            }
+            Err(e) => Err(e),
+        };
+    }
+    (text, parsed)
+}
+
+/// The text expat parses: `\r\n` and `\r` become `\n`, except a `\r`
+/// that ends the text, which expat leaves for a `\n` that may follow.
 fn normalized(text: &str) -> Vec<char> {
     let mut out = Vec::with_capacity(text.len());
     let mut chars = text.chars().peekable();
@@ -1874,8 +1639,10 @@ fn normalized(text: &str) -> Vec<char> {
         if c == '\r' {
             if chars.peek() == Some(&'\n') {
                 chars.next();
+                out.push('\n');
+            } else {
+                out.push(if chars.peek().is_none() { '\r' } else { '\n' });
             }
-            out.push('\n');
         } else {
             out.push(c);
         }
@@ -2044,7 +1811,7 @@ fn splitlines(s: &str) -> Vec<&str> {
 /// `toprettyxml(indent=' ' * 4, newl='\n')`; `Err` is the `ExpatError`
 /// of the second parse.
 pub(crate) fn pretty_xml(body: &str) -> Option<Result<String, String>> {
-    let document = parse(&normalized(body)).ok()?;
+    let document = parse_body(body).1.ok()?;
     let xml = toprettyxml(&document, "", "");
     let stripped: String = splitlines(&xml)
         .into_iter()

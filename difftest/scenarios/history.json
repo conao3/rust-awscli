@@ -2082,5 +2082,251 @@
    "with AWS CLI version: [^\\n]*",
    "object at 0x[0-9a-f]+"
   ]
+ },
+ {
+  "name": "history show xml element declaration split by a line",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "HTTP_RESPONSE"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "list-objects-v2",
+    "--bucket",
+    "b",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<!DOCTYPE ListBucketResult [\n<!ELEMENT\nListBucketResult ANY>\n]><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><KeyCount>0</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "history show xml parameter entity split by a line",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "HTTP_RESPONSE"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "list-objects-v2",
+    "--bucket",
+    "b",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<!DOCTYPE ListBucketResult [\n<!ENTITY\n% p \"x\">\n]><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><KeyCount>0</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "history show xml attribute list split by a line",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "HTTP_RESPONSE"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "list-objects-v2",
+    "--bucket",
+    "b",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<!DOCTYPE ListBucketResult [\n<!ATTLIST ListBucketResult x (a|b)\n\"a\">\n]><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><KeyCount>0</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "history show xml public id split by a line",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "HTTP_RESPONSE"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "list-objects-v2",
+    "--bucket",
+    "b",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<!DOCTYPE ListBucketResult PUBLIC \"-//A//B\"\n\"x.dtd\" [\n<!NOTATION n PUBLIC\n\"p\">\n]><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><KeyCount>0</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "history show xml processing instruction target split by a line",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "HTTP_RESPONSE"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "list-objects-v2",
+    "--bucket",
+    "b",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml-stylesheet\nhref=\"s\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><KeyCount>0</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "history show xml utf-16 body",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "HTTP_RESPONSE"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "list-objects-v2",
+    "--bucket",
+    "b",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "\u0000<\u0000a\u0000/\u0000>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
  }
 ]

@@ -80,6 +80,9 @@ pub struct Scenario {
     /// sorted groups of each request id with the `[n]` dropped.
     #[serde(default)]
     pub concurrent: bool,
+    /// `AWS_MAX_ATTEMPTS` of the runs in place of `--max-attempts`.
+    #[serde(default)]
+    pub max_attempts: Option<u32>,
 }
 
 /// The output of `history show` with the events of each request id
@@ -355,6 +358,10 @@ pub async fn exec(
             .collect::<Result<_>>()?
     };
     let stub = Stub::start(responses).await?;
+    let env = &Env {
+        max_attempts: s.max_attempts.unwrap_or(env.max_attempts),
+        timeout: env.timeout,
+    };
     let (mut ra, mut qa, oa, argv) = run_side(reference, s, &stub, work, env).await?;
     let (mut rb, mut qb, ob, _) = run_side(candidate, s, &stub, work, env).await?;
     let masks = s

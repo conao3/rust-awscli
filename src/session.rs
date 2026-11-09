@@ -192,7 +192,7 @@ pub fn content_md5(body: &[u8]) -> String {
 
 /// `Endpoint._calculate_ttl`: local time + read timeout + estimated skew
 /// from the response `Date` header.
-fn calculate_ttl(
+pub(crate) fn calculate_ttl(
     received: DateTime<Utc>,
     date_header: &str,
     read_timeout: Option<Duration>,

@@ -9,10 +9,14 @@ use chrono::Utc;
 
 use super::error::{ErrorKind, SessionError};
 use super::http::{HttpClient, HttpConfig, Verify};
+use super::retry::{AttemptOutcome, RetryMode, RetryPolicy, RetryState};
 use super::sign::{
     AuthInputs, Credentials, PayloadContext, SigV4, SignableRequest, SignatureVersion, headers,
 };
 use super::useragent::Feature;
+
+/// The connect and read timeouts of an internal client (`DEFAULT_TIMEOUT`).
+const READ_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
 use crate::config::Config;
 use crate::endpoint::{self, BuiltinInputs, Builtins, S3Config};
 use crate::model::ServiceModel;
@@ -34,13 +38,19 @@ pub struct ServiceFailure {
     pub message: String,
     /// The parsed error response (`e.response`).
     pub parsed: Value,
+    /// `RetryAttempts` when the attempts ran out (`MaxAttemptsReached`).
+    pub max_retries: Option<u32>,
 }
 
 impl ServiceFailure {
     /// `str(ClientError)`.
     pub fn client_error_message(&self) -> String {
+        let retries = self
+            .max_retries
+            .map(|n| format!(" (reached max retries: {n})"))
+            .unwrap_or_default();
         format!(
-            "An error occurred ({}) when calling the {} operation: {}",
+            "An error occurred ({}) when calling the {} operation{retries}: {}",
             self.code, self.operation, self.message
         )
     }
@@ -140,18 +150,22 @@ impl<'a> ApiClient<'a> {
 
     /// The `User-Agent` of the client: `CREDENTIALS_CODE` for explicit
     /// credentials (`Session.create_client`).
+    /// The configured retry mode of the client.
+    fn retry_mode(&self) -> RetryMode {
+        match self.config.get("retry_mode").ok().flatten().as_deref() {
+            Some("adaptive") => RetryMode::Adaptive,
+            _ => RetryMode::Standard,
+        }
+    }
+
     fn user_agent(&self) -> String {
         let mut features = self.features.clone();
         if self.credentials.is_some() {
             features.push(Feature::CredentialsCode);
         }
-        let retry_mode = match self.config.get("retry_mode").ok().flatten().as_deref() {
-            Some("adaptive") => super::retry::RetryMode::Adaptive,
-            _ => super::retry::RetryMode::Standard,
-        };
         super::user_agent(
             self.config,
-            retry_mode,
+            self.retry_mode(),
             self.endpoint_url.is_some(),
             features,
         )
@@ -241,86 +255,155 @@ impl<'a> ApiClient<'a> {
                 headers::set(&mut hdrs, &k, &v);
             }
         }
-        let mut req = SignableRequest {
-            method: request.method.clone(),
-            url,
-            headers: hdrs,
-            body: request.body.clone(),
-        };
-        if let Some(creds) = &self.credentials {
-            let sid = super::hyphenize(model.metadata_str("serviceId").unwrap_or(&model.name));
-            let str_list = |v: Option<&crate::bjson::Node>| -> Option<Vec<String>> {
-                v?.as_array().map(|a| {
-                    a.iter()
-                        .filter_map(|x| x.as_str().map(str::to_string))
-                        .collect()
-                })
-            };
-            let signing_name = model.client_signing_name(self.region.as_deref());
-            let inputs = AuthInputs {
-                service_name: &model.name,
-                endpoint_prefix: model.endpoint_prefix(),
-                signing_name: &signing_name,
-                service_id: &sid,
-                operation_name: op.name,
-                service_auth: str_list(model.metadata().get("auth")),
-                service_signature_version: model
-                    .metadata_str("signatureVersion")
-                    .map(str::to_string),
-                operation_auth: str_list(op.get("auth")),
-                operation_authtype: op
-                    .get("authtype")
-                    .and_then(|v| v.as_str())
-                    .map(str::to_string),
-                unsigned_payload: false,
-                auth_schemes: endpoint.properties.get("authSchemes"),
-                region: self.region.clone(),
-                ..Default::default()
-            };
-            let choice = super::sign::choose_signer(&inputs)?;
-            if !matches!(
-                choice.version,
-                SignatureVersion::Unsigned | SignatureVersion::Bearer
-            ) {
-                SigV4 {
+        let sid = super::hyphenize(model.metadata_str("serviceId").unwrap_or(&model.name));
+        let signer = match &self.credentials {
+            Some(creds) => {
+                let str_list = |v: Option<&crate::bjson::Node>| -> Option<Vec<String>> {
+                    v?.as_array().map(|a| {
+                        a.iter()
+                            .filter_map(|x| x.as_str().map(str::to_string))
+                            .collect()
+                    })
+                };
+                let signing_name = model.client_signing_name(self.region.as_deref());
+                let inputs = AuthInputs {
+                    service_name: &model.name,
+                    endpoint_prefix: model.endpoint_prefix(),
+                    signing_name: &signing_name,
+                    service_id: &sid,
+                    operation_name: op.name,
+                    service_auth: str_list(model.metadata().get("auth")),
+                    service_signature_version: model
+                        .metadata_str("signatureVersion")
+                        .map(str::to_string),
+                    operation_auth: str_list(op.get("auth")),
+                    operation_authtype: op
+                        .get("authtype")
+                        .and_then(|v| v.as_str())
+                        .map(str::to_string),
+                    unsigned_payload: false,
+                    auth_schemes: endpoint.properties.get("authSchemes"),
+                    region: self.region.clone(),
+                    ..Default::default()
+                };
+                let choice = super::sign::choose_signer(&inputs)?;
+                (!matches!(
+                    choice.version,
+                    SignatureVersion::Unsigned | SignatureVersion::Bearer
+                ))
+                .then(|| SigV4 {
                     credentials: creds.clone(),
                     service_name: choice.signing_name.clone(),
                     region_name: choice.region.clone().unwrap_or_default(),
                     s3: false,
-                }
-                .add_auth(&mut req, &PayloadContext::default(), Utc::now());
+                })
             }
-        }
-        headers::set(
-            &mut req.headers,
-            "amz-sdk-invocation-id",
-            &uuid::Uuid::new_v4().to_string(),
-        );
-        headers::set(&mut req.headers, "amz-sdk-request", "attempt=1");
-        if !headers::contains(&req.headers, "Content-Length")
-            && !matches!(req.method.as_str(), "GET" | "HEAD" | "OPTIONS")
-        {
-            req.headers
-                .push(("Content-Length".to_string(), req.body.len().to_string()));
-        }
+            None => None,
+        };
         let http = HttpClient::new(HttpConfig {
             verify: self.verify.clone(),
-            connect_timeout: Some(std::time::Duration::from_secs(60)),
-            read_timeout: Some(std::time::Duration::from_secs(60)),
+            connect_timeout: Some(READ_TIMEOUT),
+            read_timeout: Some(READ_TIMEOUT),
             env: self.config.env_map().clone(),
             proxy_use_forwarding_for_https: false,
         })?;
-        if crate::history::enabled() {
-            super::record_request(&op, &req);
-        }
-        let response = http
-            .send(&req.method, &req.url, &req.headers, &req.body)
-            .await?;
+        let new_retries = super::retry::new_retries_enabled(self.config.env_map());
+        let configured = self
+            .config
+            .get("max_attempts")
+            .ok()
+            .flatten()
+            .and_then(|v| super::error::py_int(&v).ok())
+            .map(|n| n.max(1) as u32);
+        let policy = RetryPolicy {
+            max_attempts: RetryState::max_attempts(configured, &sid, new_retries),
+            service_name: model.name.clone(),
+            service_id: sid.clone(),
+            operation_name: op.name.to_string(),
+            modeled: super::retry::modeled_retryable_errors(&op),
+            new_retries,
+        };
+        let state = RetryState::new(self.retry_mode());
         let options = ParseOptions::default();
-        if crate::history::enabled() {
-            super::record_response(&op, &response);
-            super::record_parsed(model, &op, &response, &options);
-        }
+        let invocation_id = uuid::Uuid::new_v4().to_string();
+        let (mut attempt, mut ttl, mut quota_capacity) = (1u32, None::<String>, None);
+        let (response, max_attempts_reached) = loop {
+            let mut req = SignableRequest {
+                method: request.method.clone(),
+                url: url.clone(),
+                headers: hdrs.clone(),
+                body: request.body.clone(),
+            };
+            if let Some(signer) = &signer {
+                signer.add_auth(&mut req, &PayloadContext::default(), Utc::now());
+            }
+            headers::set(&mut req.headers, "amz-sdk-invocation-id", &invocation_id);
+            let mut parts = Vec::new();
+            if let Some(t) = &ttl {
+                parts.push(format!("ttl={t}"));
+            }
+            parts.push(format!("attempt={attempt}"));
+            if attempt > 1 {
+                parts.push(format!("max={}", policy.max_attempts));
+            }
+            headers::set(&mut req.headers, "amz-sdk-request", &parts.join("; "));
+            if !headers::contains(&req.headers, "Content-Length")
+                && !matches!(req.method.as_str(), "GET" | "HEAD" | "OPTIONS")
+            {
+                req.headers
+                    .push(("Content-Length".to_string(), req.body.len().to_string()));
+            }
+            if let Some(wait) = state.before_send() {
+                tokio::time::sleep(wait).await;
+            }
+            if crate::history::enabled() {
+                super::record_request(&op, &req);
+            }
+            let result = http
+                .send(&req.method, &req.url, &req.headers, &req.body)
+                .await;
+            let received = Utc::now();
+            let (response, exception) = match result {
+                Ok(r) => {
+                    if crate::history::enabled() {
+                        super::record_response(&op, &r);
+                        super::record_parsed(model, &op, &r, &options);
+                    }
+                    (Some(r), None)
+                }
+                Err(e) => (None, Some(e)),
+            };
+            let error_code = response.as_ref().filter(|r| r.status >= 300).and_then(|r| {
+                protocol::parse_error(model, &op, r, &options)
+                    .ok()
+                    .map(|e| e.code)
+                    .filter(|c| !c.is_empty())
+            });
+            let outcome = AttemptOutcome {
+                attempt,
+                response: response.as_ref(),
+                error_code: error_code.as_deref(),
+                exception: exception.as_ref(),
+            };
+            let decision = state.needs_retry(&policy, &outcome, &mut quota_capacity);
+            match decision.delay {
+                Some(delay) => {
+                    tokio::time::sleep(delay).await;
+                    attempt += 1;
+                    if let Some(date) = response.as_ref().and_then(|r| r.header("Date")) {
+                        ttl = super::calculate_ttl(received, date, Some(READ_TIMEOUT)).or(ttl);
+                    }
+                }
+                None => match (response, exception) {
+                    (Some(r), _) => {
+                        state.release(r.status, quota_capacity);
+                        break (r, decision.max_attempts_reached);
+                    }
+                    (None, Some(e)) => return Err(ApiError::Session(e)),
+                    (None, None) => unreachable!(),
+                },
+            }
+        };
         if response.status >= 300 {
             let error = protocol::parse_error(model, &op, &response, &options).map_err(general)?;
             let code = if error.code.is_empty() {
@@ -340,6 +423,7 @@ impl<'a> ApiClient<'a> {
                 code,
                 message,
                 parsed: error.parsed,
+                max_retries: max_attempts_reached.then_some(attempt - 1),
             })));
         }
         protocol::parse(model, &op, &response, &options).map_err(general)

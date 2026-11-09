@@ -66,6 +66,13 @@ def sts_credentials(action, form):
     )
 
 
+def user_agent_features(user_agent):
+    for part in user_agent.split():
+        if part.startswith("m/"):
+            return ",".join(sorted(part[2:].split(",")))
+    return ""
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -95,6 +102,7 @@ class Handler(BaseHTTPRequestHandler):
                 k: self.headers[k] for k in LOGGED_HEADERS if self.headers.get(k)
             },
             "body": body.decode("utf-8", "replace"),
+            "features": user_agent_features(self.headers.get("user-agent", "")),
         }
         with open(sys.argv[2], "a") as f:
             f.write(json.dumps(entry, sort_keys=True) + "\n")

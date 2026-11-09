@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Compare `awsr` with the reference AWS CLI on the configure / sso / login
 # commands and the credential providers. Each case runs both CLIs in a fresh
-# HOME, then compares exit codes, stdout, stderr, and every file written
-# under ~/.aws (time-dependent values normalized, and the name `awsr` turned
-# back into `aws`).
+# HOME, then compares exit codes, stdout, stderr, every file written under
+# ~/.aws, and the method, path, and sorted user agent feature ids of every
+# request the stubs received (time-dependent values normalized, and the name
+# `awsr` turned back into `aws`).
 #
 # Usage: difftest/scripts/credcompare.sh [CASE_FILTER]
 # Needs the devShell (python3, the reference `aws`) and a built awsr.
@@ -16,6 +17,7 @@ PORT=${CREDSTUB_PORT:-18799}
 FILTER=${1:-}
 rm -rf "$WORK"
 mkdir -p "$WORK"
+touch "$WORK/stub.log" "$WORK/stub-multi.log" "$WORK/stub-many.log"
 python3 "$ROOT/difftest/scripts/credstub.py" "$PORT" "$WORK/stub.log" &
 STUB=$!
 # Stubs with several accounts and roles for the configure sso menus.
@@ -55,6 +57,16 @@ snapshot() {
   fi
 }
 
+requests() {
+  local home=$1
+  echo "== requests"
+  while read -r log count; do tail -n +"$((count + 1))" "$log"; done <"$home.logged" |
+    python3 -c 'import json, sys
+for line in sys.stdin:
+    e = json.loads(line)
+    print(e["method"], e["path"], e["features"])'
+}
+
 # case NAME SETUP STDIN ARGS...
 case_() {
   local name=$1 setup=$2 input=$3
@@ -63,6 +75,7 @@ case_() {
   for impl in ref awsr; do
     local home="$WORK/$name/$impl"
     mkdir -p "$home"
+    for log in "$WORK"/stub*.log; do echo "$log $(wc -l <"$log")"; done >"$home.logged"
     local bin=$REF
     [ "$impl" = awsr ] && bin=$AWSR
     (cd "$home" && HOME=$home STUBURL=$STUBURL ROOTDIR=$ROOT bash -c "$setup")
@@ -71,7 +84,7 @@ case_() {
       AWS_ENDPOINT_URL_SIGNIN=$STUBURL BROWSER="$ROOT/difftest/scripts/fakebrowser.sh" \
       ${CASE_ENV:-} timeout 60 setsid "$bin" "$@" >"$home.out" 2>"$home.err" \
       && echo 0 >"$home.rc" || echo $? >"$home.rc"
-    snapshot "$home" | normalize >"$home.snap"
+    { snapshot "$home"; requests "$home"; } | normalize >"$home.snap"
     if [ "$impl" = awsr ]; then
       sed -i 's/awsr\([^[:alnum:]_]\|$\)/aws\1/g; s/AWSR\([^[:alnum:]_]\|$\)/AWS\1/g' "$home.snap"
     fi
@@ -273,6 +286,18 @@ $WATCH" "" --profile sso sso login --no-browser
 case_ sso-login-missing "" "" sso login
 case_ sso-login-badport "$SSO" "" --profile sso sso login --redirect-port 0
 case_ sso-login-noport "$SSO" "" --profile sso sso login --redirect-port abc
+ENVCRED="AWS_ACCESS_KEY_ID=A AWS_SECRET_ACCESS_KEY=B"
+CASE_ENV=$ENVCRED case_ sso-login-envcreds "$SSO" "" --profile sso sso login --use-device-code --no-browser
+CASE_ENV=$ENVCRED case_ sso-login-session-envcreds "$SSO" "" sso login --sso-session s --use-device-code --no-browser
+case_ sso-login-profilecreds "$SSO
+$CRED <<<'[default]
+aws_access_key_id = A
+aws_secret_access_key = B'" "" sso login --sso-session s --use-device-code --no-browser
+CASE_ENV=$ENVCRED case_ sso-logout-envcreds "$SSO" "" --profile sso sso logout
+case_ sso-logout-profilecreds "$SSO
+$CRED <<<'[default]
+aws_access_key_id = A
+aws_secret_access_key = B'" "" sso logout
 case_ sso-session-configure "" 'mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\n' configure sso-session
 case_ sso-session-eof "" 'x\n' configure sso-session
 case_ configure-sso "" 'mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\nus-west-2\njson\nmyprof\n' configure sso --use-device-code --no-browser
@@ -287,6 +312,10 @@ CASE_ENV=$MULTI case_ configure-sso-accounts-newline "" "${SSO_IN}\n\n" configur
 CASE_ENV=$MULTI case_ configure-sso-accounts-interrupt "" "${SSO_IN}\\x03" configure sso --use-device-code --no-browser
 CASE_ENV=$MANY case_ configure-sso-accounts-scroll "" "${SSO_IN}\\x1b[A\r" configure sso --use-device-code --no-browser
 CASE_ENV=$MANY case_ configure-sso-accounts-many-eof "" "${SSO_IN}" configure sso --use-device-code --no-browser
+CASE_ENV=$ENVCRED case_ configure-sso-envcreds "" 'mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\nus-west-2\njson\nmyprof\n' configure sso --use-device-code --no-browser
+case_ configure-sso-profilecreds "$CRED <<<'[default]
+aws_access_key_id = A
+aws_secret_access_key = B'" 'mysess\nhttps://d-1.awsapps.com/start\nus-east-1\n\nus-west-2\njson\nmyprof\n' configure sso --use-device-code --no-browser
 case_ configure-sso-legacy "" '\nhttps://d-1.awsapps.com/start\nus-east-1\n\n\n\n' configure sso --use-device-code --no-browser
 
 # login / logout
@@ -297,6 +326,7 @@ aws_access_key_id = A
 aws_secret_access_key = B'" "" --region us-east-1 login --remote
 
 case_ login-same-device "" "" --region us-east-1 login
+CASE_ENV=$ENVCRED case_ login-envcreds "" "" --region us-east-1 login
 case_ login-same-device-profile "$CFG <<<'[profile p]
 region = eu-west-1'" "" --profile p login
 case_ login-remote-badcode "" 'bm90LWJhc2U2NA\n' --region us-east-1 login --remote

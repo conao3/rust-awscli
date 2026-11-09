@@ -62,6 +62,9 @@ impl<'c> Uploader<'c> {
             params.insert("Metadata".to_string(), m.clone());
         }
         params.insert("ChecksumAlgorithm".to_string(), Value::str("CRC64NVME"));
+        crate::session::useragent::register_command(&[
+            crate::session::useragent::Feature::S3Transfer,
+        ]);
         let result = self.client.try_call("PutObject", &Value::Map(params))?;
         if !body.is_empty() {
             let size = body.len();

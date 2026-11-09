@@ -150,6 +150,7 @@ fn upload_template(ctx: &Context, a: &Args) -> Result<String, CliError> {
         .map_err(|_| not_found())?
         .len();
     let body = std::fs::read(&file_path).map_err(|_| not_found())?;
+    crate::session::useragent::register_command(&[crate::session::useragent::Feature::S3Transfer]);
     let result = s3.try_call(
         "PutObject",
         &map(vec![

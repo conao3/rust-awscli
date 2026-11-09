@@ -174,10 +174,10 @@ pub async fn load_credentials(
     if let Some(c) = boto_provider(config)? {
         return Ok(Some(c));
     }
-    if let Some(c) = resolver.container().await? {
+    if let Some(c) = Box::pin(resolver.container()).await? {
         return Ok(Some(c));
     }
-    resolver.imds().await
+    Box::pin(resolver.imds()).await
 }
 
 fn has_assume_role_config_vars(profile: &Section) -> bool {
@@ -419,8 +419,8 @@ impl<'a> Resolver<'a> {
                 }
                 c
             }
-            "EcsContainer" => self.container().await?,
-            _ => self.imds().await?,
+            "EcsContainer" => Box::pin(self.container()).await?,
+            _ => Box::pin(self.imds()).await?,
         };
         creds.ok_or_else(|| {
             retrieval_error(

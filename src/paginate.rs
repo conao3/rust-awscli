@@ -321,65 +321,11 @@ enum DecodeError {
     Fatal(String),
 }
 
-/// `binascii.a2b_base64(data, strict_mode=False)` as CPython 3.14 does it:
-/// characters outside the alphabet are skipped, `=` only counts as
-/// padding after two characters of a quantum, and decoding continues past
-/// complete padding.
-fn a2b_base64(data: &[u8]) -> Option<Vec<u8>> {
-    fn table(c: u8) -> Option<u8> {
-        match c {
-            b'A'..=b'Z' => Some(c - b'A'),
-            b'a'..=b'z' => Some(c - b'a' + 26),
-            b'0'..=b'9' => Some(c - b'0' + 52),
-            b'+' => Some(62),
-            b'/' => Some(63),
-            _ => None,
-        }
-    }
-    let mut out = Vec::new();
-    let (mut quad_pos, mut pads, mut leftchar) = (0u8, 0u8, 0u8);
-    for &c in data {
-        if c == b'=' {
-            if quad_pos >= 2 {
-                pads = pads.saturating_add(1);
-            }
-            continue;
-        }
-        let Some(v) = table(c) else {
-            continue;
-        };
-        pads = 0;
-        match quad_pos {
-            0 => {
-                quad_pos = 1;
-                leftchar = v;
-            }
-            1 => {
-                quad_pos = 2;
-                out.push((leftchar << 2) | (v >> 4));
-                leftchar = v & 0x0f;
-            }
-            2 => {
-                quad_pos = 3;
-                out.push((leftchar << 4) | (v >> 2));
-                leftchar = v & 0x03;
-            }
-            _ => {
-                quad_pos = 0;
-                out.push((leftchar << 6) | v);
-                leftchar = 0;
-            }
-        }
-    }
-    if quad_pos == 1 || (quad_pos != 0 && quad_pos + pads < 4) {
-        return None;
-    }
-    Some(out)
-}
-
 /// `TokenDecoder.decode`.
 fn decode_token(token: &str) -> Result<Value, DecodeError> {
-    let bytes = a2b_base64(token.as_bytes()).ok_or(DecodeError::Fallback)?;
+    let bytes = crate::protocol::common::a2b_base64(token.as_bytes())
+        .ok()
+        .ok_or(DecodeError::Fallback)?;
     let json = String::from_utf8(bytes).map_err(|_| DecodeError::Fallback)?;
     let decoded = Value::parse_json(&json).map_err(|_| DecodeError::Fallback)?;
     let mut map = match decoded {
@@ -416,7 +362,9 @@ fn decode_token(token: &str) -> Result<Value, DecodeError> {
                 )));
             }
         };
-        let decoded = a2b_base64(encoded.as_bytes()).ok_or(DecodeError::Fallback)?;
+        let decoded = crate::protocol::common::a2b_base64(encoded.as_bytes())
+            .ok()
+            .ok_or(DecodeError::Fallback)?;
         let Some((last, parent)) = path.split_last() else {
             return Err(DecodeError::Fatal("list index out of range".into()));
         };
@@ -1191,7 +1139,7 @@ mod tests {
 
     #[test]
     fn base64_follows_cpython() {
-        let ok = |s: &str| a2b_base64(s.as_bytes());
+        let ok = |s: &str| crate::protocol::common::a2b_base64(s.as_bytes()).ok();
         assert_eq!(ok("QQ=="), Some(b"A".to_vec()));
         assert_eq!(ok("QQ="), None);
         assert_eq!(ok("Q"), None);

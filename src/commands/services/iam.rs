@@ -1,7 +1,6 @@
 //! `iam create-virtual-mfa-device --outfile --bootstrap-method`
 //! (`awscli/customizations/iamvirtmfa.py`).
 
-use super::ec2::py_b64decode;
 use super::exec::{self, After};
 use super::iot::{is_parsed_result_successful, resolve_given_outfile_path, write_private};
 use crate::cli::{Arg, ArgTable, CustomSpec, Fail, OperationHooks};
@@ -41,7 +40,8 @@ pub(crate) fn run(ctx: &Context, name: &str, args: &[String]) -> Result<ExitCode
                 Value::Bytes(b) => b.clone(),
                 other => crate::pyfmt::py_str(other).into_bytes(),
             };
-            let decoded = py_b64decode(&bytes)
+            let decoded = crate::protocol::common::a2b_base64(&bytes)
+                .ok()
                 .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("Incorrect padding")))?;
             let outfile = hooks.outfile.clone().unwrap_or_default();
             write_private(&outfile, &decoded, 0o600)

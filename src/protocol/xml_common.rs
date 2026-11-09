@@ -14,6 +14,7 @@ use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 
 use crate::model::{ServiceModel, Shape};
+use crate::protocol::common::b64decode;
 use crate::protocol::timestamp::{self, WireTimestamp};
 use crate::protocol::{HttpRequest, HttpResponse, ParseOptions, ServiceError};
 use crate::value::{Map, Value};
@@ -278,69 +279,6 @@ pub(crate) fn b64encode(v: &Value) -> String {
         other => py_str(other).into_bytes(),
     };
     base64::engine::general_purpose::STANDARD.encode(bytes)
-}
-
-/// `base64.b64decode(text)` (non-strict `binascii.a2b_base64`).
-pub(crate) fn b64decode(text: &str) -> Result<Vec<u8>> {
-    if !text.is_ascii() {
-        bail!("string argument should contain only ASCII characters");
-    }
-    let table = |c: u8| -> Option<u8> {
-        match c {
-            b'A'..=b'Z' => Some(c - b'A'),
-            b'a'..=b'z' => Some(c - b'a' + 26),
-            b'0'..=b'9' => Some(c - b'0' + 52),
-            b'+' => Some(62),
-            b'/' => Some(63),
-            _ => None,
-        }
-    };
-    let mut out = Vec::new();
-    let mut quad_pos = 0;
-    let mut pads = 0;
-    let mut left: u32 = 0;
-    let mut data_chars = 0usize;
-    for &c in text.as_bytes() {
-        if c == b'=' {
-            pads += 1;
-            if quad_pos >= 2 && quad_pos + pads >= 4 {
-                return Ok(out);
-            }
-            continue;
-        }
-        let Some(v) = table(c) else { continue };
-        let v = v as u32;
-        data_chars += 1;
-        pads = 0;
-        match quad_pos {
-            0 => {
-                quad_pos = 1;
-                left = v;
-            }
-            1 => {
-                quad_pos = 2;
-                out.push(((left << 2) | (v >> 4)) as u8);
-                left = v & 0x0f;
-            }
-            2 => {
-                quad_pos = 3;
-                out.push(((left << 4) | (v >> 2)) as u8);
-                left = v & 0x03;
-            }
-            _ => {
-                quad_pos = 0;
-                out.push(((left << 6) | v) as u8);
-                left = 0;
-            }
-        }
-    }
-    match quad_pos {
-        0 => Ok(out),
-        1 => bail!(
-            "Invalid base64-encoded string: number of data characters ({data_chars}) cannot be 1 more than a multiple of 4"
-        ),
-        _ => bail!("Incorrect padding"),
-    }
 }
 
 /// `json.dumps(value, separators=(',', ':'))` (ASCII-only output).
@@ -2107,7 +2045,7 @@ mod tests {
     fn b64decode_is_lenient_like_binascii() {
         assert_eq!(b64decode("aGVsbG8=").unwrap(), b"hello");
         assert_eq!(b64decode("aGVs\nbG8=").unwrap(), b"hello");
-        assert_eq!(b64decode("aGVsbG8=junk").unwrap(), b"hello");
+        assert!(b64decode("aGVsbG8=junk").is_err());
         assert!(b64decode("aGVsbG8").is_err());
         assert!(b64decode("a").is_err());
     }

@@ -815,7 +815,7 @@ fn base64_decode(value: &mut Value, shape: &Shape<'_>, root: bool) -> Result<(),
                         "string argument should contain only ASCII characters".to_string(),
                     ));
                 }
-                match py_b64decode(s.as_bytes()) {
+                match crate::protocol::common::a2b_base64(s.as_bytes()).ok() {
                     Some(b) => *value = Value::Bytes(b),
                     None => return Err(Fail::General(format!("Invalid base64: \"{s}\""))),
                 }
@@ -824,70 +824,4 @@ fn base64_decode(value: &mut Value, shape: &Shape<'_>, root: bool) -> Result<(),
         _ => {}
     }
     Ok(())
-}
-
-/// `base64.b64decode(s)` (`binascii.a2b_base64` without strict mode).
-fn py_b64decode(data: &[u8]) -> Option<Vec<u8>> {
-    fn sextet(c: u8) -> Option<u8> {
-        match c {
-            b'A'..=b'Z' => Some(c - b'A'),
-            b'a'..=b'z' => Some(c - b'a' + 26),
-            b'0'..=b'9' => Some(c - b'0' + 52),
-            b'+' => Some(62),
-            b'/' => Some(63),
-            _ => None,
-        }
-    }
-    let mut out = Vec::new();
-    let mut quad = 0;
-    let mut left: u32 = 0;
-    let mut pads = 0;
-    for &c in data {
-        if c == b'=' {
-            pads += 1;
-            if quad >= 2 && quad + pads >= 4 {
-                return Some(out);
-            }
-            continue;
-        }
-        let Some(v) = sextet(c) else { continue };
-        let v = u32::from(v);
-        pads = 0;
-        match quad {
-            0 => {
-                quad = 1;
-                left = v;
-            }
-            1 => {
-                quad = 2;
-                out.push(((left << 2) | (v >> 4)) as u8);
-                left = v & 0x0f;
-            }
-            2 => {
-                quad = 3;
-                out.push(((left << 4) | (v >> 2)) as u8);
-                left = v & 0x03;
-            }
-            _ => {
-                quad = 0;
-                out.push(((left << 6) | v) as u8);
-                left = 0;
-            }
-        }
-    }
-    if quad != 0 { None } else { Some(out) }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn b64() {
-        assert_eq!(py_b64decode(b"aGVsbG8="), Some(b"hello".to_vec()));
-        assert_eq!(py_b64decode(b"aGVs bG8"), None);
-        assert_eq!(py_b64decode(b"aGVsbA=="), Some(b"hell".to_vec()));
-        assert_eq!(py_b64decode(b"a"), None);
-        assert_eq!(py_b64decode(b"!!aGk="), Some(b"hi".to_vec()));
-    }
 }

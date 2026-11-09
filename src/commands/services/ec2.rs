@@ -292,7 +292,8 @@ impl OperationHooks for BundleInstance {
         if self.decode_blobs
             && let Some(Value::Str(policy)) = s3.get("UploadPolicy")
         {
-            let decoded = py_b64decode(policy.as_bytes())
+            let decoded = crate::protocol::common::a2b_base64(policy.as_bytes())
+                .ok()
                 .ok_or_else(|| Fail::General(format!("Invalid base64: \"{policy}\"")))?;
             s3.insert("UploadPolicy".to_string(), Value::Bytes(decoded));
         }
@@ -397,7 +398,7 @@ fn get_password_data(ctx: &Context, args: &[String]) -> Result<ExitCode, CliErro
 fn decrypt_password(path: &str, value: &str) -> Option<String> {
     let pem = std::fs::read_to_string(path).ok()?;
     let (n, d) = rsa_private_key(&pem)?;
-    let cipher = py_b64decode(value.as_bytes())?;
+    let cipher = crate::protocol::common::a2b_base64(value.as_bytes()).ok()?;
     let k = n.to_bytes_be().len();
     let c = BigUint::from_bytes_be(&cipher);
     if c >= n {
@@ -476,58 +477,6 @@ fn der_read(data: &[u8], tag: u8) -> Option<(&[u8], &[u8])> {
     };
     let end = start.checked_add(len)?;
     Some((data.get(end..)?, data.get(start..end)?))
-}
-
-/// `base64.b64decode(s)` (`binascii.a2b_base64` without strict mode).
-pub(super) fn py_b64decode(data: &[u8]) -> Option<Vec<u8>> {
-    fn sextet(c: u8) -> Option<u8> {
-        match c {
-            b'A'..=b'Z' => Some(c - b'A'),
-            b'a'..=b'z' => Some(c - b'a' + 26),
-            b'0'..=b'9' => Some(c - b'0' + 52),
-            b'+' => Some(62),
-            b'/' => Some(63),
-            _ => None,
-        }
-    }
-    let mut out = Vec::new();
-    let mut quad = 0;
-    let mut left: u32 = 0;
-    let mut pads = 0;
-    for &c in data {
-        if c == b'=' {
-            pads += 1;
-            if quad >= 2 && quad + pads >= 4 {
-                return Some(out);
-            }
-            continue;
-        }
-        let Some(v) = sextet(c) else { continue };
-        let v = u32::from(v);
-        pads = 0;
-        match quad {
-            0 => {
-                quad = 1;
-                left = v;
-            }
-            1 => {
-                quad = 2;
-                out.push(((left << 2) | (v >> 4)) as u8);
-                left = v & 0x0f;
-            }
-            2 => {
-                quad = 3;
-                out.push(((left << 4) | (v >> 2)) as u8);
-                left = v & 0x03;
-            }
-            _ => {
-                quad = 0;
-                out.push(((left << 6) | v) as u8);
-                left = 0;
-            }
-        }
-    }
-    if quad != 0 { None } else { Some(out) }
 }
 
 #[cfg(test)]

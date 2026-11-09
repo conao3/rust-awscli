@@ -230,38 +230,68 @@ pub fn value_bytes(v: &Value) -> Result<Vec<u8>> {
     }
 }
 
-/// `base64.b64decode(value)` (non-validating: characters outside the
-/// alphabet are discarded; missing padding is an error).
+/// `base64.b64decode(value)`: a `str` must be ASCII, then
+/// `binascii.a2b_base64` without strict mode.
 pub fn b64decode(text: &str) -> Result<Vec<u8>> {
-    let mut data = Vec::new();
-    let mut pads = 0usize;
-    for b in text.bytes() {
-        match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'+' | b'/' => {
-                if pads > 0 {
-                    break;
-                }
-                data.push(b);
+    if !text.is_ascii() {
+        bail!("string argument should contain only ASCII characters");
+    }
+    a2b_base64(text.as_bytes()).map_err(|e| anyhow!(e))
+}
+
+/// `binascii.a2b_base64(data, strict_mode=False)` (CPython 3.14): characters
+/// outside the alphabet are skipped, `=` pads only after two characters of
+/// a quantum and is skipped elsewhere, and decoding continues past
+/// complete padding.
+pub fn a2b_base64(data: &[u8]) -> std::result::Result<Vec<u8>, String> {
+    let mut out = Vec::with_capacity(data.len() / 4 * 3 + 3);
+    let (mut quad_pos, mut pads, mut left) = (0u8, 0u8, 0u8);
+    for &c in data {
+        if c == b'=' {
+            pads = pads.saturating_add(1);
+            continue;
+        }
+        let v = match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            _ => continue,
+        };
+        pads = 0;
+        match quad_pos {
+            0 => {
+                quad_pos = 1;
+                left = v;
             }
-            b'=' => pads += 1,
-            _ => {}
+            1 => {
+                quad_pos = 2;
+                out.push((left << 2) | (v >> 4));
+                left = v & 0x0f;
+            }
+            2 => {
+                quad_pos = 3;
+                out.push((left << 4) | (v >> 2));
+                left = v & 0x03;
+            }
+            _ => {
+                quad_pos = 0;
+                out.push((left << 6) | v);
+                left = 0;
+            }
         }
     }
-    let rem = data.len() % 4;
-    let needed = match rem {
-        0 => 0,
-        1 => bail!("Invalid base64-encoded string"),
-        2 => 2,
-        _ => 1,
-    };
-    if pads < needed {
-        bail!("Incorrect padding");
+    if quad_pos == 1 {
+        return Err(format!(
+            "Invalid base64-encoded string: number of data characters ({}) cannot be 1 more than a multiple of 4",
+            out.len() / 3 * 4 + 1
+        ));
     }
-    let mut padded = data;
-    padded.extend(std::iter::repeat_n(b'=', needed));
-    base64::engine::general_purpose::STANDARD
-        .decode(&padded)
-        .map_err(|e| anyhow!("Invalid base64: {e}"))
+    if quad_pos != 0 && u32::from(quad_pos) + u32::from(pads) < 4 {
+        return Err("Incorrect padding".to_string());
+    }
+    Ok(out)
 }
 
 /// Python `int(value)` for a header value or a JSON scalar.
@@ -664,5 +694,48 @@ mod tests {
         assert!(py_float(&Value::str("abc")).is_err());
         assert_eq!(b64decode("eyJhIjoxfQ==").unwrap(), br#"{"a":1}"#);
         assert!(b64decode("YQ").is_err());
+    }
+
+    /// `base64.b64decode` of CPython 3.14 (hex of the bytes, or the
+    /// `binascii.Error`).
+    #[test]
+    fn b64decode_like_binascii() {
+        let cases: &[(&str, Result<&str, &str>)] = &[
+            (
+                "a",
+                Err(
+                    "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4",
+                ),
+            ),
+            ("aGk=", Ok("6869")),
+            ("aGk", Err("Incorrect padding")),
+            ("aGk==", Ok("6869")),
+            (
+                "a===",
+                Err(
+                    "Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4",
+                ),
+            ),
+            ("=aGk=", Ok("6869")),
+            ("aG=k", Err("Incorrect padding")),
+            ("aGk=junk", Err("Incorrect padding")),
+            ("YQ", Err("Incorrect padding")),
+            ("YQ=", Err("Incorrect padding")),
+            ("YQ==", Ok("61")),
+            ("Y=Q==", Ok("61")),
+            (
+                "abcde",
+                Err(
+                    "Invalid base64-encoded string: number of data characters (5) cannot be 1 more than a multiple of 4",
+                ),
+            ),
+            ("aGVs bG8", Err("Incorrect padding")),
+            ("!!aGk=", Ok("6869")),
+            ("aGVsbA==", Ok("68656c6c")),
+        ];
+        for (input, want) in cases {
+            let got = b64decode(input).map(hex::encode).map_err(|e| e.to_string());
+            assert_eq!(got.as_deref().map_err(String::as_str), *want, "{input:?}");
+        }
     }
 }

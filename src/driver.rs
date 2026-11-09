@@ -501,6 +501,9 @@ impl<'a> Caller<'a> {
             && let Some(region) = self.ctx.session.s3_redirect_region(self.client.id, bucket)
         {
             builtins.region = Some(region);
+            crate::session::useragent::register_context(
+                crate::session::useragent::Feature::S3Redirect,
+            );
         }
         builtins
     }

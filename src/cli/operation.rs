@@ -771,6 +771,15 @@ fn run_instances_fix_args(params: &mut Map) {
     }
 }
 
+/// `base64_decode_input_blobs` on the parameters of a paginator's call:
+/// the tokens it injected from the previous page.
+pub(crate) fn decode_input_blobs(op: &Operation<'_>, params: &mut Value) -> Result<(), Fail> {
+    match op.input() {
+        Some(input) => base64_decode(params, &input, true),
+        None => Ok(()),
+    }
+}
+
 /// `Base64DecodeVisitor` (a `ModelVisitor`).
 fn base64_decode(value: &mut Value, shape: &Shape<'_>, root: bool) -> Result<(), Fail> {
     match shape.type_name() {

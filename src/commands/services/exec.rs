@@ -70,7 +70,7 @@ impl<'c> Client<'c> {
         let caller = Caller::new(self.ctx, &self.model, operation)
             .map_err(|e| self.ctx.general_error(&e))?;
         let mut service_error = None;
-        let mut call = |p: &Value| -> Result<Value> {
+        let mut call = |p: &mut Value| -> Result<Value> {
             match caller.call(p)? {
                 CallResult::Ok(v) => Ok(v),
                 CallResult::ServiceError(info) => {
@@ -153,15 +153,7 @@ pub(crate) fn invoke(
             Some(paginator) => {
                 let service_error: std::cell::RefCell<Option<Box<ClientErrorInfo>>> =
                     std::cell::RefCell::new(None);
-                let call = |params: &Value| -> Result<Value> {
-                    match caller.call(params)? {
-                        CallResult::Ok(v) => Ok(v),
-                        CallResult::ServiceError(info) => {
-                            *service_error.borrow_mut() = Some(info);
-                            Err(anyhow::anyhow!("service error"))
-                        }
-                    }
-                };
+                let call = crate::driver::page_call(ctx, &operation, &caller, &service_error);
                 let iterator = paginate::PageIterator::new(
                     paginator,
                     &inv.params,

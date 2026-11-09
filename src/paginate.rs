@@ -60,8 +60,10 @@ impl PaginateError {
 }
 
 /// Issues one API call with the given parameters and returns the parsed
-/// response.
-pub type CallFn<'a> = dyn FnMut(&Value) -> Result<Value> + 'a;
+/// response. The call may change the nested values of the parameters in
+/// place, as the `provide-client-params` handlers do to the dicts the
+/// paginator keeps.
+pub type CallFn<'a> = dyn FnMut(&mut Value) -> Result<Value> + 'a;
 
 /// A compiled JMESPath expression. Plain dotted field paths (every
 /// `result_key` and `non_aggregate_keys` entry in the models) are walked
@@ -881,7 +883,24 @@ impl PageIterator {
             self.inject_token_into_kwargs(&next_token);
             self.previous_next_token = Some(next_token);
         }
-        let mut parsed = call(&Value::Map(self.op_kwargs.clone()))?;
+        let mut kwargs = Value::Map(self.op_kwargs.clone());
+        let called = call(&mut kwargs);
+        if let Value::Map(kwargs) = kwargs {
+            for (name, token) in self.next_token.iter_mut() {
+                if let Some(v) = kwargs.get(name)
+                    && self.op_kwargs.get(name) == Some(token)
+                {
+                    if let Some(prev) = self.previous_next_token.as_mut()
+                        && prev.get(name) == Some(token)
+                    {
+                        prev.insert(name.clone(), v.clone());
+                    }
+                    *token = v.clone();
+                }
+            }
+            self.op_kwargs = kwargs;
+        }
+        let mut parsed = called?;
         if self.first_request {
             if self.starting_token.is_some() {
                 self.starting_truncation = self.handle_first_request(&mut parsed)?;
@@ -1106,7 +1125,7 @@ mod tests {
             };
             queue.reverse();
             let mut calls = Vec::new();
-            let mut call = |kwargs: &Value| -> Result<Value> {
+            let mut call = |kwargs: &mut Value| -> Result<Value> {
                 calls.push(kwargs.clone());
                 queue.pop().ok_or_else(|| anyhow::anyhow!("no more pages"))
             };

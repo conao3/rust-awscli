@@ -617,7 +617,7 @@ impl<'a> Caller<'a> {
         if !crate::history::enabled() {
             return;
         }
-        let params = crate::history::take_api_params().unwrap_or_else(|| params.clone());
+        let params = crate::history::call_params(&self.operation, params);
         let mut payload = crate::value::Map::new();
         payload.insert("service".into(), Value::Str(self.model.name.clone()));
         payload.insert(
@@ -633,8 +633,14 @@ impl<'a> Caller<'a> {
 
     /// `BaseClient._make_api_call`.
     pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
+        self.call_as(params, params)
+    }
+
+    /// [`Caller::call`] of `params` whose `API_CALL` records `given`, the
+    /// parameters before the `provide-client-params` handlers.
+    pub(crate) fn call_as(&self, given: &Value, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
-        self.record_api_call(params);
+        self.record_api_call(given);
         let original_params = params.clone();
         let (params, call_ctx, mut endpoint) = self.prepare(params)?;
 
@@ -822,7 +828,7 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
         &cli::arguments::xform_name(&inv.operation, '-'),
     );
 
-    crate::history::set_api_params(inv.history_params.as_deref().cloned());
+    crate::history::set_api_params(&inv.operation, inv.history_params.as_deref().cloned());
     let response = if let Some(stub) = inv.stub_response.clone() {
         let caller = Caller::new(ctx, &model, &inv.operation).map_err(|e| ctx.general_error(&e))?;
         caller.record_api_call(&inv.params);
@@ -841,15 +847,7 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
             Some(paginator) => {
                 let service_error: std::cell::RefCell<Option<Box<ClientErrorInfo>>> =
                     std::cell::RefCell::new(None);
-                let call = |params: &Value| -> Result<Value> {
-                    match caller.call(params)? {
-                        CallResult::Ok(v) => Ok(v),
-                        CallResult::ServiceError(info) => {
-                            *service_error.borrow_mut() = Some(info);
-                            Err(anyhow::anyhow!("service error"))
-                        }
-                    }
-                };
+                let call = page_call(ctx, &operation, &caller, &service_error);
                 let iterator = paginate::PageIterator::new(
                     paginator,
                     &inv.params,
@@ -1071,6 +1069,43 @@ fn exit_code_from_i32(code: i32) -> ExitCode {
         253 => ExitCode::Config,
         254 => ExitCode::Service,
         _ => ExitCode::General,
+    }
+}
+
+/// The call of a paginator's pages (`PageIterator._make_request`): the
+/// `provide-client-params` handler `base64_decode_input_blobs` decodes the
+/// blobs of the tokens injected from the previous page in place, after
+/// `API_CALL` recorded them as given. A service error is kept in
+/// `service_error`.
+pub(crate) fn page_call<'a>(
+    ctx: &'a Context,
+    operation: &'a Operation<'_>,
+    caller: &'a Caller<'_>,
+    service_error: &'a std::cell::RefCell<Option<Box<ClientErrorInfo>>>,
+) -> impl FnMut(&mut Value) -> Result<Value> + 'a {
+    let decode = ctx
+        .globals
+        .cli_binary_format
+        .clone()
+        .or_else(|| ctx.session.config().config_variable("cli_binary_format"))
+        .is_none_or(|f| f == "base64");
+    move |params: &mut Value| -> Result<Value> {
+        let given = (decode && crate::history::enabled()).then(|| params.clone());
+        if decode {
+            cli::operation::decode_input_blobs(operation, params).map_err(|f| match f {
+                cli::Fail::ParamValidation(m)
+                | cli::Fail::Unknown(m)
+                | cli::Fail::Python(m)
+                | cli::Fail::General(m) => anyhow::anyhow!(m),
+            })?;
+        }
+        match caller.call_as(given.as_ref().unwrap_or(params), params)? {
+            CallResult::Ok(v) => Ok(v),
+            CallResult::ServiceError(info) => {
+                *service_error.borrow_mut() = Some(info);
+                Err(anyhow::anyhow!("service error"))
+            }
+        }
     }
 }
 

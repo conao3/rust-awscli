@@ -275,7 +275,7 @@ fn no_follow(
     .map_err(|e| ctx.general_error(&e))?;
     let mut service_error = None;
     loop {
-        let mut call = |p: &Value| -> anyhow::Result<Value> {
+        let mut call = |p: &mut Value| -> anyhow::Result<Value> {
             match caller.call(p)? {
                 CallResult::Ok(v) => Ok(v),
                 CallResult::ServiceError(info) => {

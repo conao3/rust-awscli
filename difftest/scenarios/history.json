@@ -1195,5 +1195,220 @@
     "body": "{\"TableNames\": [\"a\", \"b\\u00e9\"], \"LastEvaluatedTableName\": null}"
    }
   ]
+ },
+ {
+  "name": "history show paginated blob tokens",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "API_CALL",
+   "HTTP_REQUEST"
+  ],
+  "setup": [
+   [
+    "dynamodb",
+    "scan",
+    "--table-name",
+    "t",
+    "--filter-expression",
+    "b = :v",
+    "--expression-attribute-values",
+    "{\":v\": {\"B\": \"aGk=\"}, \":w\": {\"L\": [{\"B\": \"/w==\"}]}}",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 1, \"ScannedCount\": 1, \"Items\": [{\"k\": {\"S\": \"1\"}}], \"LastEvaluatedKey\": {\"k\": {\"B\": \"aGk=\"}, \"l\": {\"L\": [{\"B\": \"/w==\"}]}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 2, \"ScannedCount\": 2, \"Items\": [{\"k\": {\"S\": \"2\"}}, {\"k\": {\"S\": \"3\"}}], \"LastEvaluatedKey\": {\"k\": {\"B\": \"AAE=\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 0, \"ScannedCount\": 0, \"Items\": []}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "paginated blob tokens",
+  "argv": [
+   "dynamodb",
+   "scan",
+   "--table-name",
+   "t",
+   "--filter-expression",
+   "b = :v",
+   "--expression-attribute-values",
+   "{\":v\": {\"B\": \"aGk=\"}, \":w\": {\"L\": [{\"B\": \"/w==\"}]}}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 1, \"ScannedCount\": 1, \"Items\": [{\"k\": {\"S\": \"1\"}}], \"LastEvaluatedKey\": {\"k\": {\"B\": \"aGk=\"}, \"l\": {\"L\": [{\"B\": \"/w==\"}]}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 2, \"ScannedCount\": 2, \"Items\": [{\"k\": {\"S\": \"2\"}}, {\"k\": {\"S\": \"3\"}}], \"LastEvaluatedKey\": {\"k\": {\"B\": \"AAE=\"}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 0, \"ScannedCount\": 0, \"Items\": []}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "paginated blob tokens truncated by max items",
+  "argv": [
+   "dynamodb",
+   "scan",
+   "--table-name",
+   "t",
+   "--filter-expression",
+   "b = :v",
+   "--expression-attribute-values",
+   "{\":v\": {\"B\": \"aGk=\"}, \":w\": {\"L\": [{\"B\": \"/w==\"}]}}",
+   "--max-items",
+   "2",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 1, \"ScannedCount\": 1, \"Items\": [{\"k\": {\"S\": \"1\"}}], \"LastEvaluatedKey\": {\"k\": {\"B\": \"aGk=\"}, \"l\": {\"L\": [{\"B\": \"/w==\"}]}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 2, \"ScannedCount\": 2, \"Items\": [{\"k\": {\"S\": \"2\"}}, {\"k\": {\"S\": \"3\"}}], \"LastEvaluatedKey\": {\"k\": {\"B\": \"AAE=\"}}}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
+ },
+ {
+  "name": "paginated blob tokens received twice",
+  "argv": [
+   "dynamodb",
+   "scan",
+   "--table-name",
+   "t",
+   "--filter-expression",
+   "b = :v",
+   "--expression-attribute-values",
+   "{\":v\": {\"B\": \"aGk=\"}, \":w\": {\"L\": [{\"B\": \"/w==\"}]}}",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 0, \"ScannedCount\": 0, \"Items\": [], \"LastEvaluatedKey\": {\"k\": {\"B\": \"aGk=\"}, \"l\": {\"L\": [{\"B\": \"/w==\"}]}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 0, \"ScannedCount\": 0, \"Items\": [], \"LastEvaluatedKey\": {\"k\": {\"B\": \"aGk=\"}, \"l\": {\"L\": [{\"B\": \"/w==\"}]}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 0, \"ScannedCount\": 0, \"Items\": [], \"LastEvaluatedKey\": {\"k\": {\"B\": \"aGk=\"}, \"l\": {\"L\": [{\"B\": \"/w==\"}]}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"Count\": 0, \"ScannedCount\": 0, \"Items\": []}"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n",
+   "in.txt": "body"
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ]
  }
 ]

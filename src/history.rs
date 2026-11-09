@@ -107,16 +107,56 @@ pub(crate) fn attach(config: &Config, command: Option<&str>) {
 }
 
 static STREAMING_FILE: Mutex<Option<String>> = Mutex::new(None);
-static API_PARAMS: Mutex<Option<Value>> = Mutex::new(None);
+static API_PARAMS: Mutex<Option<ApiParams>> = Mutex::new(None);
 
-/// The parameters the next `API_CALL` records (the client method's
-/// arguments before `provide-client-params`).
-pub(crate) fn set_api_params(params: Option<Value>) {
-    *API_PARAMS.lock().unwrap() = params;
+/// The arguments of the client method the command calls, as given before
+/// `provide-client-params`.
+struct ApiParams {
+    operation: String,
+    params: Value,
+    recorded: bool,
 }
 
-pub(crate) fn take_api_params() -> Option<Value> {
-    API_PARAMS.lock().unwrap().take()
+/// The parameters the `API_CALL` of the command's calls of `operation`
+/// records.
+pub(crate) fn set_api_params(operation: &str, params: Option<Value>) {
+    *API_PARAMS.lock().unwrap() = params.map(|params| ApiParams {
+        operation: operation.to_string(),
+        params,
+        recorded: false,
+    });
+}
+
+/// `params` of the `API_CALL` of a call of `operation` with `params`. The
+/// first call records the arguments as given. A paginator or waiter calls
+/// the method again with `**kwargs` of the same dict: the top-level
+/// members are those given (`base64_decode_input_blobs` replaced them in
+/// the copy), the nested values are what the handler left in place.
+pub(crate) fn call_params(operation: &crate::model::Operation<'_>, params: &Value) -> Value {
+    let mut guard = API_PARAMS.lock().unwrap();
+    let Some(given) = guard.as_mut().filter(|g| g.operation == operation.name) else {
+        return params.clone();
+    };
+    if !given.recorded {
+        given.recorded = true;
+        return given.params.clone();
+    }
+    let mut params = params.clone();
+    if let Some(input) = operation.input()
+        && let Some(map) = params.as_map_mut()
+        && let Some(original) = given.params.as_map()
+    {
+        for (k, v) in map.iter_mut() {
+            if let Some(o) = original.get(k)
+                && input
+                    .member_shape(k)
+                    .is_some_and(|s| s.type_name() == "blob")
+            {
+                *v = o.clone();
+            }
+        }
+    }
+    params
 }
 
 /// The file a streaming blob parameter was opened from

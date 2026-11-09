@@ -199,6 +199,29 @@ pub(crate) fn login(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError
     Ok(ExitCode::Success)
 }
 
+/// The features of a signed client `session.create_client` creates now: it
+/// loads the credentials, and the command's first client carries the
+/// providers' features.
+fn created_client_features(
+    ctx: &Context,
+) -> Result<Vec<crate::session::useragent::Feature>, CliError> {
+    let first = crate::session::useragent::claim_credential_client();
+    block_on(
+        &ctx.runtime,
+        crate::session::credentials::load_deferred_credentials(
+            ctx.session.config(),
+            ctx.session.region().as_deref(),
+            None,
+        ),
+    )
+    .map_err(|e| ctx.session_error(&e))?;
+    Ok(if first {
+        crate::session::useragent::registered()
+    } else {
+        Vec::new()
+    })
+}
+
 /// `aws sso logout` (`LogoutCommand`).
 pub(crate) fn logout(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     if parse(ctx, args, &[])?.is_none() {
@@ -215,8 +238,10 @@ pub(crate) fn logout(ctx: &Context, args: &[String]) -> Result<ExitCode, CliErro
             .and_then(Value::as_str)
             .filter(|r| !r.is_empty())
         {
+            let features = created_client_features(ctx)?;
             let client = ApiClient::new(config, "sso", Some(region.to_string()), None, None)
-                .map_err(|e| ctx.session_error(&e))?;
+                .map_err(|e| ctx.session_error(&e))?
+                .with_features(features);
             let mut params = Map::new();
             params.insert(
                 "accessToken".into(),

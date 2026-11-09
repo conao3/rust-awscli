@@ -147,10 +147,9 @@ fn token_to_credentials(token: &Value) -> Option<LoginCredentials> {
     })
 }
 
-/// `LoginProvider.load` + `RefreshableCredentials` refresh: the cached
-/// credentials, refreshed with `signin:CreateOAuth2Token` when they expire
-/// within the refresh windows.
-pub async fn login_credentials(
+/// `LoginCredentialFetcher.load_cached_credentials`: the credentials of the
+/// cached token, which `LoginProvider.load` returns before any refresh.
+pub fn cached_login_credentials(
     config: &Config,
     session_name: &str,
 ) -> Result<LoginCredentials, SessionError> {
@@ -173,6 +172,18 @@ pub async fn login_credentials(
             "Error loading login session token: Failed to load access token from token cache, missing one or more required fields.",
         ));
     };
+    Ok(cached)
+}
+
+/// `LoginProvider.load` + `RefreshableCredentials` refresh: the cached
+/// credentials, refreshed with `signin:CreateOAuth2Token` when they expire
+/// within the refresh windows.
+pub async fn login_credentials(
+    config: &Config,
+    session_name: &str,
+) -> Result<LoginCredentials, SessionError> {
+    let cache = cache::login_cache(config);
+    let cached = cached_login_credentials(config, session_name)?;
     // `RefreshableCredentials`: advisory refresh 15 minutes before
     // expiry, mandatory 10 minutes before.
     let remaining = PyDateTime::parse(&cached.expiry)

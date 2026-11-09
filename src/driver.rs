@@ -429,6 +429,12 @@ impl<'a> Caller<'a> {
         if let Some(r) = &client_region {
             crate::session::validate_region_name(r)?;
         }
+        if !client.secondary {
+            block_on(
+                &ctx.runtime,
+                ctx.session.resolve_credentials(client_region.as_deref()),
+            )?;
+        }
         let endpoint_url = match client.without_endpoint_url {
             true => None,
             false => ctx.globals.endpoint_url.clone(),

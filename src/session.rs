@@ -56,6 +56,10 @@ pub struct Session {
     http: tokio::sync::OnceCell<Arc<HttpClient>>,
     retry_states: Mutex<HashMap<String, Arc<RetryState>>>,
     credentials: tokio::sync::OnceCell<Option<credentials::LoadedCredentials>>,
+    /// Whether the credentials were resolved when the first client was
+    /// created (`Session.create_client` calls `get_credentials`).
+    credentials_resolved: tokio::sync::OnceCell<()>,
+    credential_sources: credentials::SourceCache,
     /// The path of the command an alias that replaced it in its command
     /// table proxies to (`InternalAliasSubCommand._proxied_sub_command`).
     proxied: Option<Vec<String>>,
@@ -251,6 +255,8 @@ impl Session {
             http: tokio::sync::OnceCell::new(),
             retry_states: Mutex::new(HashMap::new()),
             credentials: tokio::sync::OnceCell::new(),
+            credentials_resolved: tokio::sync::OnceCell::new(),
+            credential_sources: Default::default(),
             proxied: None,
             s3_redirect_cache: Mutex::new(HashMap::new()),
         })
@@ -434,9 +440,37 @@ impl Session {
     ) -> Result<Option<&credentials::LoadedCredentials>, SessionError> {
         Ok(self
             .credentials
-            .get_or_try_init(|| credentials::load_credentials(&self.config, region))
+            .get_or_try_init(|| {
+                useragent::load_credentials_in_command();
+                credentials::load_credentials(&self.config, region, Some(&self.credential_sources))
+            })
             .await?
             .as_ref())
+    }
+
+    /// `get_credentials` of `Session.create_client` for the command's first
+    /// client: the providers are resolved and register their features, and
+    /// fail, before the client is called; deferred credentials are fetched
+    /// when a request is signed.
+    pub async fn resolve_credentials(&self, region: Option<&str>) -> Result<(), SessionError> {
+        if self.config.globals().no_sign_request || self.credentials.initialized() {
+            return Ok(());
+        }
+        self.credentials_resolved
+            .get_or_try_init(|| async {
+                let resolved = credentials::load_deferred_credentials(
+                    &self.config,
+                    region,
+                    Some(&self.credential_sources),
+                )
+                .await?;
+                if !resolved.as_ref().is_some_and(|c| c.deferred) {
+                    let _ = self.credentials.set(resolved);
+                }
+                Ok::<(), SessionError>(())
+            })
+            .await
+            .map(drop)
     }
 
     /// The `account_id` of the credentials, which the
@@ -744,15 +778,6 @@ impl Session {
                 } else {
                     &[]
                 };
-            if useragent::credential_client()
-                && !self.config.globals().no_sign_request
-                && matches!(
-                    choice.version,
-                    SignatureVersion::Unsigned | SignatureVersion::Bearer
-                )
-            {
-                self.loaded_credentials(settings.region.as_deref()).await?;
-            }
             headers::set(&mut base_headers, "User-Agent", "");
             let mut user_agent = None;
 

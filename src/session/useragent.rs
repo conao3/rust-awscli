@@ -279,9 +279,10 @@ pub fn claim_credential_client() -> bool {
 static COMMAND_CREDENTIALS: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 
-/// `session.get_credentials()` outside of `create_client`: the first load
-/// of the credentials registers the providers' features in the command's
-/// context, so that no client is the one that loaded them.
+/// `session.get_credentials()` outside of `create_client`: a load of the
+/// credentials before any client is created registers the providers'
+/// features in the command's context, so that no client is the one that
+/// loaded them.
 pub fn load_credentials_in_command() {
     if claim_credential_client() {
         COMMAND_CREDENTIALS.store(true, std::sync::atomic::Ordering::Relaxed);
@@ -315,9 +316,14 @@ pub fn register_context(feature: Feature) {
     CONTEXT.with(|c| c.borrow_mut().push(feature));
 }
 
-/// The features of the current context: the command's and the call's.
+/// The features of the current context: the command's (with the
+/// credential providers' when the command loaded the credentials) and the
+/// call's.
 pub fn context() -> Vec<Feature> {
     let mut features = COMMAND_CONTEXT.lock().unwrap().clone();
+    if command_credentials() {
+        features.extend(registered());
+    }
     CONTEXT.with(|c| features.extend_from_slice(&c.borrow()));
     features
 }

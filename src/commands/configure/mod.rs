@@ -632,9 +632,10 @@ fn pad(s: &str, width: usize) -> String {
 
 fn load_credentials(ctx: &Context) -> Result<Option<LoadedCredentials>, SessionError> {
     let region = ctx.session.config().region().ok().flatten();
+    crate::session::useragent::load_credentials_in_command();
     crate::driver::block_on(
         &ctx.runtime,
-        credentials::load_credentials(ctx.session.config(), region.as_deref()),
+        credentials::load_credentials(ctx.session.config(), region.as_deref(), None),
     )
 }
 

@@ -38,9 +38,28 @@ pub struct LoadedCredentials {
     pub method: &'static str,
     pub expiry: Option<PyDateTime>,
     pub account_id: Option<String>,
+    /// `DeferredRefreshableCredentials` not refreshed yet: the provider
+    /// fetches them when a request is signed.
+    pub deferred: bool,
 }
 
+/// The source credentials of the assume role profiles the session
+/// resolved, by profile name, with the provider's feature ids after they
+/// were resolved (`AssumeRoleProvider` resolves them once, when the
+/// credentials are loaded).
+pub type SourceCache =
+    std::sync::Mutex<std::collections::HashMap<String, (LoadedCredentials, Vec<Feature>)>>;
+
 impl LoadedCredentials {
+    /// The `DeferredRefreshableCredentials` of a provider, before the first
+    /// refresh.
+    fn deferred(method: &'static str) -> LoadedCredentials {
+        LoadedCredentials {
+            deferred: true,
+            ..LoadedCredentials::new(method, String::new(), String::new(), None)
+        }
+    }
+
     fn new(
         method: &'static str,
         access_key: String,
@@ -56,6 +75,7 @@ impl LoadedCredentials {
             method,
             expiry: None,
             account_id: None,
+            deferred: false,
         }
     }
 }
@@ -126,6 +146,27 @@ fn env_provider(config: &Config) -> Result<Option<LoadedCredentials>, SessionErr
 pub async fn load_credentials(
     config: &Config,
     region: Option<&str>,
+    sources: Option<&SourceCache>,
+) -> Result<Option<LoadedCredentials>, SessionError> {
+    resolve_credentials(config, region, true, sources).await
+}
+
+/// `Session.get_credentials()` without the first refresh of deferred
+/// credentials: the providers register their features, and the assume
+/// role, web identity, SSO, and login providers fetch nothing.
+pub async fn load_deferred_credentials(
+    config: &Config,
+    region: Option<&str>,
+    sources: Option<&SourceCache>,
+) -> Result<Option<LoadedCredentials>, SessionError> {
+    resolve_credentials(config, region, false, sources).await
+}
+
+async fn resolve_credentials(
+    config: &Config,
+    region: Option<&str>,
+    fetch: bool,
+    sources: Option<&SourceCache>,
 ) -> Result<Option<LoadedCredentials>, SessionError> {
     // `create_credential_resolver` reads `metadata_service_timeout`, which
     // raises `ProfileNotFound` for a missing profile.
@@ -137,6 +178,8 @@ pub async fn load_credentials(
         config,
         region: region.map(str::to_string),
         assume_role_features: std::sync::Mutex::new(Vec::new()),
+        fetch,
+        sources,
     };
     if !disable_env && let Some(c) = env_provider(config)? {
         useragent::register(&[Feature::CredentialsEnvVars]);
@@ -190,6 +233,10 @@ struct Resolver<'a> {
     region: Option<String>,
     /// `AssumeRoleProvider._feature_ids`.
     assume_role_features: std::sync::Mutex<Vec<Feature>>,
+    /// Whether the deferred providers (assume role, web identity, SSO,
+    /// login) fetch their credentials now, as the first refresh does.
+    fetch: bool,
+    sources: Option<&'a SourceCache>,
 }
 
 impl<'a> Resolver<'a> {
@@ -265,10 +312,20 @@ impl<'a> Resolver<'a> {
                     self.validate_source_profile(profile_name, source, visited)?;
                 }
             }
+            let cached = self
+                .sources
+                .and_then(|s| s.lock().unwrap().get(profile_name).cloned())
+                .map(|(c, features)| {
+                    *self.assume_role_features.lock().unwrap() = features;
+                    c
+                });
             let source_credentials = match (&credential_source, &source_profile) {
                 (Some(source), _) => {
                     self.add_assume_role_feature(Feature::CredentialsProfileNamedProvider);
-                    let c = self.credentials_from_source(source, profile_name).await?;
+                    let c = match cached {
+                        Some(c) => c,
+                        None => self.credentials_from_source(source, profile_name).await?,
+                    };
                     self.add_assume_role_feature(match source.as_str() {
                         "Environment" => Feature::CredentialsEnvVars,
                         "EcsContainer" => Feature::CredentialsHttp,
@@ -279,10 +336,24 @@ impl<'a> Resolver<'a> {
                 (None, Some(source)) => {
                     visited.push(source.clone());
                     self.add_assume_role_feature(Feature::CredentialsProfileSourceProfile);
-                    self.credentials_from_profile(source, visited).await?
+                    match cached {
+                        Some(c) => c,
+                        None => self.credentials_from_profile(source, visited).await?,
+                    }
                 }
                 (None, None) => unreachable!(),
             };
+            if !source_credentials.deferred
+                && let Some(sources) = self.sources
+            {
+                sources.lock().unwrap().insert(
+                    profile_name.to_string(),
+                    (
+                        source_credentials.clone(),
+                        self.assume_role_features.lock().unwrap().clone(),
+                    ),
+                );
+            }
             let mut extra = Map::new();
             if let Some(v) = section_str(&profile, "role_session_name") {
                 extra.insert("RoleSessionName".into(), Value::str(v));
@@ -303,6 +374,9 @@ impl<'a> Resolver<'a> {
             let fetcher_features = self.assume_role_features.lock().unwrap().clone();
             self.add_assume_role_feature(Feature::CredentialsStsAssumeRole);
             useragent::register(&self.assume_role_features.lock().unwrap());
+            if !self.fetch {
+                return Ok(LoadedCredentials::deferred("assume-role"));
+            }
             let cache = cache::cli_cache(self.config);
             let response = async {
                 Ok::<Value, SessionError>(match fetcher.cached(&cache) {
@@ -478,6 +552,11 @@ impl<'a> Resolver<'a> {
         let mut key_args = fetcher.key_args();
         key_args.insert("WebIdentityToken".into(), Value::str(read_token()?));
         fetcher.cache_key = cache_key_of(&key_args);
+        if !self.fetch {
+            return Ok(Some(LoadedCredentials::deferred(
+                "assume-role-with-web-identity",
+            )));
+        }
         let cache = cache::cli_cache(self.config);
         let response = async {
             Ok::<Value, SessionError>(match fetcher.cached(&cache) {
@@ -593,6 +672,9 @@ impl<'a> Resolver<'a> {
             Some(_) => Feature::CredentialsSso,
             None => Feature::CredentialsSsoLegacy,
         }]);
+        if !self.fetch {
+            return Ok(Some(LoadedCredentials::deferred("sso")));
+        }
         let cache = cache::cli_cache(self.config);
         if let Some(cached) = cached_response(&cache, &cache_key) {
             return credentials_from_response("sso", &cached).map(Some);
@@ -677,6 +759,10 @@ impl<'a> Resolver<'a> {
             return Ok(None);
         };
         useragent::register(&super::login_token::FEATURES);
+        if !self.fetch {
+            super::login_token::cached_login_credentials(self.config, &session)?;
+            return Ok(Some(LoadedCredentials::deferred("login")));
+        }
         let c = super::login_token::login_credentials(self.config, &session).await?;
         let mut out = LoadedCredentials::new("login", c.access_key, c.secret_key, Some(c.token));
         out.expiry = PyDateTime::parse(&c.expiry);
@@ -1338,6 +1424,8 @@ fn preflight_assume_role(
         config,
         region: None,
         assume_role_features: std::sync::Mutex::new(Vec::new()),
+        fetch: true,
+        sources: None,
     };
     let profile = resolver.profile(profile_name);
     let source_profile = section_str(&profile, "source_profile");
@@ -1385,6 +1473,8 @@ fn preflight_profile(
         config,
         region: None,
         assume_role_features: std::sync::Mutex::new(Vec::new()),
+        fetch: true,
+        sources: None,
     };
     let profile = resolver.profile(profile_name);
     let from_env = |env: &str| (!disable_env).then(|| config.env(env)).flatten();
@@ -1537,7 +1627,7 @@ mod tests {
             env,
         )
         .unwrap();
-        let got = load_credentials(&c, Some("us-east-1"))
+        let got = load_credentials(&c, Some("us-east-1"), None)
             .await
             .unwrap()
             .unwrap();

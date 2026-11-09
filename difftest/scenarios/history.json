@@ -1500,5 +1500,300 @@
     "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n  <GetCallerIdentityResult>\n    <Arn>arn:aws:iam::123456789012:user/x</Arn>\n    <UserId>AIDA</UserId>\n    <Account>123456789012</Account>\n  </GetCallerIdentityResult>\n  <ResponseMetadata>\n    <RequestId>r-1</RequestId>\n  </ResponseMetadata>\n</GetCallerIdentityResponse>\n"
    }
   ]
+ },
+ {
+  "name": "history show s3 cp recursive",
+  "argv": [
+   "history",
+   "show"
+  ],
+  "setup": [
+   [
+    "s3",
+    "cp",
+    "{casedir}/up",
+    "s3://b/p/",
+    "--recursive",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n\n[profile role1]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  max_concurrent_requests = 1\n",
+   "in.txt": "body",
+   "up/f0.txt": "data0",
+   "up/f1.txt": "data1",
+   "up/f2.txt": "data2",
+   "up/f3.txt": "data3",
+   "empty.txt": ""
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ],
+  "concurrent": true
+ },
+ {
+  "name": "history show s3 cp recursive assume role",
+  "argv": [
+   "history",
+   "show"
+  ],
+  "setup": [
+   [
+    "s3",
+    "cp",
+    "{casedir}/up",
+    "s3://b/p/",
+    "--recursive",
+    "--profile",
+    "role1"
+   ]
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n\n[profile role1]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  max_concurrent_requests = 1\n",
+   "in.txt": "body",
+   "up/f0.txt": "data0",
+   "up/f1.txt": "data1",
+   "up/f2.txt": "data2",
+   "up/f3.txt": "data3",
+   "empty.txt": ""
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AssumeRoleResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><AssumeRoleResult><Credentials><AccessKeyId>AKIDROLE</AccessKeyId><SecretAccessKey>SECRETROLE</SecretAccessKey><SessionToken>TOKEN</SessionToken><Expiration>2099-01-01T00:00:00Z</Expiration></Credentials><AssumedRoleUser><AssumedRoleId>ARO:s</AssumedRoleId><Arn>arn:aws:sts::123456789012:assumed-role/r/s</Arn></AssumedRoleUser></AssumeRoleResult><ResponseMetadata><RequestId>r-2</RequestId></ResponseMetadata></AssumeRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ]
+ },
+ {
+  "name": "history show s3 cp empty file",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "API_CALL",
+   "HTTP_REQUEST"
+  ],
+  "setup": [
+   [
+    "s3",
+    "cp",
+    "{casedir}/empty.txt",
+    "s3://b/k",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n\n[profile role1]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  max_concurrent_requests = 1\n",
+   "in.txt": "body",
+   "up/f0.txt": "data0",
+   "up/f1.txt": "data1",
+   "up/f2.txt": "data2",
+   "up/f3.txt": "data3",
+   "empty.txt": ""
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ]
+ },
+ {
+  "name": "history show s3 cp copy",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "API_CALL",
+   "HTTP_REQUEST"
+  ],
+  "setup": [
+   [
+    "s3",
+    "cp",
+    "s3://b/k",
+    "s3://b/k2",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n\n[profile role1]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  max_concurrent_requests = 1\n",
+   "in.txt": "body",
+   "up/f0.txt": "data0",
+   "up/f1.txt": "data1",
+   "up/f2.txt": "data2",
+   "up/f3.txt": "data3",
+   "empty.txt": ""
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\"",
+     "Content-Length": "4",
+     "Last-Modified": "Tue, 14 Nov 2023 22:13:20 GMT",
+     "Content-Type": "text/plain"
+    },
+    "body": ""
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<CopyObjectResult><ETag>\"e\"</ETag><LastModified>2023-11-14T22:13:20.000Z</LastModified></CopyObjectResult>"
+   }
+  ]
+ },
+ {
+  "name": "history show s3api put-object empty body",
+  "argv": [
+   "history",
+   "show",
+   "--include",
+   "API_CALL",
+   "HTTP_REQUEST"
+  ],
+  "setup": [
+   [
+    "s3api",
+    "put-object",
+    "--bucket",
+    "b",
+    "--key",
+    "k",
+    "--body",
+    "{casedir}/empty.txt",
+    "--endpoint-url",
+    "{endpoint}"
+   ]
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\ncli_history = enabled\ns3 =\n  addressing_style = path\n\n[profile off]\nregion = us-east-1\n\n[profile wire]\nregion = us-east-1\ncli_history = enabled\ncli_timestamp_format = wire\naws_access_key_id = AKIDWIRE\naws_secret_access_key = SECRETWIRE\ns3 =\n  addressing_style = path\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = s\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\n\n[profile role1]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\ncli_history = enabled\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  max_concurrent_requests = 1\n",
+   "in.txt": "body",
+   "up/f0.txt": "data0",
+   "up/f1.txt": "data1",
+   "up/f2.txt": "data2",
+   "up/f3.txt": "data3",
+   "empty.txt": ""
+  },
+  "masks": [
+   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+   "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{3}| [AP]M)",
+   "\"Authorization\": \"[^\"]*\"",
+   "\"X-Amz-Date\": \"[^\"]*\"",
+   "\"User-Agent\": \"[^\"]*\"",
+   "with AWS CLI version: [^\\n]*",
+   "object at 0x[0-9a-f]+"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ]
  }
 ]

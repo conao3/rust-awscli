@@ -932,12 +932,15 @@ pub(crate) fn record_request(operation: &Operation<'_>, req: &SignableRequest) {
         Value::Bool(has_streaming_input(operation)),
     );
     payload.insert("url".into(), Value::Str(req.url.clone()));
+    let stream = has_streaming_input(operation)
+        .then(crate::history::stream)
+        .flatten();
     payload.insert(
         "body".into(),
-        if req.body.is_empty() {
-            Value::Null
-        } else {
-            Value::Bytes(req.body.clone())
+        match stream {
+            Some(repr) => Value::Str(repr),
+            None if req.body.is_empty() => Value::Null,
+            None => Value::Bytes(req.body.clone()),
         },
     );
     crate::history::record("HTTP_REQUEST", Value::Map(payload), "BOTOCORE");

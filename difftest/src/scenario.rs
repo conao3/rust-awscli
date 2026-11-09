@@ -75,6 +75,45 @@ pub struct Scenario {
     /// the user agent.
     #[serde(default)]
     pub user_agent_command: bool,
+    /// The command sends its requests from several threads: compare the
+    /// requests in sorted order, and the events of `history show` as the
+    /// sorted groups of each request id with the `[n]` dropped.
+    #[serde(default)]
+    pub concurrent: bool,
+}
+
+/// The output of `history show` with the events of each request id
+/// grouped, the groups sorted, and their `[n]` dropped; the command's own
+/// events stay before and after them.
+fn history_groups(stdout: &[u8]) -> Vec<u8> {
+    let text = String::from_utf8_lossy(stdout);
+    let id = regex::Regex::new(r"^\[(\d+)\] ").expect("regex");
+    let mut before = String::new();
+    let mut after = String::new();
+    let mut groups: BTreeMap<String, String> = BTreeMap::new();
+    let mut current: Option<String> = None;
+    for block in text.split_inclusive("\n\n") {
+        if let Some(m) = id.captures(block) {
+            let n = m[1].to_string();
+            groups
+                .entry(n.clone())
+                .or_default()
+                .push_str(&block[m[0].len()..]);
+            current = Some(n);
+            continue;
+        }
+        if block.starts_with("AWS CLI command") {
+            current = None;
+        }
+        match &current {
+            Some(n) => groups.entry(n.clone()).or_default().push_str(block),
+            None if groups.is_empty() => before.push_str(block),
+            None => after.push_str(block),
+        }
+    }
+    let mut sorted: Vec<String> = groups.into_values().collect();
+    sorted.sort();
+    format!("{before}{}{after}", sorted.concat()).into_bytes()
 }
 
 /// The `md/command#` part of the user agent of `request`, as a header the
@@ -327,6 +366,12 @@ pub async fn exec(
     apply_masks(&masks, &mut rb, &mut qb);
     if s.help_page {
         rb.stdout = help_page(&ra.stdout, &rb.stdout);
+    }
+    if s.concurrent {
+        ra.stdout = history_groups(&ra.stdout);
+        rb.stdout = history_groups(&rb.stdout);
+        qa.sort_by_cached_key(compare::render_request);
+        qb.sort_by_cached_key(compare::render_request);
     }
     if s.user_agent_command {
         qa.iter_mut()

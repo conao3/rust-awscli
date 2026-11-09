@@ -32,6 +32,7 @@ static RECORDER: Mutex<Option<Recorder>> = Mutex::new(None);
 thread_local! {
     /// `RecordBuilder._locals.request_id`.
     static REQUEST_ID: RefCell<Option<String>> = const { RefCell::new(None) };
+    static STREAM: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 struct Recorder {
@@ -106,7 +107,6 @@ pub(crate) fn attach(config: &Config, command: Option<&str>) {
     }
 }
 
-static STREAMING_FILE: Mutex<Option<String>> = Mutex::new(None);
 static API_PARAMS: Mutex<Option<ApiParams>> = Mutex::new(None);
 
 /// The arguments of the client method the command calls, as given before
@@ -162,7 +162,27 @@ pub(crate) fn call_params(operation: &crate::model::Operation<'_>, params: &Valu
 /// The file a streaming blob parameter was opened from
 /// (`open(path, 'rb')`).
 pub(crate) fn set_streaming_file(path: &str) {
-    *STREAMING_FILE.lock().unwrap() = Some(path.to_string());
+    set_stream(Some(format!(
+        "<_io.BufferedReader name={}>",
+        crate::pyfmt::str_repr(path)
+    )));
+}
+
+/// `repr()` of the `ReadFileChunk` s3transfer passes as the body of an
+/// upload.
+pub(crate) const READ_FILE_CHUNK_REPR: &str =
+    "<s3transfer.utils.ReadFileChunk object at 0x7f0000000000>";
+
+/// The `repr()` of the file object the calls of this thread pass as their
+/// streaming blob payload, which `PayloadSerializer` writes in place of
+/// the body.
+pub(crate) fn set_stream(repr: Option<String>) {
+    STREAM.with(|s| *s.borrow_mut() = repr);
+}
+
+/// The `repr()` of the streaming payload of the call of this thread.
+pub(crate) fn stream() -> Option<String> {
+    STREAM.with(|s| s.borrow().clone())
 }
 
 /// `params` of `API_CALL` for `operation`: a streaming blob parameter is
@@ -170,8 +190,7 @@ pub(crate) fn set_streaming_file(path: &str) {
 /// `repr()`.
 pub(crate) fn api_params(operation: &crate::model::Operation<'_>, params: &Value) -> Value {
     let mut params = params.clone();
-    let path = STREAMING_FILE.lock().unwrap().clone();
-    if let Some(path) = path
+    if let Some(repr) = stream()
         && let Some(input) = operation.input()
         && let Some(member) = input.shape_get("payload").and_then(|p| p.as_str())
         && input
@@ -180,10 +199,7 @@ pub(crate) fn api_params(operation: &crate::model::Operation<'_>, params: &Value
         && let Some(map) = params.as_map_mut()
         && let Some(v @ Value::Bytes(_)) = map.get_mut(member)
     {
-        *v = Value::Str(format!(
-            "<_io.BufferedReader name={}>",
-            crate::pyfmt::str_repr(&path)
-        ));
+        *v = Value::Str(repr);
     }
     params
 }

@@ -26,7 +26,6 @@ use crate::cli::Fail;
 use crate::config::ConfigLookup;
 use crate::driver::Context;
 use crate::error::ExitCode;
-use crate::session::url::quote;
 use crate::value::{Map, Value};
 
 const MB: i64 = 1024 * 1024;
@@ -1492,8 +1491,12 @@ impl TransferError {
     }
 }
 
-fn copy_source_string(bucket: &str, key: &str) -> String {
-    quote(&format!("{bucket}/{key}"), "-._~/")
+/// The `CopySource` dict s3transfer passes to the copy calls.
+fn copy_source_dict(bucket: &str, key: &str) -> Value {
+    Value::Map(map(&[
+        ("Bucket", Value::str(bucket)),
+        ("Key", Value::str(key)),
+    ]))
 }
 
 /// `ChunksizeAdjuster.adjust_chunksize`.
@@ -1698,7 +1701,15 @@ impl<'a> Handler<'a> {
         if INTERRUPTED.load(Ordering::SeqCst) {
             return Err(TransferError::Interrupted);
         }
-        client.call(op, params).map_err(TransferError::Call)
+        let stream = crate::history::enabled() && params.contains_key("Body");
+        if stream {
+            crate::history::set_stream(Some(crate::history::READ_FILE_CHUNK_REPR.to_string()));
+        }
+        let r = client.call(op, params).map_err(TransferError::Call);
+        if stream {
+            crate::history::set_stream(None);
+        }
+        r
     }
 
     fn throttle(&self, n: usize) {
@@ -2451,7 +2462,7 @@ impl<'a> Handler<'a> {
             f.response_data.clone()
         };
         let threshold = self.cfg.multipart_threshold;
-        let copy_source = copy_source_string(&sb, &sk);
+        let copy_source = copy_source_dict(&sb, &sk);
         let r: Result<(), TransferError> = (|| {
             if !self.p.truthy("metadata_directive") {
                 self.copy_props(
@@ -2496,7 +2507,7 @@ impl<'a> Handler<'a> {
         if size < threshold {
             pool.submit(Box::new(move |_| {
                 let params = with(
-                    with(map(&[("CopySource", Value::str(&copy_source))]), &base),
+                    with(map(&[("CopySource", copy_source.clone())]), &base),
                     &extra,
                 );
                 let r = self.call("CopyObject", params).map(|_| {
@@ -2570,7 +2581,7 @@ impl<'a> Handler<'a> {
             };
             for part in 1..=num_parts {
                 let mut args = map(&[
-                    ("CopySource", Value::str(&copy_source)),
+                    ("CopySource", copy_source.clone()),
                     ("UploadId", Value::str(&mpu.upload_id)),
                     ("PartNumber", Value::int(part)),
                 ]);
@@ -3132,7 +3143,6 @@ mod tests {
         assert_eq!(range_param(5, 0, 2, None), "bytes=0-4");
         assert_eq!(range_param(5, 1, 2, None), "bytes=5-");
         assert_eq!(range_param(5, 1, 2, Some(9)), "bytes=5-8");
-        assert_eq!(copy_source_string("b", "a b+c/d"), "b/a%20b%2Bc/d");
     }
 
     #[test]

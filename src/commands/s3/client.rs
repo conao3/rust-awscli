@@ -124,7 +124,12 @@ impl<'a> Client<'a> {
         }
         let mut seen: Vec<String> = vec![];
         loop {
-            let page = self.call("ListObjectsV2", params.clone())?;
+            let page = {
+                let _context = crate::session::useragent::ContextGuard::new(&[
+                    crate::session::useragent::Feature::Paginator,
+                ]);
+                self.call("ListObjectsV2", params.clone())?
+            };
             let next = page
                 .get("NextContinuationToken")
                 .and_then(Value::as_str)

@@ -66,6 +66,29 @@ pub enum Feature {
     CredentialsLogin,
     Sigv4aSigning,
     BearerServiceEnvVars,
+    S3Transfer,
+    S3TransferClassicExplicit,
+    S3TransferClassicAuto,
+    S3Redirect,
+    ProtocolRpcV2Cbor,
+    GzipRequestCompression,
+    AccountIdModePreferred,
+    AccountIdModeDisabled,
+    AccountIdModeRequired,
+    ResolvedAccountId,
+    FlexibleChecksumsReqCrc32,
+    FlexibleChecksumsReqCrc32c,
+    FlexibleChecksumsReqCrc64,
+    FlexibleChecksumsReqSha1,
+    FlexibleChecksumsReqSha256,
+    FlexibleChecksumsReqMd5,
+    FlexibleChecksumsReqSha512,
+    FlexibleChecksumsReqXxhash3,
+    FlexibleChecksumsReqXxhash64,
+    FlexibleChecksumsReqXxhash128,
+    SsoLoginVanityUrl,
+    LoginSameDevice,
+    LoginCrossDevice,
 }
 
 impl Feature {
@@ -103,6 +126,29 @@ impl Feature {
             Feature::CredentialsLogin => "AD",
             Feature::Sigv4aSigning => "S",
             Feature::BearerServiceEnvVars => "3",
+            Feature::S3Transfer => "G",
+            Feature::S3TransferClassicExplicit => "Ad",
+            Feature::S3TransferClassicAuto => "Af",
+            Feature::S3Redirect => "Ah",
+            Feature::ProtocolRpcV2Cbor => "M",
+            Feature::GzipRequestCompression => "L",
+            Feature::AccountIdModePreferred => "P",
+            Feature::AccountIdModeDisabled => "Q",
+            Feature::AccountIdModeRequired => "R",
+            Feature::ResolvedAccountId => "T",
+            Feature::FlexibleChecksumsReqCrc32 => "U",
+            Feature::FlexibleChecksumsReqCrc32c => "V",
+            Feature::FlexibleChecksumsReqCrc64 => "W",
+            Feature::FlexibleChecksumsReqSha1 => "X",
+            Feature::FlexibleChecksumsReqSha256 => "Y",
+            Feature::FlexibleChecksumsReqMd5 => "AE",
+            Feature::FlexibleChecksumsReqSha512 => "AF",
+            Feature::FlexibleChecksumsReqXxhash3 => "AG",
+            Feature::FlexibleChecksumsReqXxhash64 => "AH",
+            Feature::FlexibleChecksumsReqXxhash128 => "AI",
+            Feature::SsoLoginVanityUrl => "AM",
+            Feature::LoginSameDevice => "AA",
+            Feature::LoginCrossDevice => "AB",
         }
     }
 }
@@ -218,6 +264,94 @@ pub fn register(features: &[Feature]) {
 
 pub fn registered() -> Vec<Feature> {
     REGISTERED.lock().unwrap().clone()
+}
+
+static COMMAND_CONTEXT: std::sync::Mutex<Vec<Feature>> = std::sync::Mutex::new(Vec::new());
+
+thread_local! {
+    /// The features of the context of the call this thread makes
+    /// (`botocore.context` of `_make_api_call`).
+    static CONTEXT: std::cell::RefCell<Vec<Feature>> = const { std::cell::RefCell::new(Vec::new()) };
+    /// Whether the client of the call is the one created while the
+    /// credentials were loaded, whose features include the providers'.
+    static CREDENTIAL_CLIENT: std::cell::Cell<bool> = const { std::cell::Cell::new(true) };
+}
+
+/// `register_feature_id` in the command's context, which every call and
+/// thread of the command copies (`S3_TRANSFER`, the SSO and login flows).
+pub fn register_command(features: &[Feature]) {
+    COMMAND_CONTEXT.lock().unwrap().extend_from_slice(features);
+}
+
+/// `register_feature_id` in the context of the current call.
+pub fn register_context(feature: Feature) {
+    CONTEXT.with(|c| c.borrow_mut().push(feature));
+}
+
+/// The features of the current context: the command's and the call's.
+pub fn context() -> Vec<Feature> {
+    let mut features = COMMAND_CONTEXT.lock().unwrap().clone();
+    CONTEXT.with(|c| features.extend_from_slice(&c.borrow()));
+    features
+}
+
+/// Whether the current call's client carries the credential providers'
+/// features.
+pub fn credential_client() -> bool {
+    CREDENTIAL_CLIENT.with(std::cell::Cell::get)
+}
+
+/// `start_as_current_context`: a copy of the current context with
+/// `features` added, which the context it replaces gets back on drop.
+pub struct ContextGuard {
+    saved: Vec<Feature>,
+    credential_client: bool,
+}
+
+impl ContextGuard {
+    pub fn new(features: &[Feature]) -> ContextGuard {
+        let saved = CONTEXT.with(|c| {
+            let saved = c.borrow().clone();
+            c.borrow_mut().extend_from_slice(features);
+            saved
+        });
+        ContextGuard {
+            saved,
+            credential_client: credential_client(),
+        }
+    }
+
+    /// The context of a call of a client that is not the one created
+    /// while the credentials were loaded.
+    pub fn without_credential_features(self) -> ContextGuard {
+        CREDENTIAL_CLIENT.with(|c| c.set(false));
+        self
+    }
+}
+
+impl Drop for ContextGuard {
+    fn drop(&mut self) {
+        let saved = std::mem::take(&mut self.saved);
+        CONTEXT.with(|c| *c.borrow_mut() = saved);
+        CREDENTIAL_CLIENT.with(|c| c.set(self.credential_client));
+    }
+}
+
+/// `_register_checksum_algorithm_feature_id` of the algorithm `name`.
+pub fn checksum_algorithm(name: &str) -> Option<Feature> {
+    Some(match name.to_ascii_uppercase().as_str() {
+        "CRC32" => Feature::FlexibleChecksumsReqCrc32,
+        "CRC32C" => Feature::FlexibleChecksumsReqCrc32c,
+        "CRC64NVME" => Feature::FlexibleChecksumsReqCrc64,
+        "SHA1" => Feature::FlexibleChecksumsReqSha1,
+        "SHA256" => Feature::FlexibleChecksumsReqSha256,
+        "MD5" => Feature::FlexibleChecksumsReqMd5,
+        "SHA512" => Feature::FlexibleChecksumsReqSha512,
+        "XXHASH3" => Feature::FlexibleChecksumsReqXxhash3,
+        "XXHASH64" => Feature::FlexibleChecksumsReqXxhash64,
+        "XXHASH128" => Feature::FlexibleChecksumsReqXxhash128,
+        _ => return None,
+    })
 }
 
 #[cfg(test)]

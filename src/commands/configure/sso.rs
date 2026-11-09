@@ -158,11 +158,17 @@ fn resolve_vanity(ctx: &Context, start_url: &str) -> Option<(String, String)> {
     if flow::is_aws_owned_domain(&host) {
         return None;
     }
-    block_on(
+    let resolved = block_on(
         &ctx.runtime,
         flow::resolve_start_url(ctx.session.config(), start_url, None),
     )
-    .ok()
+    .ok();
+    if resolved.is_some() {
+        crate::session::useragent::register_command(&[
+            crate::session::useragent::Feature::SsoLoginVanityUrl,
+        ]);
+    }
+    resolved
 }
 
 /// `aws configure sso-session`.

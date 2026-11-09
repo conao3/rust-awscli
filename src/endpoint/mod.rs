@@ -709,6 +709,7 @@ pub fn construct_endpoint(
         EndpointError::Internal(format!("no endpoint ruleset for {}", model.name))
     })?;
     let params = build_params(model, operation, call_params, builtins);
+    register_endpoint_feature_ids(&params);
     let mut endpoint = match resolve_endpoint(ruleset, &params) {
         Ok(e) => e,
         Err(e) => return Err(ruleset_error_to_botocore_exception(e, &model.name, &params)),
@@ -720,6 +721,35 @@ pub fn construct_endpoint(
         values.truncate(1);
     }
     Ok(endpoint)
+}
+
+/// Whether a parameter of the service's rule set takes the built-in
+/// `name`.
+pub fn uses_builtin(model: &ServiceModel, name: &str) -> bool {
+    model.ruleset().is_some_and(|r| {
+        r["parameters"].as_object().is_some_and(|params| {
+            params
+                .iter()
+                .any(|(_, p)| p["builtIn"].as_str() == Some(name))
+        })
+    })
+}
+
+/// `EndpointRulesetResolver._register_endpoint_feature_ids` of the
+/// parameters given to the rule set.
+fn register_endpoint_feature_ids(params: &IndexMap<String, ParamValue>) {
+    use crate::session::useragent::{Feature, register_context};
+    if let Some(ParamValue::String(mode)) = params.get("AccountIdEndpointMode") {
+        match mode.to_ascii_uppercase().as_str() {
+            "PREFERRED" => register_context(Feature::AccountIdModePreferred),
+            "DISABLED" => register_context(Feature::AccountIdModeDisabled),
+            "REQUIRED" => register_context(Feature::AccountIdModeRequired),
+            _ => {}
+        }
+    }
+    if params.contains_key("AccountId") {
+        register_context(Feature::ResolvedAccountId);
+    }
 }
 
 /// `EndpointRulesetResolver.ruleset_error_to_botocore_exception`.

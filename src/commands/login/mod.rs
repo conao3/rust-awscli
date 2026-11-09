@@ -105,6 +105,11 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
     } else {
         Some(AuthCodeFetcher::new(redirect_port).map_err(|e| ctx.session_error(&e))?)
     };
+    crate::session::useragent::register_command(&[if remote {
+        crate::session::useragent::Feature::LoginCrossDevice
+    } else {
+        crate::session::useragent::Feature::LoginSameDevice
+    }]);
     let mut probe_input = Map::new();
     probe_input.insert("clientId".into(), Value::str(" "));
     probe_input.insert("grantType".into(), Value::str(" "));

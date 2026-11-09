@@ -448,6 +448,14 @@ fn runtime_config(ctx: &Context, p: &Params) -> Result<TransferConfig, S3Fail> {
             super::err(format!("warning: Using the 'classic' s3 transfer client because the 'crt' s3 transfer client does not support: {}. A future version of the AWS CLI will use the 'crt' s3 transfer client by default, at which point these values will be ignored. Set the preferred_transfer_client configuration value to 'classic' to continue using the 'classic' s3 transfer client.\n", classic_only.join(", ")).as_bytes());
         }
     }
+    crate::session::useragent::register_command(&[
+        crate::session::useragent::Feature::S3Transfer,
+        if preferred == "auto" {
+            crate::session::useragent::Feature::S3TransferClassicAuto
+        } else {
+            crate::session::useragent::Feature::S3TransferClassicExplicit
+        },
+    ]);
     let ignored: Vec<&str> = [
         "target_bandwidth",
         "should_stream",
@@ -811,6 +819,9 @@ impl<'g, 'a> S3Lister<'g, 'a> {
     }
 
     fn fetch(&mut self) {
+        let _context = crate::session::useragent::ContextGuard::new(&[
+            crate::session::useragent::Feature::Paginator,
+        ]);
         let page = match self.g.client.call("ListObjectsV2", self.params.clone()) {
             Ok(p) => p,
             Err(e) => {
@@ -2745,7 +2756,12 @@ impl<'a> Handler<'a> {
                 if let Some(t) = &token {
                     params.insert("ContinuationToken".into(), t.clone());
                 }
-                let page = self.src_call("ListObjectAnnotations", params)?;
+                let page = {
+                    let _context = crate::session::useragent::ContextGuard::new(&[
+                        crate::session::useragent::Feature::Paginator,
+                    ]);
+                    self.src_call("ListObjectAnnotations", params)?
+                };
                 for a in page
                     .get("Annotations")
                     .and_then(Value::as_list)

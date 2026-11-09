@@ -1,0 +1,328 @@
+[
+ {
+  "name": "user agent features of static credentials",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of paginator and account id mode",
+  "argv": [
+   "dynamodb",
+   "list-tables",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"TableNames\": []}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of resolved account id",
+  "argv": [
+   "dynamodb",
+   "list-tables",
+   "--profile",
+   "acct",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"TableNames\": []}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of request checksum",
+  "argv": [
+   "s3api",
+   "put-object",
+   "--bucket",
+   "b",
+   "--key",
+   "k",
+   "--body",
+   "{casedir}/f.txt",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of s3 ls paginator",
+  "argv": [
+   "s3",
+   "ls",
+   "s3://b/",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><KeyCount>0</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of s3 transfer",
+  "argv": [
+   "s3",
+   "cp",
+   "{casedir}/f.txt",
+   "s3://b/k",
+   "--no-progress",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of waiter",
+  "argv": [
+   "ec2",
+   "wait",
+   "instance-exists",
+   "--instance-ids",
+   "i-1",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-1</instanceId></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of request compression",
+  "argv": [
+   "cloudwatch",
+   "put-metric-data",
+   "--namespace",
+   "n",
+   "--metric-name",
+   "m",
+   "--value",
+   "1",
+   "--profile",
+   "gz",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<PutMetricDataResponse xmlns=\"http://monitoring.amazonaws.com/doc/2010-08-01/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></PutMetricDataResponse>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of rpc v2 cbor",
+  "argv": [
+   "partnercentral-revenue-measurement",
+   "list-revenue-attributions",
+   "--catalog",
+   "AWS",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/cbor",
+     "smithy-protocol": "rpc-v2-cbor"
+    },
+    "body": "base64:oA=="
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of assume role",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--profile",
+   "role"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AssumeRoleResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><AssumeRoleResult><Credentials><AccessKeyId>AKIDROLE</AccessKeyId><SecretAccessKey>SECRETROLE</SecretAccessKey><SessionToken>TOKEN</SessionToken><Expiration>2099-01-01T00:00:00Z</Expiration></Credentials><AssumedRoleUser><AssumedRoleId>ARO:s</AssumedRoleId><Arn>arn:aws:sts::123456789012:assumed-role/r/s</Arn></AssumedRoleUser></AssumeRoleResult><ResponseMetadata><RequestId>r-2</RequestId></ResponseMetadata></AssumeRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of assume role for an account id endpoint",
+  "argv": [
+   "dynamodb",
+   "list-tables",
+   "--profile",
+   "role"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AssumeRoleResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><AssumeRoleResult><Credentials><AccessKeyId>AKIDROLE</AccessKeyId><SecretAccessKey>SECRETROLE</SecretAccessKey><SessionToken>TOKEN</SessionToken><Expiration>2099-01-01T00:00:00Z</Expiration></Credentials><AssumedRoleUser><AssumedRoleId>ARO:s</AssumedRoleId><Arn>arn:aws:sts::123456789012:assumed-role/r/s</Arn></AssumedRoleUser></AssumeRoleResult><ResponseMetadata><RequestId>r-2</RequestId></ResponseMetadata></AssumeRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.0"
+    },
+    "body": "{\"TableNames\": []}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of assume role in an s3 transfer",
+  "argv": [
+   "s3",
+   "cp",
+   "{casedir}/f.txt",
+   "s3://b/k",
+   "--no-progress",
+   "--profile",
+   "role"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n\n[profile acct]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\naws_account_id = 123456789012\n\n[profile gz]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nrequest_min_compression_size_bytes = 1\n\n[profile src]\naws_access_key_id = AKIDSRC\naws_secret_access_key = SECRETSRC\n\n[profile role]\nrole_arn = arn:aws:iam::123456789012:role/r\nrole_session_name = sess\nsource_profile = src\nregion = us-east-1\nendpoint_url = {endpoint}\ns3 =\n  addressing_style = path\n  preferred_transfer_client = classic\n",
+   "f.txt": "data"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AssumeRoleResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><AssumeRoleResult><Credentials><AccessKeyId>AKIDROLE</AccessKeyId><SecretAccessKey>SECRETROLE</SecretAccessKey><SessionToken>TOKEN</SessionToken><Expiration>2099-01-01T00:00:00Z</Expiration></Credentials><AssumedRoleUser><AssumedRoleId>ARO:s</AssumedRoleId><Arn>arn:aws:sts::123456789012:assumed-role/r/s</Arn></AssumedRoleUser></AssumeRoleResult><ResponseMetadata><RequestId>r-2</RequestId></ResponseMetadata></AssumeRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\""
+    },
+    "body": ""
+   }
+  ],
+  "user_agent_features": true
+ }
+]

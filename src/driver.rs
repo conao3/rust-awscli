@@ -592,6 +592,12 @@ impl<'a> Caller<'a> {
         if self.model.name == "s3" {
             endpoint::customize_s3_builtins(&mut builtins, self.operation.name, &params);
         }
+        if builtins.account_id.is_none()
+            && endpoint::uses_builtin(self.model, "AWS::Auth::AccountId")
+        {
+            builtins.account_id =
+                block_on(&ctx.runtime, ctx.session.account_id(self.region.as_deref()))?;
+        }
         let use_ssl = !self
             .endpoint_url
             .as_deref()
@@ -640,6 +646,10 @@ impl<'a> Caller<'a> {
     /// parameters before the `provide-client-params` handlers.
     pub(crate) fn call_as(&self, given: &Value, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
+        let mut _context = crate::session::useragent::ContextGuard::new(&[]);
+        if self.client.id != 0 {
+            _context = _context.without_credential_features();
+        }
         self.record_api_call(given);
         let original_params = params.clone();
         let (params, call_ctx, mut endpoint) = self.prepare(params)?;

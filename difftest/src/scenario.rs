@@ -80,6 +80,11 @@ pub struct Scenario {
     /// sorted groups of each request id with the `[n]` dropped.
     #[serde(default)]
     pub concurrent: bool,
+    /// Compare the feature ids (`m/`) of the user agents, sorted, since
+    /// the reference writes them in the order of a Python `set`, which
+    /// varies between runs.
+    #[serde(default)]
+    pub user_agent_features: bool,
     /// `AWS_MAX_ATTEMPTS` of the runs in place of `--max-attempts`.
     #[serde(default)]
     pub max_attempts: Option<u32>,
@@ -137,6 +142,30 @@ fn add_user_agent_command(request: &mut crate::server::Recorded) {
     request.headers.push((
         "x-difftest-user-agent-command".to_string(),
         command.into_bytes(),
+    ));
+}
+
+/// The sorted feature ids of the user agent of `request`, as a header the
+/// comparison does not mask.
+fn add_user_agent_features(request: &mut crate::server::Recorded) {
+    let features = request
+        .headers
+        .iter()
+        .find(|(k, _)| k.eq_ignore_ascii_case("user-agent"))
+        .and_then(|(_, v)| {
+            String::from_utf8_lossy(v)
+                .split(' ')
+                .find_map(|p| p.strip_prefix("m/").map(str::to_string))
+        })
+        .map(|m| {
+            let mut ids: Vec<&str> = m.split(',').collect();
+            ids.sort_unstable();
+            ids.join(",")
+        })
+        .unwrap_or_default();
+    request.headers.push((
+        "x-difftest-user-agent-features".to_string(),
+        features.into_bytes(),
     ));
 }
 
@@ -379,6 +408,11 @@ pub async fn exec(
         rb.stdout = history_groups(&rb.stdout);
         qa.sort_by_cached_key(compare::render_request);
         qb.sort_by_cached_key(compare::render_request);
+    }
+    if s.user_agent_features {
+        qa.iter_mut()
+            .chain(qb.iter_mut())
+            .for_each(add_user_agent_features);
     }
     if s.user_agent_command {
         qa.iter_mut()

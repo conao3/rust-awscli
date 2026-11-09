@@ -160,6 +160,7 @@ impl<'a> ApiClient<'a> {
 
     fn user_agent(&self) -> String {
         let mut features = self.features.clone();
+        features.extend(super::useragent::context());
         if self.credentials.is_some() {
             features.push(Feature::CredentialsCode);
         }
@@ -215,6 +216,7 @@ impl<'a> ApiClient<'a> {
         params: &Value,
         extra_headers: Option<HeaderHook<'_>>,
     ) -> Result<Value, ApiError> {
+        let _context = super::useragent::ContextGuard::new(&[]);
         let model = &self.model;
         let op = model
             .operation(operation)

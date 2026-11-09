@@ -55,11 +55,10 @@ pub struct Session {
     config: Config,
     http: tokio::sync::OnceCell<Arc<HttpClient>>,
     retry_states: Mutex<HashMap<String, Arc<RetryState>>>,
-    credentials: tokio::sync::OnceCell<Option<Credentials>>,
+    credentials: tokio::sync::OnceCell<Option<credentials::LoadedCredentials>>,
     /// The path of the command an alias that replaced it in its command
     /// table proxies to (`InternalAliasSubCommand._proxied_sub_command`).
     proxied: Option<Vec<String>>,
-    features: Mutex<Vec<Feature>>,
     /// `S3RegionRedirectorv2._cache` of each S3 client (keyed by the
     /// client's id): bucket to region.
     s3_redirect_cache: Mutex<HashMap<(u32, String), String>>,
@@ -253,7 +252,6 @@ impl Session {
             retry_states: Mutex::new(HashMap::new()),
             credentials: tokio::sync::OnceCell::new(),
             proxied: None,
-            features: Mutex::new(Vec::new()),
             s3_redirect_cache: Mutex::new(HashMap::new()),
         })
     }
@@ -302,11 +300,6 @@ impl Session {
     /// command an alias proxies to, whose lineage is only itself.
     pub fn lineage<'p>(&self, path: &'p [&'p str]) -> &'p [&'p str] {
         crate::cli::lineage(self.proxied.as_deref(), path)
-    }
-
-    /// Record a user agent feature (e.g. `Feature::Paginator`).
-    pub fn add_feature(&self, feature: Feature) {
-        self.features.lock().unwrap().push(feature);
     }
 
     /// The checks botocore runs when creating a client, in its order:
@@ -429,10 +422,30 @@ impl Session {
         &self,
         region: Option<&str>,
     ) -> Result<Option<Credentials>, SessionError> {
-        self.credentials
-            .get_or_try_init(|| credentials::resolve_credentials(&self.config, region))
-            .await
-            .cloned()
+        Ok(self
+            .loaded_credentials(region)
+            .await?
+            .map(|c| c.credentials.clone()))
+    }
+
+    async fn loaded_credentials(
+        &self,
+        region: Option<&str>,
+    ) -> Result<Option<&credentials::LoadedCredentials>, SessionError> {
+        Ok(self
+            .credentials
+            .get_or_try_init(|| credentials::load_credentials(&self.config, region))
+            .await?
+            .as_ref())
+    }
+
+    /// The `account_id` of the credentials, which the
+    /// `AWS::Auth::AccountId` built-in reads (`get_deferred_property`).
+    pub async fn account_id(&self, region: Option<&str>) -> Result<Option<String>, SessionError> {
+        Ok(self
+            .loaded_credentials(region)
+            .await?
+            .and_then(|c| c.account_id.clone()))
     }
 
     fn user_agent(
@@ -441,10 +454,13 @@ impl Session {
         settings: &ClientSettings,
         extra: &[Feature],
     ) -> String {
-        let mut features = self.features.lock().unwrap().clone();
+        let mut features = useragent::context();
         features.extend_from_slice(extra);
-        features.extend(useragent::registered());
-        if !self.config.profile_explicitly_set()
+        if useragent::credential_client() {
+            features.extend(useragent::registered());
+        }
+        if useragent::credential_client()
+            && !self.config.profile_explicitly_set()
             && credentials::env_credentials(&self.config)
                 .ok()
                 .flatten()
@@ -635,6 +651,31 @@ impl Session {
             .and_then(|m| m.get("signature_version"))
             .filter(|v| !v.is_empty())
             .cloned();
+        if model.protocol() == "smithy-rpc-v2-cbor" {
+            useragent::register_context(Feature::ProtocolRpcV2Cbor);
+        }
+        let checksums: Vec<Feature> = request
+            .headers
+            .iter()
+            .filter_map(|(k, _)| {
+                let name = k.to_ascii_lowercase();
+                let algorithm = name.strip_prefix("x-amz-checksum-")?;
+                (!matches!(algorithm, "algorithm" | "mode" | "type")).then(|| algorithm.to_string())
+            })
+            .filter_map(|a| useragent::checksum_algorithm(&a))
+            .collect();
+        if checksums.is_empty() {
+            if let Some(trailer) = headers::get(&request.headers, "x-amz-trailer")
+                && let Some(f) = trailer
+                    .to_ascii_lowercase()
+                    .strip_prefix("x-amz-checksum-")
+                    .and_then(useragent::checksum_algorithm)
+            {
+                useragent::register_context(f);
+            }
+        } else {
+            checksums.into_iter().for_each(useragent::register_context);
+        }
         let invocation_id = uuid::Uuid::new_v4().to_string();
         let mut ttl: Option<String> = None;
         let mut max_known = false;
@@ -684,6 +725,7 @@ impl Session {
                 && auth_inputs.operation_auth.is_none()
             {
                 choice.version = SignatureVersion::Bearer;
+                useragent::register_context(Feature::BearerServiceEnvVars);
             }
             let s3_payload_signing = self.config.get_bool("s3.payload_signing_enabled")?;
 
@@ -846,6 +888,7 @@ impl Session {
                             && let Some(new_endpoint) = redirect(r)?
                         {
                             redirected = true;
+                            useragent::register_context(Feature::S3Redirect);
                             endpoint = new_endpoint;
                             attempt += 1;
                             if let Some(date) = r.header("Date") {

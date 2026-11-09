@@ -122,6 +122,9 @@ pub(crate) fn ls(ctx: &Context, args: &Args) -> Result<ExitCode, S3Fail> {
             params.insert("MaxBuckets".into(), Value::int(n));
         }
         loop {
+            let _context = crate::session::useragent::ContextGuard::new(&[
+                crate::session::useragent::Feature::Paginator,
+            ]);
             let page = client
                 .call("ListBuckets", params.clone())
                 .map_err(service)?;

@@ -832,7 +832,12 @@ impl PageIterator {
             self.previous_next_token = Some(next_token);
         }
         let mut kwargs = Value::Map(self.op_kwargs.clone());
-        let called = call(&mut kwargs);
+        let called = {
+            let _context = crate::session::useragent::ContextGuard::new(&[
+                crate::session::useragent::Feature::Paginator,
+            ]);
+            call(&mut kwargs)
+        };
         if let Value::Map(kwargs) = kwargs {
             for (name, token) in self.next_token.iter_mut() {
                 if let Some(v) = kwargs.get(name)

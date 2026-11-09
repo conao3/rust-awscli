@@ -223,7 +223,12 @@ pub async fn wait(
     let mut num_attempts = 0i64;
     let failed = |reason: String| WaitOutcome::Failed(format!("Waiter {name} failed: {reason}"));
     loop {
-        let response = poll(params)?;
+        let response = {
+            let _context = crate::session::useragent::ContextGuard::new(&[
+                crate::session::useragent::Feature::Waiter,
+            ]);
+            poll(params)?
+        };
         num_attempts += 1;
         let mut acceptor: Option<&Acceptor> = None;
         let mut matched = false;

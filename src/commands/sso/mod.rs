@@ -153,6 +153,11 @@ pub(crate) fn login(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError
         flow::resolve_start_url(config, &sso.start_url, sso.region.as_deref()),
     )
     .map_err(|e| ctx.session_error(&e))?;
+    if resolved_url != sso.start_url {
+        crate::session::useragent::register_command(&[
+            crate::session::useragent::Feature::SsoLoginVanityUrl,
+        ]);
+    }
     let login = flow::SsoLogin {
         sso_region: region.clone(),
         start_url: sso.start_url.clone(),

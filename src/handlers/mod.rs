@@ -466,6 +466,9 @@ pub fn maybe_compress_request(
     let encodings = compression.get("encodings").and_then(|v| v.as_array());
     for encoding in encodings.into_iter().flat_map(|a| a.iter()) {
         if encoding.as_str() == Some("gzip") {
+            crate::session::useragent::register_context(
+                crate::session::useragent::Feature::GzipRequestCompression,
+            );
             let mut enc = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::new(9));
             enc.write_all(&request.body)?;
             request.body = enc.finish()?;

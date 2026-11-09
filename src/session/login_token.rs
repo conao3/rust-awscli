@@ -194,6 +194,10 @@ async fn refresh(
     cache: &JsonFileCache,
     session_name: &str,
 ) -> Result<LoginCredentials, SessionError> {
+    FEATURES
+        .iter()
+        .copied()
+        .for_each(super::useragent::register_context);
     let Some(mut token) = load_token(cache, session_name) else {
         return Err(login_error(
             "Error loading login session token: Private key not found in cached token.",

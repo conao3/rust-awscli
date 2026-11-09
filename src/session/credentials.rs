@@ -121,17 +121,6 @@ fn env_provider(config: &Config) -> Result<Option<LoadedCredentials>, SessionErr
     Ok(Some(c))
 }
 
-/// Resolve credentials. `Ok(None)` means none were found (the signer then
-/// raises `NoCredentialsError`).
-pub async fn resolve_credentials(
-    config: &Config,
-    region: Option<&str>,
-) -> Result<Option<Credentials>, SessionError> {
-    Ok(load_credentials(config, region)
-        .await?
-        .map(|c| c.credentials))
-}
-
 /// `Session.get_credentials()`: the first provider of the chain that has
 /// credentials.
 pub async fn load_credentials(
@@ -327,6 +316,10 @@ impl<'a> Resolver<'a> {
                             .map_err(|e| SessionError::new(ErrorKind::General, e.message()))?;
                             kwargs.insert("TokenCode".into(), Value::str(code));
                         }
+                        fetcher_features
+                            .iter()
+                            .copied()
+                            .for_each(useragent::register_context);
                         let client = ApiClient::new(
                             self.config,
                             "sts",
@@ -492,6 +485,10 @@ impl<'a> Resolver<'a> {
                 None => {
                     let mut kwargs = fetcher.kwargs.clone();
                     kwargs.insert("WebIdentityToken".into(), Value::str(read_token()?));
+                    fetcher_features
+                        .iter()
+                        .copied()
+                        .for_each(useragent::register_context);
                     let client =
                         ApiClient::new(self.config, "sts", self.region.clone(), None, None)?
                             .with_features(fetcher_features.clone());
@@ -626,7 +623,11 @@ impl<'a> Resolver<'a> {
                 }
             };
             let client = ApiClient::new(self.config, "sso", Some(sso_region), None, None)?
-                .with_features(fetcher_features);
+                .with_features(fetcher_features.clone());
+            fetcher_features
+                .iter()
+                .copied()
+                .for_each(useragent::register_context);
             let mut params = Map::new();
             params.insert("roleName".into(), Value::str(&role_name));
             params.insert("accountId".into(), Value::str(&account_id));

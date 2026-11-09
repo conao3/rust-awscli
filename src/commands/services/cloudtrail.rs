@@ -229,6 +229,7 @@ impl<'c> S3ClientProvider<'c> {
                     region: region.clone().map(Some),
                     without_endpoint_url: true,
                     id: 100 + self.next_id,
+                    ..Default::default()
                 },
             )
             .map_err(|e| Raised::Other(e.to_string()))?;
@@ -1178,6 +1179,7 @@ fn validate_logs(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
             region: region.clone().map(Some),
             without_endpoint_url: true,
             id: 0,
+            ..Default::default()
         },
     )?;
     let cloudtrail = Client::new(ctx, "cloudtrail")?;

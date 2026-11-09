@@ -96,6 +96,7 @@ pub(crate) fn create_default_roles(
     parsed: &Args,
     region: Option<&str>,
 ) -> Result<(), CliError> {
+    let _emr = util::emr_client(ctx)?;
     let iam_ctx = util::context_with_endpoint(ctx, parsed.str("iam_endpoint"))?;
     let iam = Client::new(&iam_ctx, "iam")?;
     let emr_endpoint = emr_endpoint_url(ctx, region);

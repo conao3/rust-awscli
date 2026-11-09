@@ -1230,12 +1230,14 @@ pub(crate) fn run(ctx: &Context, cmd: &str, args: Args) -> Result<ExitCode, S3Fa
     if let Some(r) = &source_region {
         crate::session::validate_region_name(r).map_err(|e| S3Fail::Other(e.into()))?;
     }
+    let _command_client = Client::new(ctx).map_err(S3Fail::Other)?;
     let src_client = Client::with_config(
         ctx,
         crate::driver::ClientConfig {
             region: source_region.clone().map(Some),
             without_endpoint_url: source_region.is_some(),
             id: 1,
+            ..Default::default()
         },
     )
     .map_err(S3Fail::Other)?;

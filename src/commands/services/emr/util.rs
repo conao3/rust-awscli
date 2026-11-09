@@ -355,6 +355,12 @@ pub(crate) fn emr_client(ctx: &Context) -> Result<Client<'_>, CliError> {
     Client::new(ctx, "emr")
 }
 
+/// `emrutils.call`: the credentials are loaded before the client is created.
+pub(crate) fn call(ctx: &Context, operation: &str, params: &Value) -> Result<Value, CliError> {
+    crate::session::useragent::load_credentials_in_command();
+    emr_client(ctx)?.call(operation, params)
+}
+
 /// `emrutils.call_and_display_response` (`CLIOperationCaller.invoke`).
 pub(crate) fn call_and_display(
     ctx: &Context,
@@ -373,10 +379,9 @@ pub(crate) fn display(ctx: &Context, command_name: &str, result: Value) -> Resul
 
 /// `emrutils.get_release_label`.
 pub(crate) fn release_label(ctx: &Context, cluster_id: &str) -> Result<Option<String>, CliError> {
-    let client = emr_client(ctx)?;
     let mut params = Map::new();
     params.insert("ClusterId".to_string(), Value::str(cluster_id));
-    let result = client.call("DescribeCluster", &Value::Map(params))?;
+    let result = call(ctx, "DescribeCluster", &Value::Map(params))?;
     Ok(result
         .get("Cluster")
         .and_then(|c| c.get("ReleaseLabel"))

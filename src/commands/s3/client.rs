@@ -69,7 +69,7 @@ impl<'a> Client<'a> {
         Ok(Client {
             ctx,
             model: s3_model()?,
-            config,
+            config: config.created(),
         })
     }
 

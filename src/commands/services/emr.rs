@@ -213,20 +213,19 @@ fn schedule_hbase_backup(ctx: &Context, parsed: &Args) -> Result<(), CliError> {
 
 /// `DescribeCluster._run_main_command`.
 fn describe_cluster(ctx: &Context, parsed: &Args) -> Result<(), CliError> {
-    let client = util::emr_client(ctx)?;
     let params = Value::Map(cluster_param(parsed, "ClusterId"));
-    let mut result = client.call("DescribeCluster", &params)?;
+    let mut result = util::call(ctx, "DescribeCluster", &params)?;
     let fleets = result
         .get("Cluster")
         .and_then(|c| c.get("InstanceCollectionType"))
         .and_then(Value::as_str)
         == Some("INSTANCE_FLEET");
     let (fleet_result, group_result) = if fleets {
-        (Some(client.call("ListInstanceFleets", &params)?), None)
+        (Some(util::call(ctx, "ListInstanceFleets", &params)?), None)
     } else {
-        (None, Some(client.call("ListInstanceGroups", &params)?))
+        (None, Some(util::call(ctx, "ListInstanceGroups", &params)?))
     };
-    let bootstrap = client.call("ListBootstrapActions", &params)?;
+    let bootstrap = util::call(ctx, "ListBootstrapActions", &params)?;
     let Some(cluster) = result
         .as_map_mut()
         .and_then(|m| m.get_mut("Cluster"))
@@ -397,8 +396,7 @@ fn add_instance_groups(ctx: &Context, parsed: &Args) -> Result<(), CliError> {
             &parsed.list("instance_groups").unwrap_or_default(),
         )),
     );
-    let client = util::emr_client(ctx)?;
-    let result = client.call("AddInstanceGroups", &Value::Map(p))?;
+    let result = util::call(ctx, "AddInstanceGroups", &Value::Map(p))?;
     let mut out = Map::new();
     let id = result
         .get("JobFlowId")

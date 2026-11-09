@@ -154,7 +154,14 @@ fn upload_build(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     let secret_key = get_str(ctx, creds, "SecretAccessKey")?;
     let token = get_str(ctx, creds, "SessionToken")?;
     let s3_ctx = sub_context(ctx, None, None, Some((access_key, secret_key, Some(token))))?;
-    let s3 = Client::new(&s3_ctx, "s3")?;
+    let s3 = Client::with_config(
+        &s3_ctx,
+        "s3",
+        crate::driver::ClientConfig {
+            explicit_credentials: true,
+            ..Default::default()
+        },
+    )?;
     let bundle = zip_directory(&build_root).map_err(|e| ctx.general_error(&e.into()))?;
     let size = bundle.len() as f64;
     s3.call(

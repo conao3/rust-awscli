@@ -44,8 +44,7 @@ fn describe(client: &Client<'_>, cluster_id: &str) -> Result<Value, CliError> {
 
 /// `sshutils.validate_and_find_master_dns`.
 fn master_dns(ctx: &Context, cluster_id: &str) -> Result<String, CliError> {
-    let client = util::emr_client(ctx)?;
-    let state = describe(&client, cluster_id)?
+    let state = describe(&util::emr_client(ctx)?, cluster_id)?
         .get("Cluster")
         .and_then(|c| c.get("Status"))
         .and_then(|s| s.get("State"))
@@ -57,6 +56,7 @@ fn master_dns(ctx: &Context, cluster_id: &str) -> Result<String, CliError> {
             "Cluster terminating or already terminated.",
         ));
     }
+    let client = util::emr_client(ctx)?;
     if STARTING_STATES.contains(&state.as_str()) {
         basic::print("Waiting for the cluster to start.\n");
     }
@@ -87,7 +87,7 @@ fn master_dns(ctx: &Context, cluster_id: &str) -> Result<String, CliError> {
             "Cannot get DNS of master node on the cluster.  Please try again after some time.",
         ));
     }
-    let cluster = describe(&client, cluster_id)?;
+    let cluster = describe(&util::emr_client(ctx)?, cluster_id)?;
     match cluster
         .get("Cluster")
         .and_then(|c| c.get("MasterPublicDnsName"))

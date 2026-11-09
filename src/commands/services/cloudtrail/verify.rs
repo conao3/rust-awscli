@@ -126,6 +126,7 @@ pub(super) fn verify_query_results(ctx: &Context, args: &[String]) -> Result<Exi
                     region: ctx.globals.region.clone().map(Some),
                     without_endpoint_url: true,
                     id: 1,
+                    ..Default::default()
                 },
             )
             .map_err(|e| ctx.general_error(&e))?,

@@ -264,8 +264,8 @@ fn no_follow(
         .model
         .paginator("FilterLogEvents")
         .expect("FilterLogEvents paginator");
-    let caller =
-        Caller::new(ctx, &client.model, "FilterLogEvents").map_err(|e| ctx.general_error(&e))?;
+    let caller = Caller::with_config(ctx, &client.model, "FilterLogEvents", client.config.clone())
+        .map_err(|e| ctx.general_error(&e))?;
     let mut it = PageIterator::new(
         paginator,
         &params,

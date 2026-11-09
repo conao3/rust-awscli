@@ -456,10 +456,12 @@ impl Session {
     ) -> String {
         let mut features = useragent::context();
         features.extend_from_slice(extra);
-        if useragent::credential_client() {
+        let credential_features =
+            useragent::credential_client() || useragent::command_credentials();
+        if credential_features {
             features.extend(useragent::registered());
         }
-        if useragent::credential_client()
+        if credential_features
             && !self.config.profile_explicitly_set()
             && credentials::env_credentials(&self.config)
                 .ok()
@@ -742,6 +744,15 @@ impl Session {
                 } else {
                     &[]
                 };
+            if useragent::credential_client()
+                && !self.config.globals().no_sign_request
+                && matches!(
+                    choice.version,
+                    SignatureVersion::Unsigned | SignatureVersion::Bearer
+                )
+            {
+                self.loaded_credentials(settings.region.as_deref()).await?;
+            }
             headers::set(&mut base_headers, "User-Agent", "");
             let mut user_agent = None;
 

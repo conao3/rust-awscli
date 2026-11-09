@@ -37,7 +37,11 @@ impl<'c> Client<'c> {
         config: ClientConfig,
     ) -> Result<Client<'c>, CliError> {
         let model = ServiceModel::load(service).map_err(|e| ctx.general_error(&e))?;
-        Ok(Client { ctx, model, config })
+        Ok(Client {
+            ctx,
+            model,
+            config: config.created(),
+        })
     }
 
     /// `client.<operation>(**params)`: the parsed response, or the
@@ -67,7 +71,7 @@ impl<'c> Client<'c> {
             return Ok(vec![self.call(operation, params)?]);
         };
         let op = self.model.operation(operation).expect("operation");
-        let caller = Caller::new(self.ctx, &self.model, operation)
+        let caller = Caller::with_config(self.ctx, &self.model, operation, self.config.clone())
             .map_err(|e| self.ctx.general_error(&e))?;
         let mut service_error = None;
         let mut call = |p: &mut Value| -> Result<Value> {

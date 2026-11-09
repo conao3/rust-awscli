@@ -266,6 +266,33 @@ pub fn registered() -> Vec<Feature> {
     REGISTERED.lock().unwrap().clone()
 }
 
+static CREDENTIAL_CLIENT_CLAIMED: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+/// Whether the client being created is the command's first, whose
+/// creation loads the credentials (`Session.create_client` calls
+/// `get_credentials`): true only once.
+pub fn claim_credential_client() -> bool {
+    !CREDENTIAL_CLIENT_CLAIMED.swap(true, std::sync::atomic::Ordering::Relaxed)
+}
+
+static COMMAND_CREDENTIALS: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+/// `session.get_credentials()` outside of `create_client`: the first load
+/// of the credentials registers the providers' features in the command's
+/// context, so that no client is the one that loaded them.
+pub fn load_credentials_in_command() {
+    if claim_credential_client() {
+        COMMAND_CREDENTIALS.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+}
+
+/// Whether the command's context carries the credential providers' features.
+pub fn command_credentials() -> bool {
+    COMMAND_CREDENTIALS.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 static COMMAND_CONTEXT: std::sync::Mutex<Vec<Feature>> = std::sync::Mutex::new(Vec::new());
 
 thread_local! {

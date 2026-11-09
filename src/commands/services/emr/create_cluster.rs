@@ -584,8 +584,7 @@ pub(crate) fn run(ctx: &Context, args: &mut Args, region: Option<&str>) -> Resul
     }
     validate_required_applications(ctx, args)?;
 
-    let client = util::emr_client(ctx)?;
-    let result = client.call("RunJobFlow", &Value::Map(params))?;
+    let result = util::call(ctx, "RunJobFlow", &Value::Map(params))?;
     let mut out = Map::new();
     if let Some(id) = result
         .get("JobFlowId")

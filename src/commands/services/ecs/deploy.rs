@@ -7,7 +7,6 @@ use crate::commands::services::basic::{self, ArgDef, Args};
 use crate::commands::services::exec::Client;
 use crate::driver::{CallResult, Context};
 use crate::error::{CliError, ExitCode};
-use crate::model::ServiceModel;
 use crate::pyfmt::{json_dumps_default, py_str};
 use crate::value::{Map, Value};
 
@@ -328,7 +327,7 @@ fn run_main(ctx: &Context, a: &Args) -> Result<ExitCode, CliError> {
         "Waiting for {deployment_id} to succeed (will wait up to {wait_min} minutes)...\n"
     ));
     basic::flush();
-    wait_for_deployment(ctx, &cd.model, &deployment_id, wait_min)?;
+    wait_for_deployment(ctx, &cd, &deployment_id, wait_min)?;
     basic::print(&format!(
         "Successfully deployed {task_def_arn} to service '{service_name}'\n"
     ));
@@ -339,10 +338,11 @@ fn run_main(ctx: &Context, a: &Args) -> Result<ExitCode, CliError> {
 /// `CodeDeployer.wait_for_deploy_success`.
 fn wait_for_deployment(
     ctx: &Context,
-    model: &ServiceModel,
+    client: &Client<'_>,
     deployment_id: &str,
     wait_min: i64,
 ) -> Result<(), CliError> {
+    let model = &client.model;
     let mut config = model
         .waiters()
         .and_then(|w| w.get("DeploymentSuccessful"))
@@ -354,8 +354,13 @@ fn wait_for_deployment(
         "maxAttempts".to_string(),
         serde_json::json!((wait_min * 60) as f64 / DEFAULT_DELAY_SEC as f64),
     );
-    let caller = crate::driver::Caller::new(ctx, model, "GetDeployment")
-        .map_err(|e| ctx.general_error(&e))?;
+    let caller = crate::driver::Caller::with_config(
+        ctx,
+        &client.model,
+        "GetDeployment",
+        client.config.clone(),
+    )
+    .map_err(|e| ctx.general_error(&e))?;
     let mut poll = |params: &Value| -> anyhow::Result<Value> {
         Ok(match caller.call(params)? {
             CallResult::Ok(v) => v,

@@ -366,6 +366,22 @@ pub(crate) struct ClientConfig {
     /// Which client object of the command this is: each has its own
     /// S3 region redirect cache.
     pub id: u32,
+    /// The client was created after the one that loaded the credentials,
+    /// so its features lack the providers' ids.
+    pub secondary: bool,
+    /// The client was created with explicit credentials (`CREDENTIALS_CODE`).
+    pub explicit_credentials: bool,
+}
+
+impl ClientConfig {
+    /// The configuration of a client `session.create_client` creates now:
+    /// the first one of the command loads the credentials.
+    pub(crate) fn created(self) -> ClientConfig {
+        ClientConfig {
+            secondary: !crate::session::useragent::claim_credential_client(),
+            ..self
+        }
+    }
 }
 
 pub(crate) struct Caller<'a> {
@@ -386,7 +402,12 @@ impl<'a> Caller<'a> {
         model: &'a ServiceModel,
         operation_name: &str,
     ) -> Result<Caller<'a>> {
-        Caller::with_config(ctx, model, operation_name, ClientConfig::default())
+        Caller::with_config(
+            ctx,
+            model,
+            operation_name,
+            ClientConfig::default().created(),
+        )
     }
 
     /// [`Caller::new`] for a client created with `client`.
@@ -646,8 +667,13 @@ impl<'a> Caller<'a> {
     /// parameters before the `provide-client-params` handlers.
     pub(crate) fn call_as(&self, given: &Value, params: &Value) -> Result<CallResult> {
         let ctx = self.ctx;
-        let mut _context = crate::session::useragent::ContextGuard::new(&[]);
-        if self.client.id != 0 {
+        let mut _context =
+            crate::session::useragent::ContextGuard::new(if self.client.explicit_credentials {
+                &[crate::session::useragent::Feature::CredentialsCode]
+            } else {
+                &[]
+            });
+        if self.client.secondary {
             _context = _context.without_credential_features();
         }
         self.record_api_call(given);

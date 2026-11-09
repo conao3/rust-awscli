@@ -133,12 +133,7 @@ impl Fetcher {
             None if mode.as_deref() == Some("ipv6") => METADATA_BASE_URL_IPV6.to_string(),
             None => METADATA_BASE_URL.to_string(),
         };
-        if !is_valid_uri(&base) {
-            return Err(SessionError::new(
-                ErrorKind::General,
-                format!("Invalid endpoint EC2 Instance Metadata endpoint: {base}"),
-            ));
-        }
+        check_base_url(&base)?;
         Ok(Fetcher {
             timeout: Duration::from_secs(timeout),
             attempts,
@@ -259,7 +254,22 @@ fn default_retry(r: &HttpResponse) -> bool {
 /// The check `create_credential_resolver` makes when it builds the
 /// `InstanceMetadataFetcher` of the chain.
 pub fn check_endpoint(config: &Config) -> Result<(), SessionError> {
-    Fetcher::new(config).map(|_| ())
+    match config.get("ec2_metadata_service_endpoint").ok().flatten() {
+        Some(endpoint) => check_base_url(&endpoint),
+        None => Ok(()),
+    }
+}
+
+/// `InvalidIMDSEndpointError` for a URL `is_valid_uri` rejects.
+fn check_base_url(base: &str) -> Result<(), SessionError> {
+    if is_valid_uri(base) {
+        Ok(())
+    } else {
+        Err(SessionError::new(
+            ErrorKind::General,
+            format!("Invalid endpoint EC2 Instance Metadata endpoint: {base}"),
+        ))
+    }
 }
 
 /// `IMDSRegionProvider.provide`: `None` when IMDS is disabled, unreachable,

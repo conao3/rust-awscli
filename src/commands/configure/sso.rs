@@ -252,7 +252,12 @@ async fn paginate(
         if let Some(n) = &next {
             p.insert("nextToken".into(), n.clone());
         }
-        let response = client.call(operation, &Value::Map(p), None).await?;
+        let response = {
+            let _context = crate::session::useragent::ContextGuard::new(&[
+                crate::session::useragent::Feature::Paginator,
+            ]);
+            client.call(operation, &Value::Map(p), None).await?
+        };
         if let Some(list) = response.get(result_key).and_then(Value::as_list) {
             out.extend(list.iter().cloned());
         }

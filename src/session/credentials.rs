@@ -141,6 +141,7 @@ pub async fn load_credentials(
     // `create_credential_resolver` reads `metadata_service_timeout`, which
     // raises `ProfileNotFound` for a missing profile.
     config.scoped_config()?;
+    super::imds::check_endpoint(config)?;
     let profile_name = config.profile().unwrap_or_else(|| "default".to_string());
     let disable_env = config.profile_explicitly_set();
     let resolver = Resolver {
@@ -1311,6 +1312,7 @@ pub fn env_bearer_token(config: &Config, signing_name: &str) -> Option<String> {
 /// deferred until a request is signed).
 pub fn preflight(config: &Config) -> Result<(), SessionError> {
     config.scoped_config()?;
+    super::imds::check_endpoint(config)?;
     let profile_name = config.profile().unwrap_or_else(|| "default".to_string());
     let disable_env = config.profile_explicitly_set();
     if !disable_env && env_provider(config)?.is_some() {

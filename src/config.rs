@@ -412,7 +412,7 @@ pub struct Config {
     instance: HashMap<String, String>,
     globals: GlobalArgs,
     full: FullConfig,
-    imds_region: OnceLock<Option<String>>,
+    imds_region: OnceLock<Result<Option<String>, SessionError>>,
 }
 
 impl Config {
@@ -739,10 +739,9 @@ impl Config {
         if let Some(r) = self.scoped_key(Key("region"))? {
             return Ok(Some(r));
         }
-        Ok(self
-            .imds_region
+        self.imds_region
             .get_or_init(|| crate::session::imds::fetch_region(self))
-            .clone())
+            .clone()
     }
 
     /// An integer variable (`max_attempts`, `metadata_service_timeout`).

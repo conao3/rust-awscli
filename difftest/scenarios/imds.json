@@ -1,0 +1,117 @@
+[
+ {
+  "name": "imds endpoint with an invalid host",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--profile",
+   "bad",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\n\n[profile bad]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://bad_host/\n\n[profile noregion]\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://bad_host/\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "imds endpoint without a scheme",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--profile",
+   "bad",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\n\n[profile bad]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = 169.254.169.254\n\n[profile noregion]\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://bad_host/\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "imds endpoint with a zone id",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--profile",
+   "bad",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\n\n[profile bad]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://[fe80::1%25eth0]/\n\n[profile noregion]\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://bad_host/\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "imds endpoint with a tab",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--profile",
+   "bad",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\n\n[profile bad]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://a\tb/\n\n[profile noregion]\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://bad_host/\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ },
+ {
+  "name": "imds endpoint invalid for the region",
+  "argv": [
+   "sts",
+   "get-caller-identity",
+   "--profile",
+   "noregion",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\n\n[profile bad]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://ok/\n\n[profile noregion]\naws_access_key_id = AKID\naws_secret_access_key = SECRET\nec2_metadata_service_endpoint = http://bad_host/\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetCallerIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\"><GetCallerIdentityResult><Arn>arn:aws:iam::123456789012:user/x</Arn><UserId>AIDA</UserId><Account>123456789012</Account></GetCallerIdentityResult><ResponseMetadata><RequestId>r-1</RequestId></ResponseMetadata></GetCallerIdentityResponse>"
+   }
+  ]
+ }
+]

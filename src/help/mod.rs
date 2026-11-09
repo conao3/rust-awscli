@@ -148,7 +148,8 @@ pub fn custom_request(path: &[String], args: &[String], flag: bool) -> Option<He
 
 /// The parts of the custom command at `path` that `SubCommandArgParser`
 /// reads: its subcommands, whether its argument table has a positional,
-/// and its options (name, whether it is a flag, `nargs`).
+/// and its options (the option name without `--`, whether it takes no
+/// value, `nargs`).
 pub(crate) struct CustomTable {
     pub subcommands: Vec<String>,
     pub positional: bool,
@@ -169,6 +170,7 @@ pub(crate) fn custom_table(path: &[&str]) -> Option<CustomTable> {
         .filter(|p| !p.contains(' '))
         .map(str::to_string)
         .collect();
+    let flags = crate::cli::custom_flags(&name);
     let mut positional = false;
     let mut options = Vec::new();
     for record in spec
@@ -188,19 +190,60 @@ pub(crate) fn custom_table(path: &[&str]) -> Option<CustomTable> {
             (_, Some("?")) => Some(Nargs::Optional),
             _ => None,
         };
-        let boolean = custom.model(&record["s"]).and_then(|m| {
-            let top = m.get("top")?.as_str()?;
-            m.get("shapes")?.get(top)?.get("type")?.as_str()
-        }) == Some("boolean")
-            || record["t"].as_str() == Some("boolean");
-        let name = record["n"].as_str().unwrap_or_default().to_string();
-        options.push((name, boolean && nargs.is_none(), nargs));
+        let name = match record["c"].as_str() {
+            Some(c) => c.trim_start_matches("--").to_string(),
+            None => record["n"].as_str().unwrap_or_default().to_string(),
+        };
+        let flag = flags.contains(&name.as_str());
+        options.push((name, flag, nargs));
     }
     Some(CustomTable {
         subcommands,
         positional,
         options,
     })
+}
+
+/// An argument of an operation's argument table in the help data.
+pub(crate) struct OperationOption {
+    pub key: String,
+    /// The option name without `--`.
+    pub cli_name: String,
+    pub nargs: Option<crate::cli::argparse::Nargs>,
+    pub positional: bool,
+}
+
+/// The arguments of the operation `name` of `cli` as the help data
+/// records its argument table.
+pub(crate) fn operation_options(cli: &str, name: &str) -> Option<Vec<OperationOption>> {
+    use crate::cli::argparse::Nargs;
+    let data = HelpData::load(cli)?;
+    let records = data.args("operations", name)?;
+    Some(
+        records
+            .iter()
+            .map(|r| {
+                let key = r["n"].as_str().unwrap_or_default().to_string();
+                let cli_name = match r["c"].as_str() {
+                    Some(c) => c.trim_start_matches("--").to_string(),
+                    None => key.clone(),
+                };
+                let nargs = match (r["na"].as_u64(), r["na"].as_str()) {
+                    (Some(n), _) => Some(Nargs::Exact(n as usize)),
+                    (_, Some("+")) => Some(Nargs::OneOrMore),
+                    (_, Some("*")) => Some(Nargs::ZeroOrMore),
+                    (_, Some("?")) => Some(Nargs::Optional),
+                    _ => None,
+                };
+                OperationOption {
+                    key,
+                    cli_name,
+                    nargs,
+                    positional: r.get("p").and_then(Node::as_bool) == Some(true),
+                }
+            })
+            .collect(),
+    )
 }
 
 /// An argument `argparse` matches as a positional in a parser without

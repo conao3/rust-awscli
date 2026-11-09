@@ -176,6 +176,25 @@ pub fn parse_command_shadowed(
     driver::dispatch(rest, &ctx).map_err(|f| render::render(f, Some(globals), Some(config)))
 }
 
+/// The options of the customization command at `path` that take no value.
+pub(crate) fn custom_flags(path: &str) -> &'static [&'static str] {
+    tables::CUSTOM_FLAGS
+        .iter()
+        .find(|(p, _)| *p == path)
+        .map(|(_, f)| *f)
+        .unwrap_or(&[])
+}
+
+/// The options of the operation command at `path` (CLI service and
+/// operation) that take no value besides the `BooleanArgument` pairs.
+pub(crate) fn operation_flags(path: &str) -> &'static [&'static str] {
+    tables::OPERATION_FLAGS
+        .iter()
+        .find(|(p, _)| *p == path)
+        .map(|(_, f)| *f)
+        .unwrap_or(&[])
+}
+
 /// `lineage_names` of the command at `path` when an alias proxies to the
 /// command at `proxied`: the names from that command on, as its lineage
 /// is only itself.

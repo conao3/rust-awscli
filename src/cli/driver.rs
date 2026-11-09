@@ -157,6 +157,7 @@ fn operation_alias(
     command: CommandPath<'_>,
     args: &[String],
     ctx: &Ctx<'_>,
+    customized: bool,
 ) -> Result<Option<Command>, Fail> {
     let lineage = super::lineage(ctx.proxied, path);
     let aliases = super::alias::get(lineage)?;
@@ -164,10 +165,36 @@ fn operation_alias(
         return Ok(None);
     }
     let (mut table, _) = super::arguments::build_argument_table_with(op, command, &mut |_| {});
+    let records = if customized {
+        crate::help::operation_options(command.parent, command.name)
+    } else {
+        None
+    };
+    if let Some(records) = &records {
+        table.retain(|key, _| records.iter().any(|r| r.key == *key));
+    }
     for arg in table.values_mut() {
         arg.required = false;
     }
     let mut parser = super::arguments::operation_parser(&table, false);
+    if let Some(records) = &records {
+        let flags = super::operation_flags(&format!("{} {}", command.parent, command.name));
+        for record in records {
+            if record.positional || table.contains_key(&record.key) {
+                continue;
+            }
+            let option = format!("--{}", record.cli_name);
+            let mut action = if flags.contains(&record.cli_name.as_str()) {
+                Action::flag(&option, super::argparse::Kind::StoreTrue)
+            } else {
+                Action::option(&option)
+            };
+            if let Some(n) = record.nargs {
+                action.nargs = n;
+            }
+            parser.add(action);
+        }
+    }
     let mut sub = Action::positional("subcommand", Nargs::Optional);
     sub.choices = Some(aliases.iter().map(|(n, _)| n.clone()).collect());
     parser.add(sub);
@@ -381,7 +408,14 @@ fn service_command(
         ServiceEntry::Operation(op) => {
             let op = model.operation(&op).expect("operation");
             let path = CommandPath { parent: cli, name };
-            if let Some(command) = operation_alias(&[cli, name], &op, path, &remaining, ctx)? {
+            if let Some(command) = operation_alias(
+                &[cli, name],
+                &op,
+                path,
+                &remaining,
+                ctx,
+                super::commands::is_customized(cli, name),
+            )? {
                 return Ok(command);
             }
             if super::commands::is_customized(cli, name) {
@@ -426,7 +460,7 @@ fn service_command(
             let command = match operation {
                 Some(op) if crate::help::custom_table(&[cli, name]).is_none() => {
                     let path = CommandPath { parent: cli, name };
-                    operation_alias(&[cli, name], &op, path, &remaining, ctx)?
+                    operation_alias(&[cli, name], &op, path, &remaining, ctx, true)?
                 }
                 _ => custom_alias(&[cli, name], &remaining, ctx)?,
             };
@@ -614,7 +648,7 @@ fn wait_command(
         parent: "wait",
         name: sub,
     };
-    if let Some(command) = operation_alias(&[cli, "wait", sub], &op, path, &new_args, ctx)? {
+    if let Some(command) = operation_alias(&[cli, "wait", sub], &op, path, &new_args, ctx, false)? {
         return Ok(command);
     }
     match operation::run(&op, path, &new_args, ctx)? {

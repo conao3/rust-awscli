@@ -1051,3 +1051,165 @@ pub(crate) static SERVICE_TABLE_DIFFS: &[(&str, &[&str], &[(&str, &str)], &[&str
         ],
     ),
 ];
+
+/// The options of the customization commands (`BasicCommand`) that
+/// take no value (their argparse action has `nargs=0`): (command
+/// path, option names).
+pub(crate) static CUSTOM_FLAGS: &[(&str, &[&str])] = &[
+    ("cloudformation package", &["use-json", "force-upload"]),
+    (
+        "cloudformation deploy",
+        &[
+            "force-upload",
+            "no-execute-changeset",
+            "disable-rollback",
+            "no-disable-rollback",
+            "fail-on-empty-changeset",
+            "no-fail-on-empty-changeset",
+        ],
+    ),
+    ("cloudtrail validate-logs", &["verbose"]),
+    ("codeartifact login", &["dry-run"]),
+    ("codecommit credential-helper get", &["ignore-host-check"]),
+    ("eks update-kubeconfig", &["dry-run", "verbose"]),
+    (
+        "emr modify-cluster-attributes",
+        &[
+            "visible-to-all-users",
+            "no-visible-to-all-users",
+            "termination-protected",
+            "no-termination-protected",
+            "auto-terminate",
+            "no-auto-terminate",
+            "unhealthy-node-replacement",
+            "no-unhealthy-node-replacement",
+        ],
+    ),
+    (
+        "emr create-cluster",
+        &[
+            "auto-terminate",
+            "no-auto-terminate",
+            "use-default-roles",
+            "termination-protected",
+            "no-termination-protected",
+            "unhealthy-node-replacement",
+            "no-unhealthy-node-replacement",
+            "visible-to-all-users",
+            "no-visible-to-all-users",
+            "enable-debugging",
+            "no-enable-debugging",
+            "extended-support",
+            "no-extended-support",
+            "session-enabled",
+            "no-session-enabled",
+        ],
+    ),
+    ("emr create-hbase-backup", &["consistent"]),
+    ("emr schedule-hbase-backup", &["consistent"]),
+    ("emr disable-hbase-backups", &["full", "incremental"]),
+    ("emr-containers update-role-trust-policy", &["dry-run"]),
+    (
+        "lambda-web deploy",
+        &["hello-world", "create", "include-hidden-files", "no-wait"],
+    ),
+    ("logs tail", &["follow"]),
+    ("sso login", &["no-browser", "use-device-code"]),
+    ("s3 ls", &["recursive", "human-readable", "summarize"]),
+    (
+        "s3 cp",
+        &[
+            "dryrun",
+            "quiet",
+            "follow-symlinks",
+            "no-follow-symlinks",
+            "no-guess-mime-type",
+            "only-show-errors",
+            "no-progress",
+            "progress-multiline",
+            "ignore-glacier-warnings",
+            "force-glacier-transfer",
+            "recursive",
+            "no-overwrite",
+        ],
+    ),
+    (
+        "s3 mv",
+        &[
+            "dryrun",
+            "quiet",
+            "follow-symlinks",
+            "no-follow-symlinks",
+            "no-guess-mime-type",
+            "only-show-errors",
+            "no-progress",
+            "progress-multiline",
+            "ignore-glacier-warnings",
+            "force-glacier-transfer",
+            "recursive",
+            "validate-same-s3-paths",
+            "no-overwrite",
+        ],
+    ),
+    (
+        "s3 rm",
+        &["dryrun", "quiet", "recursive", "only-show-errors"],
+    ),
+    (
+        "s3 sync",
+        &[
+            "dryrun",
+            "quiet",
+            "follow-symlinks",
+            "no-follow-symlinks",
+            "no-guess-mime-type",
+            "only-show-errors",
+            "no-progress",
+            "progress-multiline",
+            "ignore-glacier-warnings",
+            "force-glacier-transfer",
+            "no-overwrite",
+            "size-only",
+            "exact-timestamps",
+            "delete",
+        ],
+    ),
+    ("s3 rb", &["force"]),
+    (
+        "ddb select",
+        &[
+            "consistent-read",
+            "no-consistent-read",
+            "return-consumed-capacity",
+            "no-return-consumed-capacity",
+        ],
+    ),
+    ("configure import", &["skip-invalid"]),
+    ("configure sso", &["no-browser", "use-device-code"]),
+    ("configure agent-toolkit", &["yes"]),
+    (
+        "deploy push",
+        &["ignore-hidden-files", "no-ignore-hidden-files"],
+    ),
+    ("deploy deregister", &["no-delete-iam-user"]),
+    ("deploy install", &["override-config"]),
+    ("login", &["remote"]),
+    ("logout", &["all"]),
+    ("agent-toolkit update-skill", &["all"]),
+    ("agent-toolkit check-skill-updates", &["all"]),
+    ("update", &["skip-signature-verification"]),
+];
+
+/// The options of the operation commands that take no value besides
+/// the `--<name>` / `--no-<name>` pairs of `BooleanArgument`: (CLI
+/// service and operation, option names).
+pub(crate) static OPERATION_FLAGS: &[(&str, &[&str])] = &[
+    (
+        "ec2 run-instances",
+        &[
+            "associate-public-ip-address",
+            "no-associate-public-ip-address",
+        ],
+    ),
+    ("emr list-clusters", &["active", "terminated", "failed"]),
+];

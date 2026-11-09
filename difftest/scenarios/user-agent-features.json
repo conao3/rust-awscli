@@ -324,5 +324,1007 @@
    }
   ],
   "user_agent_features": true
+ },
+ {
+  "name": "user agent features of emr ssh clients",
+  "argv": [
+   "emr",
+   "ssh",
+   "--cluster-id",
+   "j-1",
+   "--key-pair-file",
+   "k.pem",
+   "--command",
+   "ls",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"MasterPublicDnsName\": \"master.invalid\"}}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of emr credentials loaded before the client",
+  "argv": [
+   "emr",
+   "add-steps",
+   "--cluster-id",
+   "j-1",
+   "--steps",
+   "Type=Spark,Name=s,Args=[--class,x,s3://a.jar]",
+   "Type=CUSTOM_JAR,Jar=s3://j.jar,Args=[a],MainClass=M,Properties=k=v,ActionOnFailure=CONTINUE",
+   "Type=Hive,Args=[-f,s3://q]",
+   "Type=Pig,Args=[-f,x]",
+   "Type=Streaming,Args=[-mapper,m]",
+   "--execution-role-arn",
+   "arn:aws:iam::123456789012:role/r",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Cluster\": {\"Id\": \"j-1\", \"Name\": \"c\", \"Status\": {\"State\": \"RUNNING\"}, \"ReleaseLabel\": \"emr-6.0.0\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"StepIds\": [\"s-1\", \"s-2\"]}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of emr create-default-roles iam clients",
+  "argv": [
+   "emr",
+   "create-default-roles",
+   "--iam-endpoint",
+   "{endpoint}",
+   "--region",
+   "eu-west-1",
+   "--output",
+   "text"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v2</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Statement%22%3A%5B%5D%7D</Document><VersionId>v2</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetInstanceProfileResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetInstanceProfileResult><InstanceProfile><InstanceProfileName>x</InstanceProfileName></InstanceProfile></GetInstanceProfileResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetInstanceProfileResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v1</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%7D</Document><VersionId>v1</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>nope</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>EMR_EC2_DefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/EMR_EC2_DefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%222008-10-17%22%7D</AssumeRolePolicyDocument></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><AttachRolePolicyResult></AttachRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><DefaultVersionId>v1</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%7D</Document><VersionId>v1</VersionId></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\n[profile other]\nregion = x\n"
+  },
+  "outputs": [
+   "home/.aws/config"
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of gamelift explicit upload credentials",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "b/game.bin": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "b/sub/conf.ini": "a=1\n"
+  },
+  "argv": [
+   "gamelift",
+   "upload-build",
+   "--name",
+   "n",
+   "--build-version",
+   "1",
+   "--build-root",
+   "b",
+   "--operating-system",
+   "AMAZON_LINUX_2",
+   "--server-sdk-version",
+   "5.0",
+   "--tags",
+   "a=b",
+   "c"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"Build\": {\"BuildId\": \"build-1\", \"Name\": \"n\"}}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"UploadCredentials\": {\"AccessKeyId\": \"AKIAUPLOAD\", \"SecretAccessKey\": \"s\", \"SessionToken\": \"tok\"}, \"StorageLocation\": {\"Bucket\": \"gl-bkt\", \"Key\": \"k/build.zip\", \"RoleArn\": \"r\"}}"
+   },
+   {
+    "headers": {
+     "ETag": "\"e\""
+    }
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of servicecatalog template upload",
+  "files": {
+   "t.yaml": "Resources: {}\n"
+  },
+  "argv": [
+   "servicecatalog",
+   "generate",
+   "product",
+   "--product-name",
+   "n",
+   "--product-owner",
+   "o",
+   "--product-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--tags",
+   "Key=a,Value=b",
+   "--file-path",
+   "t.yaml",
+   "--bucket-name",
+   "bkt",
+   "--support-email",
+   "e@x",
+   "--provisioning-artifact-name",
+   "v1",
+   "--provisioning-artifact-description",
+   "d",
+   "--provisioning-artifact-type",
+   "CLOUD_FORMATION_TEMPLATE",
+   "--endpoint-url",
+   "{endpoint}",
+   "--region",
+   "us-west-2"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"e\""
+    }
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ProductViewDetail\": {\"ProductViewSummary\": {\"Id\": \"prod-1\", \"Name\": \"n\\u00e9\", \"Owner\": \"o\"}, \"Status\": \"CREATED\", \"CreatedTime\": 1600000000.5}, \"ProvisioningArtifactDetail\": {\"Id\": \"pa-1\", \"Name\": \"v1\", \"CreatedTime\": 1600000000}, \"Tags\": [{\"Key\": \"a\", \"Value\": \"b\"}]}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of cloudformation package uploads",
+  "argv": [
+   "cloudformation",
+   "package",
+   "--s3-bucket",
+   "bkt",
+   "--template-file",
+   "t.yaml",
+   "--output-template-file",
+   "out.yaml",
+   "--s3-prefix",
+   "pre",
+   "--metadata",
+   "k=v,a=b"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: 2010-09-09\nTransform: AWS::Serverless-2016-10-31\nDescription: >\n  A long folded description that goes on and on and on and on and on and on and on and on past eighty columns\nMetadata:\n  AWS::ServerlessRepo::Application:\n    Name: app\n    ReadmeUrl: README.md\n    LicenseUrl: s3://x/LICENSE\nConditions:\n  IsProd: !Equals [!Ref Env, prod]\nResources:\n  Api:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n      Enabled: yes\n      Quoted: 'yes'\n      Num: 0x1F\n      F: 1.50\n      Neg: -3\n      Unicode: \"café ☃\"\n      Multi: |\n        line1\n        line2\n      Empty: ''\n      Star: '*'\n      Colon: 'a: b'\n      Body:\n        Fn::Transform:\n          Name: AWS::Include\n          Parameters:\n            Location: inc.yaml\n  Job:\n    Type: AWS::Glue::Job\n    Properties:\n      Command:\n        Name: glueetl\n        ScriptLocation: script.py\n  Nested:\n    Type: AWS::CloudFormation::Stack\n    Properties:\n      TemplateURL: nested.yaml\n      Parameters:\n        A: !GetAtt Job.Arn\n  Fn:\n    Type: AWS::Lambda::Function\n    Properties:\n      Code: s3://code/key.zip\n      Role: !Sub 'arn:${AWS::Partition}:iam::role'\n  SM:\n    Type: AWS::StepFunctions::StateMachine\n    Properties:\n      DefinitionS3Location: sm.json\nOutputs:\n  O:\n    Value: !If [IsProd, !Ref Api, !Join ['', [a, !Select [0, !GetAZs '']]]]\n",
+   "README.md": "# readme\n",
+   "api.yaml": "openapi: 3.0.0\n",
+   "inc.yaml": "x: 1\n",
+   "script.py": "print(1)\n",
+   "nested.yaml": "Resources:\n  Q:\n    Type: AWS::Serverless::Api\n    Properties:\n      DefinitionUri: api.yaml\n",
+   "sm.json": "{}\n"
+  },
+  "responses": [
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   }
+  ],
+  "outputs": [
+   "out.yaml"
+  ],
+  "ignore_headers": [
+   "expect"
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of cloudformation deploy template upload",
+  "argv": [
+   "cloudformation",
+   "deploy",
+   "--template-file",
+   "t.yaml",
+   "--stack-name",
+   "st",
+   "--endpoint-url",
+   "{endpoint}",
+   "--s3-bucket",
+   "bkt",
+   "--s3-prefix",
+   "p",
+   "--kms-key-id",
+   "k1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "t.yaml": "AWSTemplateFormatVersion: '2010-09-09'\nParameters:\n  Env:\n    Type: String\n  Size:\n    Type: Number\n    Default: 1\nResources:\n  B:\n    Type: AWS::S3::Bucket\n"
+  },
+  "mask": [
+   "Created\\+by\\+AWS\\+CLI\\+at\\+[^&]*",
+   "package-deploy-[0-9]+"
+  ],
+  "responses": [
+   {
+    "status": 400,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><Error><Type>Sender</Type><Code>ValidationError</Code><Message>Stack with id st does not exist</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "status": 404,
+    "body": ""
+   },
+   {
+    "status": 200,
+    "body": ""
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><CreateChangeSetResult><Id>arn:cs/1</Id><StackId>arn:st</StackId></CreateChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeChangeSetResult><Status>CREATE_COMPLETE</Status><StatusReason></StatusReason><ChangeSetName>c</ChangeSetName></DescribeChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ExecuteChangeSetResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><ExecuteChangeSetResult></ExecuteChangeSetResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ExecuteChangeSetResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DescribeStacksResponse xmlns=\"http://cloudformation.amazonaws.com/doc/2010-05-15/\"><DescribeStacksResult><Stacks><member><StackName>st</StackName><StackId>id</StackId><CreationTime>2026-01-01T00:00:00Z</CreationTime><StackStatus>CREATE_COMPLETE</StackStatus></member></Stacks></DescribeStacksResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DescribeStacksResponse>"
+   }
+  ],
+  "ignore_headers": [
+   "expect"
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of cloudtrail validate-logs clients",
+  "argv": [
+   "cloudtrail",
+   "validate-logs",
+   "--trail-arn",
+   "arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1",
+   "--start-time",
+   "2023-11-14T00:00:00Z",
+   "--end-time",
+   "2023-11-15T00:00:00Z"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"trailList\": [{\"Name\": \"trail1\", \"S3BucketName\": \"bkt\", \"TrailARN\": \"arn:aws:cloudtrail:us-east-1:123456789012:trail/trail1\", \"IsOrganizationTrail\": false}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<LocationConstraint xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">us-west-2</LocationConstraint>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>bkt</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T210000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/123456789012/CloudTrail-Digest/us-east-1/2023/11/14/123456789012_CloudTrail-Digest_us-east-1_trail1_us-east-1_20231114T220000Z.json.gz</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>AWSLogs/other.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>10</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"PublicKeyList\": [{\"Value\": \"MIIBCgKCAQEA3h6aIyUMC7dEl1F9ZAFrv40tRzocLRd+HVw0/8Q+r0WjH5OHhPekhyocE7+pl8PJkK/GuIarlS5xZdFoutbZylYJT43Sh5KFHulTpYBrMQuCdGOg+HBMEdCk8ZYGJqSO2hDiNa9tz+r5cfvNZUNIyxQgnLk8y/CcOEGY96wTfRofsifuWkLd95PRTANG7cWqxhk3M1Uc4xQB7hFn7MhIfWeGh8dpcTz/hvGm9wQvid0MUgJZ1f2rat7xZPGFNi9xUi8njq02wCk03bee6t6eWxXlkR3FHbEm2vmR/kedD8VdIT+zqfkMrX3htFHtxsixUWbdnrkfV51zrh9m5aMAWwIDAQAB\", \"ValidityStartTime\": 1699900000, \"ValidityEndTime\": 1700100000, \"Fingerprint\": \"fp1\"}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "dc6ffe8a5c40ec6dfc09fefcc66c71cab22070eda25f26aed5965132802ac3adcf838d6f53aea8bd40ee9f482bb189ae1694c92a2fbc2b49e028de9c6a2f0e0cbb5b1a4dc89fcb98eccca8bf37c793c79a80f6b27ffb32765064abce7f971ad25f24fe331e2ad92c457a0686b16e9459408828f2854a121686fba64f0268eba67e7b3b2a3b38d39683bf62e6ee53498e92feaeefca30790318286d84eac1c12e4b9062bfe97ec4e830009d64905498bd5fe97b8875960ccbc33a8241ae355fa4fea31930c098adcf719e05eddb5b4ceee94efac79b1858526e47921aab2adce56e133a6e06e9d39488f00708ca9f05329e8ac1c6c849a5c45f76cbd236af1361",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/82RXW+bMBSG/0rEdSk+xwZD71g/1GqTNo1okzpNkW0McetChE2jrep/H0TqQpukm7Rd1OIG+z3Hz3n8EIi1y5Vq+8ZflcHJLACkLE54mhHA4GgWlKbWzhdedH5u7vQYQYI0BAiBzRFOCBm+6230vCn3BXEnWNB3vbrVfkzKWz89+ChvtNoc5F+LD23toilWdGrbvpx3wtjwbFMR9S7UwvkQovHOCCAC9qxmsVOz+F2z8OM2TDbGJgAbbDKs6+Mb1zbH9c8t46deWqPe6x8Xpql1t+pMs+GtVjAZxNSN8H2nc1u3nfHLuzFSXOYYJ+vh93ORj+FGr0dv97rxfzLX2vK16PQ1Vp2+N23vzg7Jfhl4O9JhR/pz1kvhll+E7cf5m97avYGXzsNB+p6xn55o28q29YWx2g073x4CtyvOTVQNYZiCLidogdKQslSztOKSUJZlNJOSiBJFglxncYycC42EKk6IgoxLnlRcK+CE8younxruHeXxaPY3dHiQjvzj+h909CAdlhwgYSg5JpIwRmBwpkRWSaEoVrFKY0oqCdlgT7FSEsQ45cAzBMHSFF6n+/74C42JpWf6BAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6tWCkpNzi9KKVayUog2jK0FAB3/9vUQAAAA"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream"
+    },
+    "body": "base64:H4sIAAAAAAAC/6tWCkpNzi9KKVayUog2iq0FAERBsPcQAAAA"
+   },
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>k</Key></Error>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/octet-stream",
+     "x-amz-meta-signature": "08d38b1cad80d729799610244123ee40289ec410a7f2f294eb72d6998e2a0607f801bc4989d4b395590473e0e6ce10c9d91b7aab4a17b3b242483fc0a8dcb2c6c5941bc11d405dda197f99f4d5b5a113f55b9fee35402b72e6daa374c6ba656fd03a80839dfe89669371e5c8a9aef6bb2f90347054bb53097bd690549fdfb3deb0dc3982ac0e057280c7caacd11308a10a2663eb121cce713d946fc26ee47303692858457696bf5b037f7392ed393e4d81d9a828a09f8300aab5d3b03391d30676177d5ff3b500774de40ff70403fb919c843d8ea8ebc32968f9472209ffcdc15c8d1eca345ee9163ec6bd4a3036a9b9156d58a3761c1a4394e35bc1a7df7b21",
+     "x-amz-meta-signature-algorithm": "SHA256withRSA"
+    },
+    "body": "base64:H4sIAAAAAAAC/4WRXU/CMBSG/wrZtWM740PlbooEo4nGEU0wZum2YymUlvQDosb/7rpENmHBpjc973Pa97z98shOx3kurTC3hTfqeBD1+oPh+cVlCJF31vEKRlGbxBBlZmyNDonCqOcD+NCfReEodHteozeiaAPhCEx6VzZfoXFktjJN4SFbYl4J8UtyL6kOmraCay5tMVOEcX9cdQRW+0i08SFwbwYAAfT/9KRHPem+JzWuDI2CuwSgsh2Wa95daim69LP2+GgzzvI7/JgwQVFtFBOV3/cNNAZhVBBjFcacSsXMYu2QZBpHg+GuPD4lsYMF7lxuWxTmv+QkL06hzd/YKNwyafX4MGxhOW/R95m36lOiF8+EWzwFHI7pl3O2WPlNpb6KSzphHHVZeX37/gErgWHnlQIAAA=="
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of deploy deregister clients",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "deploy",
+   "deregister",
+   "--instance-name",
+   "onprem1"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"instanceInfo\": {\"iamUserArn\": \"arn:aws:iam::123456789012:user/AWS/CodeDeploy/onprem1\", \"tags\": [{\"Key\": \"a\", \"Value\": \"b\"}]}}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ListUserPoliciesResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ListUserPoliciesResult><PolicyNames><member>codedeploy-agent</member></PolicyNames><IsTruncated>false</IsTruncated></ListUserPoliciesResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ListUserPoliciesResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DeleteUserPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DeleteUserPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ListAccessKeysResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ListAccessKeysResult><AccessKeyMetadata><member><UserName>onprem1</UserName><AccessKeyId>AKIA1</AccessKeyId><Status>Active</Status></member></AccessKeyMetadata><IsTruncated>false</IsTruncated></ListAccessKeysResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></ListAccessKeysResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DeleteAccessKeyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DeleteAccessKeyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<DeleteUserResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></DeleteUserResponse>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of deploy push clients",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "app/appspec.yml": "version: 0.0\n",
+   "app/src/main.txt": "hello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\nhello\n",
+   "app/.hidden": "secret\n"
+  },
+  "argv": [
+   "deploy",
+   "push",
+   "--application-name",
+   "app",
+   "--s3-location",
+   "s3://bkt/rev.zip",
+   "--source",
+   "app",
+   "--description",
+   "d"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "ETag": "\"abc123\"",
+     "x-amz-version-id": "v1"
+    }
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of a cached s3 redirect",
+  "argv": [
+   "s3",
+   "ls",
+   "s3://b/",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 301,
+    "headers": {
+     "Content-Type": "application/xml",
+     "x-amz-bucket-region": "eu-west-3"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>PermanentRedirect</Code><Message>The bucket you are attempting to access must be addressed using the specified endpoint.</Message><Endpoint>b.s3.eu-west-1.amazonaws.com</Endpoint><Bucket>b</Bucket><RequestId>R</RequestId></Error>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>true</IsTruncated><NextContinuationToken>T</NextContinuationToken><Contents><Key>a.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/xml"
+    },
+    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>b</Name><Prefix></Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>a.txt</Key><LastModified>2023-11-14T22:13:20.000Z</LastModified><ETag>&quot;x&quot;</ETag><Size>3</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>"
+   }
+  ],
+  "masks": [
+   "ttl=[0-9]{8}T[0-9]{6}Z"
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of an unsigned operation",
+  "argv": [
+   "agent-toolkit",
+   "get-skill-file",
+   "--skill-name",
+   "s3-basics",
+   "--file-path",
+   "references/a b.md",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/markdown"
+    },
+    "body": "# Title\nhello é\n"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of configservice subscribe clients",
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-west-2\nendpoint_url = {endpoint}\n"
+  },
+  "argv": [
+   "configservice",
+   "subscribe",
+   "--s3-bucket",
+   "bkt/pre/fix",
+   "--sns-topic",
+   "t",
+   "--iam-role",
+   "arn:aws:iam::1:role/r"
+  ],
+  "responses": [
+   {
+    "status": 404
+   },
+   {
+    "status": 200
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateTopicResponse xmlns=\"http://sns.amazonaws.com/doc/2010-03-31/\"><CreateTopicResult><TopicArn>arn:aws:sns:us-west-2:1:t</TopicArn></CreateTopicResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateTopicResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"ConfigurationRecorders\": [{\"name\": \"default\", \"roleARN\": \"arn:aws:iam::1:role/r\\u00e9\", \"recordingGroup\": {\"allSupported\": true}}]}"
+   },
+   {
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"DeliveryChannels\": [{\"name\": \"default\", \"s3BucketName\": \"bkt\", \"s3KeyPrefix\": \"pre/fix\"}]}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of ecs deploy clients",
+  "argv": [
+   "ecs",
+   "deploy",
+   "--service",
+   "s1",
+   "--task-definition",
+   "td.json",
+   "--codedeploy-appspec",
+   "appspec.yaml",
+   "--cluster",
+   "c1"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n",
+   "td.json": "{\"family\": \"f\", \"containerDefinitions\": [{\"name\": \"web\", \"image\": \"nginx\"}]}",
+   "appspec.yaml": "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::ECS::Service\n      Properties:\n        TaskDefinition: placeholder\n        LoadBalancerInfo:\n          ContainerName: web\n          ContainerPort: 80\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"services\": [{\"serviceArn\": \"arn:aws:ecs:us-east-1:1:service/c1/s1\", \"serviceName\": \"s1\", \"clusterArn\": \"arn:aws:ecs:us-east-1:1:cluster/c1\"}], \"failures\": []}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"application\": {\"applicationName\": \"AppECS-c1-s1\", \"computePlatform\": \"ECS\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentGroupInfo\": {\"computePlatform\": \"ECS\", \"ecsServices\": [{\"serviceName\": \"s1\", \"clusterName\": \"c1\"}], \"blueGreenDeploymentConfiguration\": {\"deploymentReadyOption\": {\"waitTimeInMinutes\": 5}, \"terminateBlueInstancesOnDeploymentSuccess\": {\"terminationWaitTimeInMinutes\": 20}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"taskDefinition\": {\"taskDefinitionArn\": \"arn:aws:ecs:us-east-1:1:task-definition/f:2\"}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentId\": \"d-1\"}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/x-amz-json-1.1"
+    },
+    "body": "{\"deploymentInfo\": {\"status\": \"Succeeded\"}}"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of logs start-live-tail",
+  "argv": [
+   "logs",
+   "start-live-tail",
+   "--log-group-identifiers",
+   "arn:aws:logs:us-east-1:123456789012:log-group:g",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/vnd.amazon.eventstream"
+    },
+    "body": "base64:AAAAaAAAAFZOaBckDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcAEGluaXRpYWwtcmVzcG9uc2UNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257ff6ULB0AAAClAAAAUliA/1cNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwAMc2Vzc2lvblN0YXJ0DTpjb250ZW50LXR5cGUHABBhcHBsaWNhdGlvbi9qc29ueyJyZXF1ZXN0SWQiOiAiciIsICJzZXNzaW9uSWQiOiAiczEiLCAibG9nR3JvdXBJZGVudGlmaWVycyI6IFsiZyJdfQkmALQAAAGzAAAAUwt7fkYNOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogImhlbGxvIiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9LCB7Im1lc3NhZ2UiOiAiY2FmXHUwMGU5IHtcImFcIjogMX0iLCAidGltZXN0YW1wIjogMTcwMDAwMDAwMDAwMCwgImxvZ1N0cmVhbU5hbWUiOiAicyIsICJsb2dHcm91cElkZW50aWZpZXIiOiAiZyIsICJpbmdlc3Rpb25UaW1lIjogMTcwMDAwMDAwMDEwMH1dfXk3rWMAAACgAAAAU+dnQLENOm1lc3NhZ2UtdHlwZQcABWV2ZW50CzpldmVudC10eXBlBwANc2Vzc2lvblVwZGF0ZQ06Y29udGVudC10eXBlBwAQYXBwbGljYXRpb24vanNvbnsic2Vzc2lvbk1ldGFkYXRhIjogeyJzYW1wbGVkIjogZmFsc2V9LCAic2Vzc2lvblJlc3VsdHMiOiBbXX07RyEVAAABJgAAAFMSndYmDTptZXNzYWdlLXR5cGUHAAVldmVudAs6ZXZlbnQtdHlwZQcADXNlc3Npb25VcGRhdGUNOmNvbnRlbnQtdHlwZQcAEGFwcGxpY2F0aW9uL2pzb257InNlc3Npb25NZXRhZGF0YSI6IHsic2FtcGxlZCI6IHRydWV9LCAic2Vzc2lvblJlc3VsdHMiOiBbeyJtZXNzYWdlIjogIm11bHRpXG5saW5lIiwgInRpbWVzdGFtcCI6IDE3MDAwMDAwMDAwMDAsICJsb2dTdHJlYW1OYW1lIjogInMiLCAibG9nR3JvdXBJZGVudGlmaWVyIjogImciLCAiaW5nZXN0aW9uVGltZSI6IDE3MDAwMDAwMDAxMDB9XX15yOUF"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of emr-containers clients",
+  "argv": [
+   "emr-containers",
+   "update-role-trust-policy",
+   "--cluster-name",
+   "c",
+   "--namespace",
+   "ns",
+   "--role-name",
+   "MyRole"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"cluster\": {\"name\": \"c\", \"arn\": \"arn:aws:eks:us-east-1:123456789012:cluster/c\", \"identity\": {\"oidc\": {\"issuer\": \"https://oidc.eks.us-east-1.amazonaws.com/id/ABC\"}}}}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetRoleResult><Role><Path>/</Path><RoleName>MyRole</RoleName><RoleId>A</RoleId><Arn>arn:aws:iam::1:role/MyRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate><AssumeRolePolicyDocument>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Principal%22%3A%20%7B%22Service%22%3A%20%22ec2.amazonaws.com%22%7D%2C%20%22Action%22%3A%20%22sts%3AAssumeRole%22%7D%5D%7D</AssumeRolePolicyDocument></Role></GetRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetRoleResponse>"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<UpdateAssumeRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><UpdateAssumeRolePolicyResult></UpdateAssumeRolePolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></UpdateAssumeRolePolicyResponse>"
+   }
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\nendpoint_url = {endpoint}\n"
+  },
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of dlm create-default-role",
+  "argv": [
+   "dlm",
+   "create-default-role",
+   "--iam-endpoint",
+   "{endpoint}"
+  ],
+  "responses": [
+   {
+    "status": 404,
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<ErrorResponse><Error><Type>Sender</Type><Code>NoSuchEntity</Code><Message>none</Message></Error><RequestId>r</RequestId></ErrorResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><PolicyName>p</PolicyName><Arn>arn:aws:iam::aws:policy/service-role/x</Arn><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<CreateRoleResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><CreateRoleResult><Role><Path>/</Path><RoleName>AWSDataLifecycleManagerDefaultRole</RoleName><RoleId>AROA</RoleId><Arn>arn:aws:iam::1:role/AWSDataLifecycleManagerDefaultRole</Arn><CreateDate>2020-01-01T00:00:00Z</CreateDate></Role></CreateRoleResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></CreateRoleResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<AttachRolePolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></AttachRolePolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyResult><Policy><PolicyName>p</PolicyName><Arn>arn:aws:iam::aws:policy/service-role/x</Arn><DefaultVersionId>v3</DefaultVersionId></Policy></GetPolicyResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyResponse>"
+   },
+   {
+    "headers": {
+     "Content-Type": "text/xml"
+    },
+    "body": "<GetPolicyVersionResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\"><GetPolicyVersionResult><PolicyVersion><Document>%7B%22Version%22%3A%20%222012-10-17%22%2C%20%22Statement%22%3A%20%5B%7B%22Effect%22%3A%20%22Allow%22%2C%20%22Action%22%3A%20%22ec2%3ACreateSnapshot%22%2C%20%22Resource%22%3A%20%22%2A%22%7D%5D%7D</Document><VersionId>v3</VersionId><IsDefaultVersion>true</IsDefaultVersion><CreateDate>2020-01-01T00:00:00Z</CreateDate></PolicyVersion></GetPolicyVersionResult><ResponseMetadata><RequestId>r</RequestId></ResponseMetadata></GetPolicyVersionResponse>"
+   }
+  ],
+  "user_agent_features": true
+ },
+ {
+  "name": "user agent features of ec2-instance-connect ssh clients",
+  "argv": [
+   "ec2-instance-connect",
+   "ssh",
+   "--endpoint-url",
+   "{endpoint}",
+   "--private-key-file",
+   "key.pem",
+   "--instance-id",
+   "i-123",
+   "--os-user",
+   "ubuntu",
+   "--ssh-port",
+   "2222",
+   "--local-forwarding",
+   "3306:db:3306"
+  ],
+  "responses": [
+   {
+    "headers": {
+     "Content-Type": "text/xml;charset=UTF-8"
+    },
+    "body": "<DescribeInstancesResponse xmlns=\"http://ec2.amazonaws.com/doc/2016-11-15/\"><requestId>r</requestId><reservationSet><item><reservationId>r-1</reservationId><instancesSet><item><instanceId>i-123</instanceId><vpcId>vpc-1</vpcId><subnetId>subnet-1</subnetId><privateIpAddress>10.0.0.5</privateIpAddress><ipAddress>3.3.3.3</ipAddress></item></instancesSet></item></reservationSet></DescribeInstancesResponse>"
+   }
+  ],
+  "user_agent_features": true
  }
 ]

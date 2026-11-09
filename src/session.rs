@@ -56,8 +56,6 @@ pub struct Session {
     http: tokio::sync::OnceCell<Arc<HttpClient>>,
     retry_states: Mutex<HashMap<String, Arc<RetryState>>>,
     credentials: tokio::sync::OnceCell<Option<Credentials>>,
-    session_id: String,
-    command: Mutex<Option<String>>,
     /// The path of the command an alias that replaced it in its command
     /// table proxies to (`InternalAliasSubCommand._proxied_sub_command`).
     proxied: Option<Vec<String>>,
@@ -254,8 +252,6 @@ impl Session {
             http: tokio::sync::OnceCell::new(),
             retry_states: Mutex::new(HashMap::new()),
             credentials: tokio::sync::OnceCell::new(),
-            session_id: useragent::new_session_id(),
-            command: Mutex::new(None),
             proxied: None,
             features: Mutex::new(Vec::new()),
             s3_redirect_cache: Mutex::new(HashMap::new()),
@@ -294,7 +290,7 @@ impl Session {
         let path: Vec<&str> = std::iter::once(cli_service)
             .chain(cli_operation.split('.'))
             .collect();
-        *self.command.lock().unwrap() = Some(self.lineage(&path).join("."));
+        useragent::set_command(self.lineage(&path).join("."));
     }
 
     /// Record the command path an alias proxies to.
@@ -439,35 +435,15 @@ impl Session {
             .cloned()
     }
 
-    fn user_agent(&self, settings: &ClientSettings, extra: &[Feature]) -> String {
+    fn user_agent(
+        &self,
+        model: &ServiceModel,
+        settings: &ClientSettings,
+        extra: &[Feature],
+    ) -> String {
         let mut features = self.features.lock().unwrap().clone();
         features.extend_from_slice(extra);
-        features.push(match settings.retry_mode {
-            RetryMode::Standard => Feature::RetryModeStandard,
-            RetryMode::Adaptive => Feature::RetryModeAdaptive,
-        });
-        if self.config.globals().endpoint_url.is_some() {
-            features.push(Feature::EndpointOverride);
-        }
-        if self.config.env("CLAUDECODE").is_some_and(|v| !v.is_empty()) {
-            features.push(Feature::AgenticCallerClaudeCode);
-        }
-        if self
-            .config
-            .config_variable("request_checksum_calculation")
-            .as_deref()
-            == Some("when_supported")
-        {
-            features.push(Feature::FlexibleChecksumsReqWhenSupported);
-        }
-        if self
-            .config
-            .config_variable("response_checksum_validation")
-            .as_deref()
-            == Some("when_supported")
-        {
-            features.push(Feature::FlexibleChecksumsResWhenSupported);
-        }
+        features.extend(useragent::registered());
         if !self.config.profile_explicitly_set()
             && credentials::env_credentials(&self.config)
                 .ok()
@@ -476,16 +452,19 @@ impl Session {
         {
             features.push(Feature::CredentialsEnvVars);
         }
-        UserAgent {
-            cli_version: crate::model::REFERENCE_VERSION.trim().to_string(),
-            execution_env: self.config.env("AWS_EXECUTION_ENV").map(str::to_string),
+        let endpoint_override = self.config.globals().endpoint_url.is_some()
+            || self
+                .config
+                .configured_endpoint_url(&model.name)
+                .ok()
+                .flatten()
+                .is_some();
+        user_agent(
+            &self.config,
+            settings.retry_mode,
+            endpoint_override,
             features,
-            retry_mode: Some(settings.retry_mode.as_str().to_string()),
-            app_id: self.config.config_variable("user_agent_appid"),
-            session_id: self.session_id.clone(),
-            command: self.command.lock().unwrap().clone(),
-        }
-        .to_header()
+        )
     }
 
     /// The request URL `prepare_request_dict` builds for `request` at
@@ -721,11 +700,8 @@ impl Session {
                 } else {
                     &[]
                 };
-            headers::set(
-                &mut base_headers,
-                "User-Agent",
-                &self.user_agent(&settings, extra_features),
-            );
+            headers::set(&mut base_headers, "User-Agent", "");
+            let mut user_agent = None;
 
             let ctx = PayloadContext {
                 payload_signing_enabled: choice.payload_signing_enabled,
@@ -744,6 +720,9 @@ impl Session {
                 };
                 self.sign(&mut req, &choice, &ctx, settings.region.as_deref())
                     .await?;
+                let ua = user_agent
+                    .get_or_insert_with(|| self.user_agent(model, &settings, extra_features));
+                headers::set(&mut req.headers, "User-Agent", ua);
                 // `add_retry_headers`.
                 headers::set(&mut req.headers, "amz-sdk-invocation-id", &invocation_id);
                 let mut parts = Vec::new();
@@ -891,6 +870,55 @@ impl Session {
             }
         }
     }
+}
+
+/// The `User-Agent` of a client (`UserAgentString._build_feature_metadata`):
+/// the features of the context (`features`) and the ids botocore registers
+/// while creating the client (the retry mode, `ENDPOINT_OVERRIDE` for a
+/// given or configured endpoint URL, the checksum configuration, the
+/// agentic caller).
+pub(crate) fn user_agent(
+    config: &Config,
+    retry_mode: RetryMode,
+    endpoint_override: bool,
+    mut features: Vec<Feature>,
+) -> String {
+    features.push(match retry_mode {
+        RetryMode::Standard => Feature::RetryModeStandard,
+        RetryMode::Adaptive => Feature::RetryModeAdaptive,
+    });
+    if endpoint_override {
+        features.push(Feature::EndpointOverride);
+    }
+    if config.env("CLAUDECODE").is_some_and(|v| !v.is_empty()) {
+        features.push(Feature::AgenticCallerClaudeCode);
+    }
+    match config
+        .config_variable("request_checksum_calculation")
+        .as_deref()
+    {
+        Some("when_supported") => features.push(Feature::FlexibleChecksumsReqWhenSupported),
+        Some("when_required") => features.push(Feature::FlexibleChecksumsReqWhenRequired),
+        _ => {}
+    }
+    match config
+        .config_variable("response_checksum_validation")
+        .as_deref()
+    {
+        Some("when_supported") => features.push(Feature::FlexibleChecksumsResWhenSupported),
+        Some("when_required") => features.push(Feature::FlexibleChecksumsResWhenRequired),
+        _ => {}
+    }
+    UserAgent {
+        cli_version: crate::model::REFERENCE_VERSION.trim().to_string(),
+        execution_env: config.env("AWS_EXECUTION_ENV").map(str::to_string),
+        features,
+        retry_mode: Some(retry_mode.as_str().to_string()),
+        app_id: config.config_variable("user_agent_appid"),
+        session_id: useragent::session_id().to_string(),
+        command: useragent::command(),
+    }
+    .to_header()
 }
 
 /// `history_recorder.record('HTTP_REQUEST', ...)` of

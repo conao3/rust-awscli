@@ -17,17 +17,15 @@
 use std::future::Future;
 use std::pin::Pin;
 
-use aws_config::provider_config::ProviderConfig;
-use aws_credential_types::provider::ProvideCredentials;
-use aws_credential_types::provider::error::CredentialsError;
-use aws_types::region::Region;
 use sha1::{Digest, Sha1};
 
 use super::cache::{self, JsonFileCache};
 use super::client::{ApiClient, ApiError};
 use super::error::{ErrorKind, SessionError};
+use super::http::{HttpClient, HttpConfig, Verify};
 use super::pydatetime::{self, PyDateTime};
 use super::sign::Credentials;
+use super::useragent::{self, Feature};
 use crate::config::Config;
 use crate::config::ini::{IniValue, Section};
 use crate::value::{Map, Value};
@@ -148,8 +146,10 @@ pub async fn load_credentials(
     let resolver = Resolver {
         config,
         region: region.map(str::to_string),
+        assume_role_features: std::sync::Mutex::new(Vec::new()),
     };
     if !disable_env && let Some(c) = env_provider(config)? {
+        useragent::register(&[Feature::CredentialsEnvVars]);
         return Ok(Some(c));
     }
     let profiles = &config.full_config().profiles;
@@ -198,6 +198,8 @@ fn section_str(section: &Section, key: &str) -> Option<String> {
 struct Resolver<'a> {
     config: &'a Config,
     region: Option<String>,
+    /// `AssumeRoleProvider._feature_ids`.
+    assume_role_features: std::sync::Mutex<Vec<Feature>>,
 }
 
 impl<'a> Resolver<'a> {
@@ -274,9 +276,19 @@ impl<'a> Resolver<'a> {
                 }
             }
             let source_credentials = match (&credential_source, &source_profile) {
-                (Some(source), _) => self.credentials_from_source(source, profile_name).await?,
+                (Some(source), _) => {
+                    self.add_assume_role_feature(Feature::CredentialsProfileNamedProvider);
+                    let c = self.credentials_from_source(source, profile_name).await?;
+                    self.add_assume_role_feature(match source.as_str() {
+                        "Environment" => Feature::CredentialsEnvVars,
+                        "EcsContainer" => Feature::CredentialsHttp,
+                        _ => Feature::CredentialsImds,
+                    });
+                    c
+                }
                 (None, Some(source)) => {
                     visited.push(source.clone());
+                    self.add_assume_role_feature(Feature::CredentialsProfileSourceProfile);
                     self.credentials_from_profile(source, visited).await?
                 }
                 (None, None) => unreachable!(),
@@ -298,6 +310,9 @@ impl<'a> Resolver<'a> {
                 extra.insert("DurationSeconds".into(), Value::int(n));
             }
             let fetcher = AssumeRoleFetcher::new(&role_arn, extra);
+            let fetcher_features = self.assume_role_features.lock().unwrap().clone();
+            self.add_assume_role_feature(Feature::CredentialsStsAssumeRole);
+            useragent::register(&self.assume_role_features.lock().unwrap());
             let cache = cache::cli_cache(self.config);
             let response = async {
                 Ok::<Value, SessionError>(match fetcher.cached(&cache) {
@@ -317,7 +332,8 @@ impl<'a> Resolver<'a> {
                             self.region.clone(),
                             None,
                             Some(source_credentials.credentials.clone()),
-                        )?;
+                        )?
+                        .with_features(fetcher_features.clone());
                         let mut response = client
                             .call("AssumeRole", &Value::Map(kwargs), None)
                             .await
@@ -332,6 +348,13 @@ impl<'a> Resolver<'a> {
             .map_err(SessionError::into_deferred)?;
             credentials_from_response("assume-role", &response).map_err(SessionError::into_deferred)
         })
+    }
+
+    fn add_assume_role_feature(&self, feature: Feature) {
+        let mut features = self.assume_role_features.lock().unwrap();
+        if !features.contains(&feature) {
+            features.push(feature);
+        }
     }
 
     /// `AssumeRoleProvider._validate_source_profile`.
@@ -370,6 +393,7 @@ impl<'a> Resolver<'a> {
         visited: &mut Vec<String>,
     ) -> Result<LoadedCredentials, SessionError> {
         let profile = self.profile(profile_name);
+        self.add_assume_role_feature(Feature::CredentialsProfile);
         if has_static_credentials(&profile) || !has_assume_role_config_vars(&profile) {
             return match self.profile_providers(profile_name, true).await? {
                 Some(c) => Ok(c),
@@ -388,7 +412,13 @@ impl<'a> Resolver<'a> {
         profile_name: &str,
     ) -> Result<LoadedCredentials, SessionError> {
         let creds = match source {
-            "Environment" => env_provider(self.config)?,
+            "Environment" => {
+                let c = env_provider(self.config)?;
+                if c.is_some() {
+                    useragent::register(&[Feature::CredentialsEnvVars]);
+                }
+                c
+            }
             "EcsContainer" => self.container().await?,
             _ => self.imds().await?,
         };
@@ -409,11 +439,20 @@ impl<'a> Resolver<'a> {
         disable_env: bool,
     ) -> Result<Option<LoadedCredentials>, SessionError> {
         let profile = self.profile(profile_name);
+        let features = std::sync::Mutex::new(Vec::new());
         let get = |key: &str, env: &str| -> Option<String> {
+            let mut features = features.lock().unwrap();
             if !disable_env && let Some(v) = self.config.env(env) {
+                if !features.contains(&Feature::CredentialsEnvVarsStsWebIdToken) {
+                    features.push(Feature::CredentialsEnvVarsStsWebIdToken);
+                }
                 return Some(v.to_string());
             }
-            section_str(&profile, key)
+            let v = section_str(&profile, key);
+            if v.is_some() && !features.contains(&Feature::CredentialsProfileStsWebIdToken) {
+                features.push(Feature::CredentialsProfileStsWebIdToken);
+            }
+            v
         };
         let Some(token_path) =
             get("web_identity_token_file", "AWS_WEB_IDENTITY_TOKEN_FILE").filter(|p| !p.is_empty())
@@ -438,6 +477,10 @@ impl<'a> Resolver<'a> {
             })
         };
         let mut fetcher = AssumeRoleFetcher::new(&role_arn, extra);
+        let mut features = features.into_inner().unwrap();
+        let fetcher_features = features.clone();
+        features.push(Feature::CredentialsStsAssumeRoleWebId);
+        useragent::register(&features);
         let mut key_args = fetcher.key_args();
         key_args.insert("WebIdentityToken".into(), Value::str(read_token()?));
         fetcher.cache_key = cache_key_of(&key_args);
@@ -449,7 +492,8 @@ impl<'a> Resolver<'a> {
                     let mut kwargs = fetcher.kwargs.clone();
                     kwargs.insert("WebIdentityToken".into(), Value::str(read_token()?));
                     let client =
-                        ApiClient::new(self.config, "sts", self.region.clone(), None, None)?;
+                        ApiClient::new(self.config, "sts", self.region.clone(), None, None)?
+                            .with_features(fetcher_features.clone());
                     let mut response = client
                         .call("AssumeRoleWithWebIdentity", &Value::Map(kwargs), None)
                         .await
@@ -542,6 +586,15 @@ impl<'a> Resolver<'a> {
                 .join(",")
         );
         let cache_key = make_file_safe(&hex::encode(Sha1::digest(json.as_bytes())));
+        let fetcher_features = vec![match &session_name {
+            Some(_) => Feature::CredentialsProfileSso,
+            None => Feature::CredentialsProfileSsoLegacy,
+        }];
+        useragent::register(&fetcher_features);
+        useragent::register(&[match &session_name {
+            Some(_) => Feature::CredentialsSso,
+            None => Feature::CredentialsSsoLegacy,
+        }]);
         let cache = cache::cli_cache(self.config);
         if let Some(cached) = cached_response(&cache, &cache_key) {
             return credentials_from_response("sso", &cached).map(Some);
@@ -571,7 +624,8 @@ impl<'a> Resolver<'a> {
                         .to_string()
                 }
             };
-            let client = ApiClient::new(self.config, "sso", Some(sso_region), None, None)?;
+            let client = ApiClient::new(self.config, "sso", Some(sso_region), None, None)?
+                .with_features(fetcher_features);
             let mut params = Map::new();
             params.insert("roleName".into(), Value::str(&role_name));
             params.insert("accountId".into(), Value::str(&account_id));
@@ -620,6 +674,7 @@ impl<'a> Resolver<'a> {
         let Some(session) = section_str(&profile, "login_session") else {
             return Ok(None);
         };
+        useragent::register(&super::login_token::FEATURES);
         let c = super::login_token::login_credentials(self.config, &session).await?;
         let mut out = LoadedCredentials::new("login", c.access_key, c.secret_key, Some(c.token));
         out.expiry = PyDateTime::parse(&c.expiry);
@@ -627,45 +682,168 @@ impl<'a> Resolver<'a> {
         Ok(Some(out))
     }
 
-    fn provider_config(&self) -> ProviderConfig {
-        ProviderConfig::without_region()
-            .with_region(self.region.as_ref().map(|r| Region::new(r.clone())))
-    }
-
     /// `ContainerProvider.load`.
     async fn container(&self) -> Result<Option<LoadedCredentials>, SessionError> {
-        if self
-            .config
-            .env("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")
-            .is_none()
-            && self
-                .config
-                .env("AWS_CONTAINER_CREDENTIALS_FULL_URI")
-                .is_none()
-        {
-            return Ok(None);
+        const RELATIVE: &str = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
+        const FULL: &str = "AWS_CONTAINER_CREDENTIALS_FULL_URI";
+        let full_uri = match (self.config.env(RELATIVE), self.config.env(FULL)) {
+            (Some(relative), _) => format!("http://{CONTAINER_IP_ADDRESS}{relative}"),
+            (None, Some(full)) => full.to_string(),
+            (None, None) => return Ok(None),
+        };
+        let token = match (
+            self.config.env("AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE"),
+            self.config.env("AWS_CONTAINER_AUTHORIZATION_TOKEN"),
+        ) {
+            (Some(path), _) => Some(std::fs::read_to_string(path).map_err(|e| {
+                SessionError::new(
+                    ErrorKind::General,
+                    crate::cli::paramfile::os_error(&e, path),
+                )
+            })?),
+            (None, token) => token.map(str::to_string),
+        };
+        let mut headers = vec![
+            ("User-Agent".to_string(), URLLIB3_USER_AGENT.to_string()),
+            ("Accept".to_string(), "application/json".to_string()),
+        ];
+        if let Some(token) = token {
+            if token.contains(['\r', '\n']) {
+                return Err(SessionError::new(
+                    ErrorKind::General,
+                    "Auth token value is not a legal header value",
+                ));
+            }
+            headers.push(("Authorization".to_string(), token));
         }
-        let provider = aws_config::ecs::EcsCredentialsProvider::builder()
-            .configure(&self.provider_config())
-            .build();
-        external_provider(&provider, "container-role").await
+        let response = retrieve_container_credentials(&full_uri, &headers).await?;
+        useragent::register(&[Feature::CredentialsHttp]);
+        let field = |k: &str| -> Result<Value, SessionError> {
+            response
+                .get(k)
+                .cloned()
+                .ok_or_else(|| SessionError::new(ErrorKind::General, format!("'{k}'")))
+        };
+        let text = |v: Value| v.as_str().map(str::to_string).unwrap_or_default();
+        let mut out = LoadedCredentials::new(
+            "container-role",
+            text(field("AccessKeyId")?),
+            text(field("SecretAccessKey")?),
+            field("Token")?.as_str().map(str::to_string),
+        );
+        out.expiry = field("Expiration")?.as_str().and_then(PyDateTime::parse);
+        out.account_id = response
+            .get("AccountId")
+            .and_then(Value::as_str)
+            .map(str::to_string);
+        Ok(Some(out))
     }
 
     /// `InstanceMetadataProvider.load`.
     async fn imds(&self) -> Result<Option<LoadedCredentials>, SessionError> {
-        if self
-            .config
-            .env("AWS_EC2_METADATA_DISABLED")
-            .unwrap_or("false")
-            .to_lowercase()
-            == "true"
-        {
+        let Some(c) = super::imds::fetch_role_credentials(self.config).await? else {
             return Ok(None);
+        };
+        useragent::register(&[Feature::CredentialsImds]);
+        let mut out = LoadedCredentials::new("iam-role", c.access_key, c.secret_key, Some(c.token));
+        out.expiry = PyDateTime::parse(&c.expiry_time);
+        Ok(Some(out))
+    }
+}
+
+/// `ContainerMetadataFetcher.IP_ADDRESS`.
+const CONTAINER_IP_ADDRESS: &str = "169.254.170.2";
+
+/// The `User-Agent` urllib3 sends when the request has none
+/// (`urllib3.util.request._get_default_user_agent` of the urllib3 the
+/// reference bundles).
+const URLLIB3_USER_AGENT: &str = "python-urllib3/2.6.3";
+
+/// `ContainerMetadataFetcher.retrieve_full_uri`: the URL must be HTTPS, a
+/// loopback address, or an allowed host; three attempts a second apart.
+async fn retrieve_container_credentials(
+    full_url: &str,
+    headers: &[(String, String)],
+) -> Result<Value, SessionError> {
+    let parsed = url::Url::parse(full_url).ok();
+    let hostname = parsed.as_ref().and_then(|u| u.host_str()).map(|h| {
+        h.trim_start_matches('[')
+            .trim_end_matches(']')
+            .to_lowercase()
+    });
+    let scheme = parsed.as_ref().map(|u| u.scheme().to_string());
+    let loopback = hostname
+        .as_deref()
+        .and_then(|h| h.parse::<std::net::IpAddr>().ok())
+        .is_some_and(|ip| ip.is_loopback());
+    let allowed = [
+        "169.254.170.2",
+        "169.254.170.23",
+        "fd00:ec2::23",
+        "localhost",
+    ];
+    if scheme.as_deref() != Some("https")
+        && !loopback
+        && !hostname.as_deref().is_some_and(|h| allowed.contains(&h))
+    {
+        return Err(SessionError::new(
+            ErrorKind::General,
+            format!(
+                "Unsupported host '{}'.  Can only retrieve metadata from a loopback address or one of these hosts: {}",
+                hostname.as_deref().unwrap_or("None"),
+                allowed.join(", ")
+            ),
+        ));
+    }
+    let http = HttpClient::new(HttpConfig {
+        verify: Verify::Default,
+        connect_timeout: Some(std::time::Duration::from_secs(2)),
+        read_timeout: Some(std::time::Duration::from_secs(2)),
+        env: std::collections::HashMap::new(),
+        proxy_use_forwarding_for_https: false,
+    })?;
+    let mut attempts = 0;
+    loop {
+        let message = match http.send("GET", full_url, headers, b"").await {
+            Ok(r) => {
+                let text = String::from_utf8_lossy(&r.body).into_owned();
+                if r.status != 200 {
+                    format!(
+                        "Received non 200 response {} from container metadata: {text}",
+                        r.status
+                    )
+                } else {
+                    match Value::parse_json(&text) {
+                        Ok(v) => return Ok(v),
+                        Err(_) => "Unable to parse JSON returned from container metadata services"
+                            .to_string(),
+                    }
+                }
+            }
+            Err(e)
+                if matches!(
+                    e.kind,
+                    ErrorKind::ReadTimeout
+                        | ErrorKind::Connection
+                        | ErrorKind::ConnectionClosed
+                        | ErrorKind::ConnectTimeout
+                ) =>
+            {
+                format!(
+                    "Received error when attempting to retrieve container metadata: {}",
+                    e.message
+                )
+            }
+            Err(e) => return Err(e),
+        };
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        attempts += 1;
+        if attempts >= 3 {
+            return Err(retrieval_error(
+                "container-role",
+                &format!("Error retrieving metadata: {message}"),
+            ));
         }
-        let provider = aws_config::imds::credentials::ImdsCredentialsProvider::builder()
-            .configure(&self.provider_config())
-            .build();
-        external_provider(&provider, "iam-role").await
     }
 }
 
@@ -691,32 +869,6 @@ fn unauthorized_sso() -> SessionError {
         ErrorKind::General,
         "The SSO session associated with this profile has expired or is otherwise invalid. To refresh this SSO session run aws sso login with the corresponding profile.",
     )
-}
-
-async fn external_provider(
-    provider: &dyn ProvideCredentials,
-    method: &'static str,
-) -> Result<Option<LoadedCredentials>, SessionError> {
-    match provider.provide_credentials().await {
-        Ok(c) => {
-            let mut out = LoadedCredentials::new(
-                method,
-                c.access_key_id().to_string(),
-                c.secret_access_key().to_string(),
-                c.session_token().map(str::to_string),
-            );
-            out.expiry = c
-                .expiry()
-                .map(|t| PyDateTime::from_utc(chrono::DateTime::<chrono::Utc>::from(t)));
-            out.account_id = c.account_id().map(|a| a.as_str().to_string());
-            Ok(Some(out))
-        }
-        Err(CredentialsError::CredentialsNotLoaded(_)) => Ok(None),
-        Err(e) => Err(SessionError::new(
-            ErrorKind::CredentialProvider,
-            credentials_error_message(&e),
-        )),
-    }
 }
 
 /// `CachedCredentialFetcher._make_file_safe`.
@@ -855,7 +1007,11 @@ fn shared_credentials_provider(
     let Some(section) = sections.get(profile_name) else {
         return Ok(None);
     };
-    static_keys(section, "shared-credentials-file")
+    let c = static_keys(section, "shared-credentials-file")?;
+    if c.is_some() {
+        useragent::register(&[Feature::CredentialsProfile]);
+    }
+    Ok(c)
 }
 
 /// `ConfigProvider.load`.
@@ -872,7 +1028,11 @@ fn config_file_provider(
     let Some(profile) = full.profiles.get(profile_name) else {
         return Ok(None);
     };
-    static_keys(profile, "config-file")
+    let c = static_keys(profile, "config-file")?;
+    if c.is_some() {
+        useragent::register(&[Feature::CredentialsProfile]);
+    }
+    Ok(c)
 }
 
 fn static_keys(
@@ -906,7 +1066,9 @@ fn process_provider(
         return Ok(None);
     };
     let profile_account = section_str(profile, "aws_account_id");
+    useragent::register(&[Feature::CredentialsProfileProcess]);
     let mut c = run_credential_process(config, &command, profile_account.as_deref())?;
+    useragent::register(&[Feature::CredentialsProcess]);
     if let Some(expiry) = c.expiry
         && expiry.seconds_remaining() < 15.0 * 60.0
     {
@@ -1102,6 +1264,7 @@ fn boto_provider(config: &Config) -> Result<Option<LoadedCredentials>, SessionEr
             let Some(secret) = get("aws_secret_access_key") else {
                 return Err(partial("boto-config", "aws_secret_access_key"));
             };
+            useragent::register(&[Feature::CredentialsBoto2ConfigFile]);
             return Ok(Some(LoadedCredentials::new(
                 "boto-config",
                 get("aws_access_key_id").unwrap_or_default(),
@@ -1111,16 +1274,6 @@ fn boto_provider(config: &Config) -> Result<Option<LoadedCredentials>, SessionEr
         }
     }
     Ok(None)
-}
-
-fn credentials_error_message(e: &CredentialsError) -> String {
-    let mut msg = e.to_string();
-    let mut source = std::error::Error::source(e);
-    while let Some(s) = source {
-        msg = format!("{msg}: {s}");
-        source = s.source();
-    }
-    msg
 }
 
 /// A bearer token: `AWS_BEARER_TOKEN_<SIGNING_NAME>` (for the services in
@@ -1181,6 +1334,7 @@ fn preflight_assume_role(
     let resolver = Resolver {
         config,
         region: None,
+        assume_role_features: std::sync::Mutex::new(Vec::new()),
     };
     let profile = resolver.profile(profile_name);
     let source_profile = section_str(&profile, "source_profile");
@@ -1227,6 +1381,7 @@ fn preflight_profile(
     let resolver = Resolver {
         config,
         region: None,
+        assume_role_features: std::sync::Mutex::new(Vec::new()),
     };
     let profile = resolver.profile(profile_name);
     let from_env = |env: &str| (!disable_env).then(|| config.env(env)).flatten();

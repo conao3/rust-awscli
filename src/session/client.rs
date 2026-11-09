@@ -12,6 +12,7 @@ use super::http::{HttpClient, HttpConfig, Verify};
 use super::sign::{
     AuthInputs, Credentials, PayloadContext, SigV4, SignableRequest, SignatureVersion, headers,
 };
+use super::useragent::Feature;
 use crate::config::Config;
 use crate::endpoint::{self, BuiltinInputs, Builtins, S3Config};
 use crate::model::ServiceModel;
@@ -87,6 +88,7 @@ pub struct ApiClient<'a> {
     endpoint_url: Option<String>,
     credentials: Option<Credentials>,
     verify: Verify,
+    features: Vec<Feature>,
 }
 
 impl<'a> ApiClient<'a> {
@@ -125,7 +127,34 @@ impl<'a> ApiClient<'a> {
             endpoint_url,
             credentials,
             verify,
+            features: Vec::new(),
         })
+    }
+
+    /// The feature ids of the context the client is created and called in
+    /// (a credential fetcher's `feature_ids`).
+    pub fn with_features(mut self, features: Vec<Feature>) -> ApiClient<'a> {
+        self.features = features;
+        self
+    }
+
+    /// The `User-Agent` of the client: `CREDENTIALS_CODE` for explicit
+    /// credentials (`Session.create_client`).
+    fn user_agent(&self) -> String {
+        let mut features = self.features.clone();
+        if self.credentials.is_some() {
+            features.push(Feature::CredentialsCode);
+        }
+        let retry_mode = match self.config.get("retry_mode").ok().flatten().as_deref() {
+            Some("adaptive") => super::retry::RetryMode::Adaptive,
+            _ => super::retry::RetryMode::Standard,
+        };
+        super::user_agent(
+            self.config,
+            retry_mode,
+            self.endpoint_url.is_some(),
+            features,
+        )
     }
 
     fn builtins(&self) -> Builtins {
@@ -206,11 +235,7 @@ impl<'a> ApiClient<'a> {
                 headers::set(&mut hdrs, k, first);
             }
         }
-        headers::set(
-            &mut hdrs,
-            "User-Agent",
-            &format!("aws-cli/{} md/awsr", crate::model::REFERENCE_VERSION.trim()),
-        );
+        headers::set(&mut hdrs, "User-Agent", &self.user_agent());
         if let Some(f) = extra_headers {
             for (k, v) in f(&url) {
                 headers::set(&mut hdrs, &k, &v);
@@ -266,6 +291,12 @@ impl<'a> ApiClient<'a> {
                 .add_auth(&mut req, &PayloadContext::default(), Utc::now());
             }
         }
+        headers::set(
+            &mut req.headers,
+            "amz-sdk-invocation-id",
+            &uuid::Uuid::new_v4().to_string(),
+        );
+        headers::set(&mut req.headers, "amz-sdk-request", "attempt=1");
         if !headers::contains(&req.headers, "Content-Length")
             && !matches!(req.method.as_str(), "GET" | "HEAD" | "OPTIONS")
         {

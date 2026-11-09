@@ -42,8 +42,28 @@ pub enum Feature {
     EndpointOverride,
     FlexibleChecksumsReqWhenSupported,
     FlexibleChecksumsResWhenSupported,
+    FlexibleChecksumsReqWhenRequired,
+    FlexibleChecksumsResWhenRequired,
+    CredentialsCode,
     CredentialsEnvVars,
+    CredentialsEnvVarsStsWebIdToken,
+    CredentialsStsAssumeRole,
+    CredentialsStsAssumeRoleWebId,
     CredentialsProfile,
+    CredentialsProfileSourceProfile,
+    CredentialsProfileNamedProvider,
+    CredentialsProfileStsWebIdToken,
+    CredentialsProfileSso,
+    CredentialsSso,
+    CredentialsProfileSsoLegacy,
+    CredentialsSsoLegacy,
+    CredentialsProfileProcess,
+    CredentialsProcess,
+    CredentialsBoto2ConfigFile,
+    CredentialsHttp,
+    CredentialsImds,
+    CredentialsProfileLogin,
+    CredentialsLogin,
     Sigv4aSigning,
     BearerServiceEnvVars,
 }
@@ -59,8 +79,28 @@ impl Feature {
             Feature::EndpointOverride => "N",
             Feature::FlexibleChecksumsReqWhenSupported => "Z",
             Feature::FlexibleChecksumsResWhenSupported => "b",
+            Feature::FlexibleChecksumsReqWhenRequired => "a",
+            Feature::FlexibleChecksumsResWhenRequired => "c",
+            Feature::CredentialsCode => "e",
             Feature::CredentialsEnvVars => "g",
+            Feature::CredentialsEnvVarsStsWebIdToken => "h",
+            Feature::CredentialsStsAssumeRole => "i",
+            Feature::CredentialsStsAssumeRoleWebId => "k",
             Feature::CredentialsProfile => "n",
+            Feature::CredentialsProfileSourceProfile => "o",
+            Feature::CredentialsProfileNamedProvider => "p",
+            Feature::CredentialsProfileStsWebIdToken => "q",
+            Feature::CredentialsProfileSso => "r",
+            Feature::CredentialsSso => "s",
+            Feature::CredentialsProfileSsoLegacy => "t",
+            Feature::CredentialsSsoLegacy => "u",
+            Feature::CredentialsProfileProcess => "v",
+            Feature::CredentialsProcess => "w",
+            Feature::CredentialsBoto2ConfigFile => "x",
+            Feature::CredentialsHttp => "z",
+            Feature::CredentialsImds => "0",
+            Feature::CredentialsProfileLogin => "AC",
+            Feature::CredentialsLogin => "AD",
             Feature::Sigv4aSigning => "S",
             Feature::BearerServiceEnvVars => "3",
         }
@@ -151,10 +191,33 @@ impl UserAgent {
     }
 }
 
-/// A 12-hex-digit session id (`telemetry.py`).
-pub fn new_session_id() -> String {
-    let id = uuid::Uuid::new_v4().simple().to_string();
-    id[..12].to_string()
+/// The 12-hex-digit session id of the process (`telemetry.py`).
+pub fn session_id() -> &'static str {
+    static ID: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    ID.get_or_init(|| uuid::Uuid::new_v4().simple().to_string()[..12].to_string())
+}
+
+static COMMAND: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+static REGISTERED: std::sync::Mutex<Vec<Feature>> = std::sync::Mutex::new(Vec::new());
+
+/// `md/command#<service>.<operation>` of the session's user agent extra
+/// (`add_command_lineage_to_user_agent_extra`).
+pub fn set_command(command: String) {
+    *COMMAND.lock().unwrap() = Some(command);
+}
+
+pub fn command() -> Option<String> {
+    COMMAND.lock().unwrap().clone()
+}
+
+/// `register_feature_ids` of the credential providers, in the context the
+/// command's clients are created in.
+pub fn register(features: &[Feature]) {
+    REGISTERED.lock().unwrap().extend_from_slice(features);
+}
+
+pub fn registered() -> Vec<Feature> {
+    REGISTERED.lock().unwrap().clone()
 }
 
 #[cfg(test)]

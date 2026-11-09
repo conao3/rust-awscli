@@ -13,6 +13,7 @@ use super::cache::{self, JsonFileCache};
 use super::client::{ApiClient, ApiError};
 use super::error::{ErrorKind, SessionError};
 use super::pydatetime::{self, PyDateTime};
+use super::useragent::Feature;
 use crate::config::Config;
 use crate::value::{Map, Value};
 
@@ -116,6 +117,9 @@ impl DpopKey {
         format!("{signing_input}.{sig_b64}")
     }
 }
+
+/// `LoginProvider._feature_ids`.
+pub const FEATURES: [Feature; 2] = [Feature::CredentialsProfileLogin, Feature::CredentialsLogin];
 
 fn login_error(msg: impl Into<String>) -> SessionError {
     SessionError::new(ErrorKind::General, msg)
@@ -221,7 +225,8 @@ async fn refresh(
         .filter(|r| !r.is_empty())
         .map(str::to_string)
         .or_else(|| config.region().ok().flatten());
-    let client = ApiClient::new(config, "signin", region, None, None)?;
+    let client =
+        ApiClient::new(config, "signin", region, None, None)?.with_features(FEATURES.to_vec());
     let mut input = Map::new();
     input.insert(
         "clientId".into(),

@@ -16,11 +16,9 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
-aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-credential-types = "1"
 aws-sigv4 = { version = "1", features = ["sign-http", "sigv4a"] }
 aws-smithy-runtime-api = { version = "1", features = ["client"] }
-aws-types = "1"
 base64 = "0.23"
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
 ciborium = "0.2"

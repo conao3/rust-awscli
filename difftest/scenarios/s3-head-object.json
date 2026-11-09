@@ -1,0 +1,50 @@
+[
+ {
+  "name": "s3 cp download of an object without LastModified",
+  "argv": [
+   "s3",
+   "cp",
+   "s3://b/k",
+   "{casedir}/o.txt",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\"",
+     "Content-Length": "4"
+    },
+    "body": ""
+   }
+  ]
+ },
+ {
+  "name": "s3 mv of an object without LastModified",
+  "argv": [
+   "s3",
+   "mv",
+   "s3://b/k",
+   "s3://b/k2",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.aws/config": "[default]\nregion = us-east-1\naws_access_key_id = AKID\naws_secret_access_key = SECRET\ns3 =\n  addressing_style = path\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "ETag": "\"e\"",
+     "Content-Length": "4"
+    },
+    "body": ""
+   }
+  ]
+ }
+]

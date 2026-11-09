@@ -764,10 +764,15 @@ impl Generator<'_> {
         let _ = s3_path;
         match self.client.call("HeadObject", params) {
             Ok(mut resp) => {
-                let size = resp.shift_remove("ContentLength").and_then(|v| v.as_i64());
+                let key_error = |k: &str| S3Fail::Fail(Fail::General(format!("'{k}'")));
+                let size = resp
+                    .shift_remove("ContentLength")
+                    .ok_or_else(|| key_error("ContentLength"))?
+                    .as_i64();
                 let lu = resp
                     .get("LastModified")
-                    .and_then(Value::as_str)
+                    .ok_or_else(|| key_error("LastModified"))?
+                    .as_str()
                     .and_then(parse_timestamp);
                 let etag = resp.get("ETag").and_then(Value::as_str).map(str::to_string);
                 if let Some(s) = size {

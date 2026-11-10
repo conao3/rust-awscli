@@ -210,7 +210,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-agentcore",
-        "cbed1a5dd5661c5010a1ec9e7af1f335e5638e96a932e05c9bae7cc7da2c1208",
+        "08ec4fb667a8a2cb717faaef02fc176596e2d55f92a2ee06d2d03da1706b3ace",
     ),
     (
         "bedrock-agentcore-control",
@@ -578,7 +578,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ecs",
-        "04bbcf6c125850791eb506ed7cc649b4903be145b84bf791dc814b9b3506da55",
+        "77c13c69e5676f58aa2577824f03409488a1d77d1ee6730502ecaafb166de54e",
     ),
     (
         "efs",
@@ -634,7 +634,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "es",
-        "f34446e818b1513b5b56e7ff1a98db8d2f072bd0bd12a5310f248bc8ff0caee5",
+        "06f0f8bd3c31edb8dac2f89fc1291831dd7fab35fdc920b0961689f62e32df93",
     ),
     (
         "events",
@@ -706,7 +706,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "glue",
-        "81d7fee25536ca2695ccb6448d7edd6923e15396252cb7e0d4599503dcf71dca",
+        "7cebec57757b3c30c5282d92c992f940345f9b04c887bb5ab42712d6cced048d",
     ),
     (
         "grafana",
@@ -1170,7 +1170,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "opensearch",
-        "dfaa528c8f19c8da2050e0154250a6dbbd59d60c6388d06a2dcd1913ceff727e",
+        "53c147a5ef3dc9414550198e2182ef3f2e0eb225cbcc5e24e9b82b796213861a",
     ),
     (
         "opensearchserverless",
@@ -1398,7 +1398,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "s3control",
-        "f1b211cac770352c6e3f797ce60e3bf41b652e585344a3eec5bdf5f59b56e9d7",
+        "fee61ee49ead1c3d5655f5cb243abae8a7bd610214c79dc3027bf9a42d712262",
     ),
     (
         "s3files",
@@ -1418,7 +1418,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "sagemaker",
-        "fb76ca593cebb2b32525b0061d37fc5433d468c753a17fa381680d41c37dd51d",
+        "78f38363a7361a657d86cb8738479d583cf4d5cd74cdcda9b7f5ee1a27175f47",
     ),
     (
         "sagemaker-a2i-runtime",
@@ -1530,7 +1530,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "signin",
-        "eca6b8ee0b39db3525bc485e2c1bc9c0e969ed30b8e76ecd5a812f392ba13e70",
+        "9c2aa5a93c39fc51cc000b0744aab3113d97f24178994a8c4628c243160b5744",
     ),
     (
         "simpledbv2",

@@ -34,6 +34,7 @@ nix develop --command bash -euxo pipefail -o posix -c '
   home="$(mktemp -d)"
   HOME="$home" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/cli/testdata/gen_tables.py >src/cli/tables.rs
   HOME="$home" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/cli/testdata/gen_fingerprints.py >src/cli/fingerprints.rs
+  HOME="$home" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/cli/testdata/gen_cli_goldens.py src/cli/testdata/cli_cases.txt >src/cli/goldens.rs
   HOME="$home" PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/help/testdata/gen_documents.py src/help/testdata
   PYTHONPATH="$AWSR_REFERENCE_SRC" python3 src/testdata/gen_waiter_descriptions.py >src/testdata/waiter-descriptions.json
   nix fmt

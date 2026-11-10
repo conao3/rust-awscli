@@ -285,15 +285,11 @@ pub fn fetch_region(config: &Config) -> Result<Option<String>, SessionError> {
             Token::BadRequest => return Ok(None),
             Token::Token(t) => t,
         };
-        let path = "latest/meta-data/placement/availability-zone/";
+        let path = "latest/meta-data/placement/region";
         Ok(fetcher
             .get(&http, path, token.as_deref(), &default_retry)
             .await?
-            .map(|r| {
-                let mut zone = String::from_utf8_lossy(&r.body).into_owned();
-                zone.pop();
-                zone
-            }))
+            .map(|r| String::from_utf8_lossy(&r.body).into_owned()))
     };
     std::thread::scope(|s| {
         s.spawn(|| {

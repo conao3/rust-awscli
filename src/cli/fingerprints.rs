@@ -214,7 +214,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-agentcore-control",
-        "3fa11355863ae2468fa64715e7b97b75f55238ff2644522c58d46c523bcf8131",
+        "e57786e466c81d284ab5b7b09692431da4d08967e6b32e9e2f83f32b1ff001ed",
     ),
     (
         "bedrock-data-automation",
@@ -338,7 +338,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cloudwatchomni",
-        "7bf8b92f14764f5096c04c3f2300301a9e2676b19049abc8e84fd56ec464d943",
+        "16b41c4f8d4fb7112f7fee6b47a0c95499815cf50881ace64334ab2c680947ef",
     ),
     (
         "codeartifact",
@@ -678,7 +678,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "gamelift",
-        "d86198a409bc2ac0ad7c7290116ce0d5701cbb89998d2511a1f22a9d6b1d4d61",
+        "c5b816ef3ca91a98e174b41d0a8a974294f1b43f6aafc813f88dc55e3cca4965",
     ),
     (
         "gameliftstreams",
@@ -898,7 +898,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "lakeformation",
-        "5baa5ff0b986d539fbd23e67c3a5e75666acea0202d38efa9e96dd93d24df5ef",
+        "f66d6ce968691f37ad9b90613c7d3b00ca4c2e33a93c6e1c144dd031932f5902",
     ),
     (
         "lambda",
@@ -1122,7 +1122,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "network-firewall",
-        "54566f4989434a39c574014f1bb8900fcd9a202e397f06ebbd673b6974d31b46",
+        "55b7c32b18cfc2b247e955567f8a39c552b79533f631c96d3a18ae36800379e4",
     ),
     (
         "network-security-manager",
@@ -1226,7 +1226,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "pcs",
-        "3b36b7ee12e9cae6b43207c5dfcbddaac13204dc4717405c1e59b09bd07d9480",
+        "a536d71f7ae9c19dadb0106dbb1e14e0470bcf9cb9a6fa7591c31033f5ffbfcf",
     ),
     (
         "personalize",
@@ -1382,7 +1382,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "route53profiles",
-        "91871e1cbd0056c5632d3626368db277d1f047d3f07d514e8308c4afc93f5feb",
+        "50f1e9f14c2c64391930be6485ac4cbe76a0ca96f81d18babd2952d8423df092",
     ),
     (
         "route53resolver",
@@ -1410,7 +1410,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "s3tables",
-        "aa3dc672474442ab135b3396a910d67b502ac90950866f798e0d4ea01f7f1ae9",
+        "45a6bc14a821e1fb276607caeb5ed48993308387f9743842a5896884d73a1702",
     ),
     (
         "s3vectors",

@@ -666,14 +666,12 @@ impl Session {
             settings.region = region.clone();
         }
         let sid = service_id(model);
-        let new_retries = retry::new_retries_enabled(self.config.env_map());
         let policy = RetryPolicy {
-            max_attempts: RetryState::max_attempts(settings.max_attempts, &sid, new_retries),
+            max_attempts: RetryState::max_attempts(settings.max_attempts, &sid),
             service_name: model.name.clone(),
             service_id: sid.clone(),
             operation_name: operation.name.to_string(),
-            modeled: retry::modeled_retryable_errors(operation),
-            new_retries,
+            modeled: retry::modeled_errors(operation),
         };
         let state = self.retry_state(&model.name, settings.retry_mode);
         let http = self.http_client(&settings).await?;
@@ -714,7 +712,6 @@ impl Session {
         }
         let invocation_id = uuid::Uuid::new_v4().to_string();
         let mut ttl: Option<String> = None;
-        let mut max_known = false;
         let mut quota_capacity: Option<u32> = None;
         let mut attempt: u32 = 1;
         let mut endpoint = endpoint.clone();
@@ -808,9 +805,7 @@ impl Session {
                     parts.push(format!("ttl={t}"));
                 }
                 parts.push(format!("attempt={attempt}"));
-                if max_known {
-                    parts.push(format!("max={}", policy.max_attempts));
-                }
+                parts.push(format!("max={}", policy.max_attempts));
                 headers::set(&mut req.headers, "amz-sdk-request", &parts.join("; "));
                 // `AWSRequestPreparer._prepare_headers`.
                 if !headers::contains(&req.headers, "Transfer-Encoding")
@@ -886,7 +881,6 @@ impl Session {
                     exception: exception.as_ref(),
                 };
                 let decision = state.needs_retry(&policy, &outcome, &mut quota_capacity);
-                max_known = true;
                 if crate::debuglog::enabled() && settings.retry_mode == RetryMode::Standard {
                     if decision.max_attempts_reached {
                         crate::debuglog::debug(

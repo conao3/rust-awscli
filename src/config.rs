@@ -236,7 +236,7 @@ static SESSION_VARIABLES: &[Var] = &[
         "max_attempts",
         &["AWS_MAX_ATTEMPTS"],
         &[Key("max_attempts")],
-        Some("3"),
+        None,
         Int,
     ),
     var(

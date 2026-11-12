@@ -157,7 +157,7 @@ async fn retries_headers_and_wire_order() {
         ]
     );
     assert_eq!(first[1], format!("Host: 127.0.0.1:{port}"));
-    assert!(first.contains(&"amz-sdk-request: attempt=1".to_string()));
+    assert!(first.contains(&"amz-sdk-request: attempt=1; max=2".to_string()));
     assert!(first.iter().any(|l| {
         l.starts_with("Authorization: AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/")
             && l.contains(

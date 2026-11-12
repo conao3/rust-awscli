@@ -94,37 +94,81 @@ fn supports_shorthand(shape: &Shape<'_>) -> bool {
     }
 }
 
-/// `ParamShorthand._uses_old_list_case`.
-fn uses_old_list_case(service: &str, operation: &str, argument: &str) -> bool {
-    let cases: &[(&str, &str, &str)] = &[
-        ("firehose", "put-record-batch", "records"),
-        (
-            "workspaces",
-            "reboot-workspaces",
-            "reboot-workspace-requests",
-        ),
-        (
-            "workspaces",
-            "rebuild-workspaces",
-            "rebuild-workspace-requests",
-        ),
-        (
-            "workspaces",
-            "terminate-workspaces",
-            "terminate-workspace-requests",
-        ),
-        ("elb", "remove-tags", "tags"),
-        ("elb", "describe-instance-health", "instances"),
-        (
-            "elb",
-            "deregister-instances-from-load-balancer",
-            "instances",
-        ),
-        ("elb", "register-instances-with-load-balancer", "instances"),
-    ];
-    cases
+/// `ParamShorthand._OLD_LIST_CASES`: the arguments that support the
+/// deprecated shorthand case for lists of structures, with the member a
+/// bare value is assigned to.
+const OLD_LIST_CASES: &[(&str, &str, &str, &str)] = &[
+    ("firehose", "put-record-batch", "records", "Data"),
+    (
+        "workspaces",
+        "reboot-workspaces",
+        "reboot-workspace-requests",
+        "WorkspaceId",
+    ),
+    (
+        "workspaces",
+        "rebuild-workspaces",
+        "rebuild-workspace-requests",
+        "WorkspaceId",
+    ),
+    (
+        "workspaces",
+        "terminate-workspaces",
+        "terminate-workspace-requests",
+        "WorkspaceId",
+    ),
+    ("elb", "remove-tags", "tags", "Key"),
+    ("elb", "describe-instance-health", "instances", "InstanceId"),
+    (
+        "elb",
+        "deregister-instances-from-load-balancer",
+        "instances",
+        "InstanceId",
+    ),
+    (
+        "elb",
+        "register-instances-with-load-balancer",
+        "instances",
+        "InstanceId",
+    ),
+];
+
+/// `ParamShorthand._get_old_list_case_key`: the member bare values are
+/// assigned to, when the deprecated list case applies to the argument.
+pub(crate) fn old_list_case_key<'m>(
+    service: &str,
+    operation: &str,
+    argument: &str,
+    model: &Shape<'m>,
+) -> Option<&'m str> {
+    if model.type_name() != "list" {
+        return None;
+    }
+    let member = model.list_member()?;
+    if member.type_name() != "structure" {
+        return None;
+    }
+    let (_, _, _, pinned) = OLD_LIST_CASES
         .iter()
-        .any(|(s, o, a)| *s == service && *o == operation && *a == argument)
+        .find(|(s, o, a, _)| *s == service && *o == operation && *a == argument)?;
+    let members = member.members();
+    if members.len() == 1 {
+        return Some(members[0].0);
+    }
+    members
+        .iter()
+        .find(|(name, _)| name == pinned)
+        .map(|(name, _)| *name)
+}
+
+/// The `\s*(?:<member>|...)\s*=` match of
+/// `ParamShorthandParser._parse_old_list_case`.
+fn starts_with_member_key(value: &str, members: &[(&str, Shape<'_>)]) -> bool {
+    let rest = py_strip_start(value);
+    members.iter().any(|(name, _)| {
+        rest.strip_prefix(name)
+            .is_some_and(|r| py_strip_start(r).starts_with('='))
+    })
 }
 
 /// The argument a value is being unpacked for.
@@ -169,28 +213,33 @@ fn shorthand(arg: &ArgContext<'_, '_>, value: &Value) -> Result<Option<Value>, F
         ShorthandError::Paramfile(p) => Fail::General(p.0),
         ShorthandError::Python(m) => Fail::General(m),
     };
-    if model.type_name() == "list"
-        && let Some(member) = model.list_member()
-        && member.type_name() == "structure"
-        && member.members().len() == 1
-        && uses_old_list_case(arg.service, arg.operation, arg.name)
-    {
-        let key = member.members()[0].0.to_string();
+    if let Some(key) = old_list_case_key(arg.service, arg.operation, arg.name, model) {
         let items = match value {
             Value::List(l) => l.clone(),
             Value::Str(s) => s.chars().map(|c| Value::Str(c.to_string())).collect(),
             _ => Vec::new(),
         };
-        return Ok(Some(Value::List(
-            items
-                .into_iter()
-                .map(|v| {
-                    let mut m = Map::new();
-                    m.insert(key.clone(), v);
-                    Value::Map(m)
-                })
-                .collect(),
-        )));
+        let bare = |v: Value| {
+            let mut m = Map::new();
+            m.insert(key.to_string(), v);
+            Value::Map(m)
+        };
+        let members = model.list_member().map(|m| m.members()).unwrap_or_default();
+        if members.len() == 1 {
+            return Ok(Some(Value::List(items.into_iter().map(bare).collect())));
+        }
+        let mut out = Vec::with_capacity(items.len());
+        for v in items {
+            match &v {
+                Value::Str(s) if starts_with_member_key(s, &members) => {
+                    out.push(ShorthandParser::parse(s).map_err(map_err)?);
+                }
+                _ => out.push(bare(v)),
+            }
+        }
+        let mut parsed = Value::List(out);
+        back_compat_visit(&mut parsed, model).map_err(map_err)?;
+        return Ok(Some(parsed));
     }
     if model.type_name() == "structure" {
         let members = model.members();

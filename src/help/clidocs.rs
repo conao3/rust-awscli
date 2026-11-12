@@ -304,38 +304,6 @@ mod shorthand {
         Text(String),
     }
 
-    fn uses_old_list_case(service: &str, operation: &str, arg: &str) -> bool {
-        let cases: &[(&str, &str, &str)] = &[
-            ("firehose", "put-record-batch", "records"),
-            (
-                "workspaces",
-                "reboot-workspaces",
-                "reboot-workspace-requests",
-            ),
-            (
-                "workspaces",
-                "rebuild-workspaces",
-                "rebuild-workspace-requests",
-            ),
-            (
-                "workspaces",
-                "terminate-workspaces",
-                "terminate-workspace-requests",
-            ),
-            ("elb", "remove-tags", "tags"),
-            ("elb", "describe-instance-health", "instances"),
-            (
-                "elb",
-                "deregister-instances-from-load-balancer",
-                "instances",
-            ),
-            ("elb", "register-instances-with-load-balancer", "instances"),
-        ];
-        cases
-            .iter()
-            .any(|(s, o, a)| *s == service && *o == operation && *a == arg)
-    }
-
     /// `generate_shorthand_example`.
     pub(super) fn generate(
         arg: &HelpArg<'_>,
@@ -343,13 +311,10 @@ mod shorthand {
         service: &str,
         operation: &str,
     ) -> Example {
-        if model.type_name() == "list"
-            && let Some(member) = model.list_member()
-            && member.type_name() == "structure"
-            && member.members().len() == 1
-            && uses_old_list_case(service, operation, &arg.name)
+        if let Some(member_name) =
+            crate::cli::argprocess::old_list_case_key(service, operation, &arg.name, model)
+            && model.list_member().is_some_and(|m| m.members().len() == 1)
         {
-            let member_name = member.members()[0].0;
             if model.get("min").and_then(Node::as_i64) == Some(1)
                 && model.get("max").and_then(Node::as_i64) == Some(1)
             {

@@ -390,7 +390,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cognito-idp",
-        "19e3ba9c76fa2cb043da50b345da7f94ccd3a1cf3c4cab83a4b18e0ffb4f6beb",
+        "b999286d059956f4808519728fbc652a3ddbc2c50330a0f033a9b210d0af2711",
     ),
     (
         "cognito-sync",
@@ -430,7 +430,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "connectcases",
-        "6a7fdb0b8b2917ba8b51fdce786ba3fb0e9ebf57b66c8d385bac0a3bebb2a74c",
+        "956e3ee4376b053b3d3172f29141d7a427258067907ad52a06a6f508883134c1",
     ),
     (
         "connecthealth",
@@ -886,7 +886,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "kinesisanalyticsv2",
-        "cdbf83f46a60dfe75198c65f3922c29c2e4a83695753d95915bc2561d63704ad",
+        "59c5f2fe540dbb0fd3b69237797ee8332ba35f96be8a19873024340972ead5b9",
     ),
     (
         "kinesisvideo",
@@ -1062,7 +1062,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "meteringmarketplace",
-        "626529217ed0c0b4e5a92661efa9b6c42b0ad4128258995794502ca131a36e9a",
+        "0919b336aee0881efd6c619b286b519f292bd9ac759cd88b69cb01d190f5b79b",
     ),
     (
         "mgh",
@@ -1498,7 +1498,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "servicecatalog",
-        "e2c389c459c172a6542bdcab5aa40d2e4cf0f46685730aa4a497759eb5b4dd6a",
+        "b251415d30ea30b14e8a98ec4fd1fb429d9491cb5b293ab24fe93def12dcf5b6",
     ),
     (
         "servicecatalog-appregistry",

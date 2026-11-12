@@ -309,7 +309,6 @@ impl<'a> ApiClient<'a> {
             env: self.config.env_map().clone(),
             proxy_use_forwarding_for_https: false,
         })?;
-        let new_retries = super::retry::new_retries_enabled(self.config.env_map());
         let configured = self
             .config
             .get("max_attempts")
@@ -318,12 +317,11 @@ impl<'a> ApiClient<'a> {
             .and_then(|v| super::error::py_int(&v).ok())
             .map(|n| n.max(1) as u32);
         let policy = RetryPolicy {
-            max_attempts: RetryState::max_attempts(configured, &sid, new_retries),
+            max_attempts: RetryState::max_attempts(configured, &sid),
             service_name: model.name.clone(),
             service_id: sid.clone(),
             operation_name: op.name.to_string(),
-            modeled: super::retry::modeled_retryable_errors(&op),
-            new_retries,
+            modeled: super::retry::modeled_errors(&op),
         };
         let state = RetryState::new(self.retry_mode());
         let options = ParseOptions::default();
@@ -345,9 +343,7 @@ impl<'a> ApiClient<'a> {
                 parts.push(format!("ttl={t}"));
             }
             parts.push(format!("attempt={attempt}"));
-            if attempt > 1 {
-                parts.push(format!("max={}", policy.max_attempts));
-            }
+            parts.push(format!("max={}", policy.max_attempts));
             headers::set(&mut req.headers, "amz-sdk-request", &parts.join("; "));
             if !headers::contains(&req.headers, "Content-Length")
                 && !matches!(req.method.as_str(), "GET" | "HEAD" | "OPTIONS")

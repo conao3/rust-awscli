@@ -56,26 +56,22 @@ pub const THROTTLED_ERROR_CODES: &[&str] = &[
     "EC2ThrottledException",
 ];
 
-/// `AWS_NEW_RETRIES_2026` (`configprovider.NEW_RETRIES_ENABLED`).
-pub fn new_retries_enabled(env: &std::collections::HashMap<String, String>) -> bool {
-    env.get("AWS_NEW_RETRIES_2026")
-        .is_some_and(|v| v.to_lowercase() == "true")
-}
+/// `ThrottlingStatusCodeChecker._THROTTLING_STATUS_CODES`.
+pub const THROTTLING_STATUS_CODES: &[u16] = &[429];
 
-/// `standard._SERVICE_MAX_ATTEMPTS` (new retries only), keyed by the
-/// hyphenized service id.
+/// `standard._SERVICE_MAX_ATTEMPTS`, keyed by the hyphenized service id.
 fn service_max_attempts(service_id: &str) -> Option<u32> {
     matches!(service_id, "dynamodb" | "dynamodb-streams").then_some(4)
 }
 
-/// The modeled retryable errors of an operation
-/// (`ModeledRetryErrorDetector`): `(error code, throttling)`.
-pub fn modeled_retryable_errors(operation: &Operation<'_>) -> Vec<(String, bool)> {
+/// The modeled errors of an operation (`ModeledRetryErrorDetector`):
+/// `(error code, retryable)`, where `retryable` is `Some(throttling)` for
+/// an error modeled as retryable.
+pub fn modeled_errors(operation: &Operation<'_>) -> Vec<(String, Option<bool>)> {
     operation
         .errors()
         .iter()
-        .filter_map(|shape| {
-            let retryable = shape.def.get("retryable")?;
+        .map(|shape| {
             let code = shape
                 .def
                 .get("error")
@@ -84,11 +80,13 @@ pub fn modeled_retryable_errors(operation: &Operation<'_>) -> Vec<(String, bool)
                 .filter(|c| !c.is_empty())
                 .unwrap_or(shape.name)
                 .to_string();
-            let throttling = retryable
-                .get("throttling")
-                .and_then(|t| t.as_bool())
-                .unwrap_or(false);
-            Some((code, throttling))
+            let retryable = shape.def.get("retryable").map(|retryable| {
+                retryable
+                    .get("throttling")
+                    .and_then(|t| t.as_bool())
+                    .unwrap_or(false)
+            });
+            (code, retryable)
         })
         .collect()
 }
@@ -112,8 +110,7 @@ pub struct RetryPolicy {
     /// The hyphenized service id.
     pub service_id: String,
     pub operation_name: String,
-    pub modeled: Vec<(String, bool)>,
-    pub new_retries: bool,
+    pub modeled: Vec<(String, Option<bool>)>,
 }
 
 /// The standard retry checks other than the attempt limit
@@ -126,19 +123,40 @@ pub fn is_retryable(response: &HttpResponse, error_code: Option<&str>) -> bool {
 }
 
 impl RetryPolicy {
+    /// `ModeledRetryErrorDetector.detect_error_type`: `Some(throttling)`
+    /// for an error modeled as retryable.
     fn modeled_type(&self, code: Option<&str>) -> Option<bool> {
         let code = code?;
         self.modeled
             .iter()
-            .find(|(c, _)| c == code)
-            .map(|(_, throttling)| *throttling)
+            .filter_map(|(c, retryable)| retryable.map(|t| (c, t)))
+            .find(|(c, _)| *c == code)
+            .map(|(_, throttling)| throttling)
+    }
+
+    /// `ModeledRetryErrorDetector.is_modeled_error`.
+    fn is_modeled_error(&self, code: Option<&str>) -> bool {
+        code.is_some_and(|code| self.modeled.iter().any(|(c, _)| c == code))
+    }
+
+    /// `ThrottlingStatusCodeChecker.is_retryable`.
+    fn is_throttling_status(&self, o: &AttemptOutcome<'_>) -> bool {
+        o.response
+            .is_some_and(|r| THROTTLING_STATUS_CODES.contains(&r.status))
+            && !self.is_modeled_error(o.error_code)
     }
 
     /// `ThrottlingErrorDetector.is_throttling_error_from_context`.
     pub fn is_throttling(&self, o: &AttemptOutcome<'_>) -> bool {
-        o.error_code
+        if o.error_code
             .is_some_and(|c| THROTTLED_ERROR_CODES.contains(&c))
-            || self.modeled_type(o.error_code) == Some(true)
+        {
+            return true;
+        }
+        match self.modeled_type(o.error_code) {
+            Some(throttling) => throttling,
+            None => self.is_throttling_status(o),
+        }
     }
 
     /// `StandardRetryConditions.is_retryable` without the attempt limit.
@@ -152,6 +170,7 @@ impl RetryPolicy {
         let throttled = o
             .error_code
             .is_some_and(|c| THROTTLED_ERROR_CODES.contains(&c));
+        let throttling_status = self.is_throttling_status(o);
         let modeled = self.modeled_type(o.error_code).is_some();
         // `special.RetryIDPCommunicationError`.
         let idp = self.service_name == "sts" && o.error_code == Some("IDPCommunicationError");
@@ -167,7 +186,7 @@ impl RetryPolicy {
                         .is_none_or(|e| e != actual)
                 })
             });
-        transient || throttled || modeled || idp || ddb
+        transient || throttled || throttling_status || modeled || idp || ddb
     }
 }
 
@@ -198,11 +217,9 @@ pub struct RetryState {
     limiter: Option<Mutex<ClientRateLimiter>>,
 }
 
-const RETRY_COST: u32 = 5;
-const RETRY_COST_V2: u32 = 14;
+const RETRY_COST: u32 = 14;
 const NO_RETRY_INCREMENT: u32 = 1;
 const THROTTLING_RETRY_COST: u32 = 5;
-const TIMEOUT_RETRY_REQUEST: u32 = 10;
 
 /// `RetryHandler._LONG_POLLING_OPERATIONS`.
 fn is_long_polling(service_id: &str, operation: &str) -> bool {
@@ -227,12 +244,10 @@ impl RetryState {
     }
 
     /// The attempt limit for an operation (`register_retry_handler`).
-    pub fn max_attempts(configured: Option<u32>, service_id: &str, new_retries: bool) -> u32 {
-        match configured {
-            Some(n) => n,
-            None if new_retries => service_max_attempts(service_id).unwrap_or(DEFAULT_MAX_ATTEMPTS),
-            None => DEFAULT_MAX_ATTEMPTS,
-        }
+    pub fn max_attempts(configured: Option<u32>, service_id: &str) -> u32 {
+        configured
+            .or_else(|| service_max_attempts(service_id))
+            .unwrap_or(DEFAULT_MAX_ATTEMPTS)
     }
 
     /// `RetryHandler.needs_retry` (plus the adaptive limiter's
@@ -259,14 +274,8 @@ impl RetryState {
         if !(under_max && policy.is_retryable_condition(outcome)) {
             return decision;
         }
-        let cost = if policy.new_retries {
-            if policy.is_throttling(outcome) {
-                THROTTLING_RETRY_COST
-            } else {
-                RETRY_COST_V2
-            }
-        } else if outcome.exception.is_some_and(SessionError::is_timeout) {
-            TIMEOUT_RETRY_REQUEST
+        let cost = if policy.is_throttling(outcome) {
+            THROTTLING_RETRY_COST
         } else {
             RETRY_COST
         };
@@ -284,7 +293,7 @@ impl RetryState {
             decision.delay = Some(self.delay(policy, outcome));
         } else {
             decision.quota_reached = true;
-            if policy.new_retries && is_long_polling(&policy.service_id, &policy.operation_name) {
+            if is_long_polling(&policy.service_id, &policy.operation_name) {
                 std::thread::sleep(self.delay(policy, outcome));
             }
         }
@@ -295,27 +304,23 @@ impl RetryState {
     fn delay(&self, policy: &RetryPolicy, outcome: &AttemptOutcome<'_>) -> Duration {
         let r: f64 = rand::random();
         let exp = 2f64.powi(outcome.attempt as i32 - 1);
-        let secs = if policy.new_retries {
-            let scale = if policy.is_throttling(outcome) {
-                1.0
-            } else if matches!(policy.service_id.as_str(), "dynamodb" | "dynamodb-streams") {
-                0.025
-            } else {
-                0.05
-            };
-            let t_i = r * (scale * exp).min(20.0);
-            let retry_after = outcome
-                .response
-                .and_then(|resp| resp.header("x-amz-retry-after"))
-                .and_then(|v| v.trim().parse::<i64>().ok())
-                .filter(|v| *v >= 0)
-                .map(|v| v as f64 / 1000.0);
-            match retry_after {
-                Some(ra) => t_i.max(ra.min(5.0 + t_i)),
-                None => t_i,
-            }
+        let scale = if policy.is_throttling(outcome) {
+            1.0
+        } else if matches!(policy.service_id.as_str(), "dynamodb" | "dynamodb-streams") {
+            0.025
         } else {
-            r * exp.min(20.0)
+            0.05
+        };
+        let t_i = r * (scale * exp).min(20.0);
+        let retry_after = outcome
+            .response
+            .and_then(|resp| resp.header("x-amz-retry-after"))
+            .and_then(|v| v.trim().parse::<i64>().ok())
+            .filter(|v| *v >= 0)
+            .map(|v| v as f64 / 1000.0);
+        let secs = match retry_after {
+            Some(ra) => t_i.max(ra.min(5.0 + t_i)),
+            None => t_i,
         };
         Duration::from_secs_f64(secs)
     }
@@ -538,8 +543,11 @@ mod tests {
             service_name: "sts".into(),
             service_id: "sts".into(),
             operation_name: "GetCallerIdentity".into(),
-            modeled: vec![("ModeledThing".into(), false), ("ModeledSlow".into(), true)],
-            new_retries: false,
+            modeled: vec![
+                ("ModeledThing".into(), Some(false)),
+                ("ModeledSlow".into(), Some(true)),
+                ("ModeledPlain".into(), None),
+            ],
         }
     }
 
@@ -567,7 +575,9 @@ mod tests {
             (400, Some("PriorRequestNotComplete"), true),
             (400, Some("EC2ThrottledException"), true),
             (400, Some("ValidationError"), false),
-            (429, None, false),
+            (429, None, true),
+            (429, Some("UnknownThing"), true),
+            (429, Some("ModeledPlain"), false),
             (400, Some("ModeledThing"), true),
             (400, Some("IDPCommunicationError"), true),
             (200, None, false),
@@ -631,8 +641,8 @@ mod tests {
         let d = state.needs_retry(&p, &o, &mut cap);
         assert!(d.delay.is_some_and(|d| d <= Duration::from_secs(1)));
         assert!(!d.max_attempts_reached);
-        assert_eq!(cap, Some(5));
-        assert_eq!(state.available_quota(), 495);
+        assert_eq!(cap, Some(14));
+        assert_eq!(state.available_quota(), 486);
         o.attempt = 3;
         let d = state.needs_retry(&p, &o, &mut cap);
         assert_eq!(d.delay, None);
@@ -648,7 +658,7 @@ mod tests {
         };
         let d = state.needs_retry(&policy(1), &o, &mut None);
         assert!(d.max_attempts_reached);
-        state.release(200, Some(5));
+        state.release(200, Some(14));
         assert_eq!(state.available_quota(), 500);
     }
 

@@ -334,7 +334,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cloudwatch",
-        "7747915f4d3684ff09c92cbcf9422d5a646386ba34dce2ce9a44b798d578edea",
+        "80d4b09ce0b9c1e104283490af4a9ba40ce01032e501ecbdfa4ea78a0aa48e49",
     ),
     (
         "cloudwatchomni",
@@ -390,7 +390,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cognito-idp",
-        "19e3ba9c76fa2cb043da50b345da7f94ccd3a1cf3c4cab83a4b18e0ffb4f6beb",
+        "b999286d059956f4808519728fbc652a3ddbc2c50330a0f033a9b210d0af2711",
     ),
     (
         "cognito-sync",
@@ -430,7 +430,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "connectcases",
-        "6a7fdb0b8b2917ba8b51fdce786ba3fb0e9ebf57b66c8d385bac0a3bebb2a74c",
+        "956e3ee4376b053b3d3172f29141d7a427258067907ad52a06a6f508883134c1",
     ),
     (
         "connecthealth",
@@ -562,7 +562,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ec2",
-        "a0e08f3e1963e92b57681ad9e3d36a9990bd6a8d097339fa810b93543a289bee",
+        "e6ccafb0cfe5a7a7f1062411d2ce5749dc3bc96266678bbb161f3f82b3dab284",
     ),
     (
         "ec2-instance-connect",
@@ -726,7 +726,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "guardduty",
-        "106bdb4a5fe231927e4be1ffb92a7a7f20b041af63fdd46beb1357c51bb63cee",
+        "fefc8e4e63a59d152fb1d312c57e6e8ff9e31d3c6f37f760e06085325600f266",
     ),
     (
         "health",
@@ -886,7 +886,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "kinesisanalyticsv2",
-        "cdbf83f46a60dfe75198c65f3922c29c2e4a83695753d95915bc2561d63704ad",
+        "59c5f2fe540dbb0fd3b69237797ee8332ba35f96be8a19873024340972ead5b9",
     ),
     (
         "kinesisvideo",
@@ -950,7 +950,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "lightsail",
-        "0ccfd11facfe51ece4bb477b851b54c18656e36114834e3fea21f723a836d05c",
+        "322a3c4448a0e1136cff65227b46b9e10ec5a20f1920a9f6a2f65a150b8633f0",
     ),
     (
         "location",
@@ -1018,7 +1018,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "mediaconnect",
-        "163a19167cdc663298ecad6ef9791ff1b3417fbb76152c8f46b090f89c7a94b7",
+        "edf5966391a4a34b3aa3dfb5baf819e16572c7d6c4d76b06f8c9c39315e2997b",
     ),
     (
         "mediaconvert",
@@ -1050,7 +1050,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "mediatailor",
-        "af8a7b7f2b1d84e0e5ef152770e625b42d1ce6c65ad131ae15d7afb307a041bc",
+        "67c1ae1cf034ac007d9a3ced2cae0afb2ba10e01cf323feb970eca7dfa3c32b1",
     ),
     (
         "medical-imaging",
@@ -1062,7 +1062,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "meteringmarketplace",
-        "626529217ed0c0b4e5a92661efa9b6c42b0ad4128258995794502ca131a36e9a",
+        "0919b336aee0881efd6c619b286b519f292bd9ac759cd88b69cb01d190f5b79b",
     ),
     (
         "mgh",
@@ -1102,11 +1102,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "mwaa",
-        "ddb1092959029f86a6577926307d3aabf2d275df30789582ed26fae5836ab628",
+        "02e02ae9c2fdb4edbfc4c3d7bd29189b66812a33317722db63a3ba593542e0e5",
     ),
     (
         "mwaa-serverless",
-        "2aa94cff9625a0b1b94c99e3a37d93ae89ee75425f8c4f04d2ecb3c8d2995691",
+        "d64887f6355c4d1ec061a7ffdbf226d1ba1abfa0392a9e7098bcd554431285aa",
     ),
     (
         "neptune",
@@ -1162,7 +1162,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "odb",
-        "e5f7f41c1ad2921b18c64a7f92dd020041797f931b0d707893467c9564970658",
+        "7bfb8e75e0111f1000b687ce3dde62595b3a5a2c5723539ee3466188da98028a",
     ),
     (
         "omics",
@@ -1358,7 +1358,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "route53",
-        "cdc76bc4efaf02d9eb8ec3fd0c8324e548ce47bb80065e2a551e1b2f9ca7c2df",
+        "661ad275dec5794bbe7d9b07a76f5a65369b2c447ab9f34dc9d8aa39ec3c60be",
     ),
     (
         "route53-recovery-cluster",
@@ -1470,7 +1470,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "secretsmanager",
-        "3e6edab16a25e1b4aaffaabb2be5607c661689edb70ab0b49f41523cca13863d",
+        "eb40c34e667adf042ba9b04f7ca8459de3fe323c7121ed3f71e2461e1f3bb2a8",
     ),
     (
         "security-ir",
@@ -1478,7 +1478,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "securityagent",
-        "455fb2a36bdf4639d8f7eb2897f7df5085c2d8f4995e389e449078f2e882d527",
+        "87156f7d9b142b7996e34391bdf4ee0f2fdb4c881a3f92467ffb3c5386d97f80",
     ),
     (
         "securityhub",
@@ -1498,7 +1498,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "servicecatalog",
-        "e2c389c459c172a6542bdcab5aa40d2e4cf0f46685730aa4a497759eb5b4dd6a",
+        "b251415d30ea30b14e8a98ec4fd1fb429d9491cb5b293ab24fe93def12dcf5b6",
     ),
     (
         "servicecatalog-appregistry",
@@ -1586,7 +1586,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "sso-admin",
-        "7f98dadb4e9a0d89ca4701028ca56b9514e7438963374410665352c67b5a2cba",
+        "c28f880cbcefd6aa072eb0feddc8edbeb1f7ac505cde32fa6999d0bd958143a0",
     ),
     (
         "sso-oidc",

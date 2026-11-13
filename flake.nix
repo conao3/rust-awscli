@@ -23,15 +23,15 @@
           awscliReferenceSrc = pkgs.fetchFromGitHub {
             owner = "aws";
             repo = "aws-cli";
-            rev = "2.40.0";
-            hash = "sha256-90692n99CLfWzUtdw0TAr2J0RtbLV12+YnzmC+eATDo=";
+            rev = "2.40.2";
+            hash = "sha256-h/kqpKdgPuEoB0pVyGiWeyD9w6NrQqelXuyJkl0QTvo=";
           };
           awscliReference = pkgs.stdenv.mkDerivation rec {
             pname = "awscli-reference";
-            version = "2.40.0";
+            version = "2.40.2";
             src = pkgs.fetchurl {
               url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${version}.zip";
-              hash = "sha256-Sm00FQBgprwwFg7x9m5TbbZGdHl7u1ggRPk7ucbimec=";
+              hash = "sha256-qawNY16X+rZeI0rhUZ+mvSsC1yEgv5Zaj/bq92EfGDM=";
             };
             nativeBuildInputs = [ pkgs.unzip ];
             unpackPhase = "unzip -q $src";

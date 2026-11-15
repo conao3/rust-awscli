@@ -58,6 +58,7 @@
             src = lib.cleanSource ./.;
             cargoLock.lockFile = ./Cargo.lock;
             doCheck = false;
+            dontCargoUseSystemLibs = true;
             nativeBuildInputs = [ pkgs.groff ];
             preBuild = ''
               cargo build --release --frozen --target ${pkgs.stdenv.hostPlatform.rust.rustcTarget} -p awsr-helpgen

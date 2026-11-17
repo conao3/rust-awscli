@@ -11,6 +11,7 @@ on:
           - patch
           - minor
           - major
+          - none
 
 env:
   CARGO_TERM_COLOR: always
@@ -53,15 +54,19 @@ jobs:
             patch)
               patch=$((patch + 1))
               ;;
+            none)
+              ;;
           esac
 
           NEW_VERSION="${major}.${minor}.${patch}"
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-      - run: |
+      - if: inputs.version_bump != 'none'
+        run: |
           sed -i "0,/^version = \".*\"/s//version = \"${{ steps.bump.outputs.new_version }}\"/" Cargo.toml
           cargo check -p awsr
-      - run: |
+      - if: inputs.version_bump != 'none'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Cargo.toml Cargo.lock
@@ -80,7 +85,9 @@ jobs:
         with:
           ref: v${{ needs.version-bump.outputs.new_version }}
       - uses: dtolnay/rust-toolchain@stable
-      - run: sudo apt-get install -y groff
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y groff
       - run: make help-pages
       - uses: actions/upload-artifact@v7.0.2
         with:

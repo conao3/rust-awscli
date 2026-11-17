@@ -146,7 +146,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "athena",
-        "cc3a7230bd7bcd2148e0c141d1c99c944cae233906ffefc97147d758a7956a92",
+        "f83876f5491cb7d5878a532239a76cfdf3b4b5db521e0224c7c18352fce17dee",
     ),
     (
         "auditmanager",
@@ -390,7 +390,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cognito-idp",
-        "87279e23d08d12fa2fc0d72cf947e13b419f4a8b4f94a3f196b3b11e7c18180c",
+        "0fbfe2c91d19931629434dc1b6db6ca8f20e5b5f4a97b612abd61b021a4ab7f9",
     ),
     (
         "cognito-sync",
@@ -414,7 +414,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "connect",
-        "4f4b50e8299176f9b02e26e2cf62f165500d3d0681f3aed7fdaf5301a5450f10",
+        "895c1762eda7b5417f066a89065de3f910f2b1f09ce1670c66d2763a02607eb9",
     ),
     (
         "connect-contact-lens",
@@ -434,11 +434,15 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "connecthealth",
-        "5fe38894c5bd7dfad56b313f6d7fa523a8dd4b37e98550bfeccb42ad0346da02",
+        "8b1d9decb14ea7884662bdaca7bbb1ab1cd95cf16d00b04ccc11d28eb0c40abe",
     ),
     (
         "connectparticipant",
         "d16b94492177ccf51ddda86bcc70e24e520f2ebf38c0f5dcfc5715c303eac2b4",
+    ),
+    (
+        "connectscheduling",
+        "74d680f235c136c76e3b1909edc4aca56e56db7c8fe4c20e0cb271fa2f3829b9",
     ),
     (
         "continuum",
@@ -546,7 +550,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "dsql",
-        "3dbf6daca8c6530130b0afd5246c6cb9f02d26f20a42106a8ce49477d9504967",
+        "0d47eba5bcb610c46c482a8b1f481597a4aa524824e25b4911a83162b316dc48",
     ),
     (
         "dynamodb",
@@ -562,7 +566,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ec2",
-        "7cb41878ac88159f7b48f0933f02e1d7aa242327e301a7580fc6f03acec243e4",
+        "18ffb42beb618d26af9a5d8dea58f119ec228f8a8c8422c15e316da3f91512d8",
     ),
     (
         "ec2-instance-connect",
@@ -622,7 +626,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "emr-serverless",
-        "c701b54b97186722b8f3346bdc17f7a89a46d6ff0465603ca79acfc381630113",
+        "6d5b101154fd29a989bf61550326ac6a089bfe3d4ad8f69f4277388e183d25ec",
     ),
     (
         "endusermessaging",
@@ -730,7 +734,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "health",
-        "326378654615b5493be81a527461e914440e1f67f3aa1a6ee2c95180eb65cb85",
+        "7e9608d1487613f195d9a91834bb896bc97ea3debb3e1f22ebcdd1e61ae432cf",
     ),
     (
         "healthlake",
@@ -742,7 +746,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "iam-toolbox",
-        "759fe9ded4cd830fcaf71a5b7f24f8f5194f07218264e346d85b8aba285685fc",
+        "0243ea2f7b678acb3f168acc46ba82a7fbc4b14faa3dcd42e95222ba607b959d",
     ),
     (
         "identitystore",
@@ -894,7 +898,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "kms",
-        "70fa035e70d495ac6033bcf86ab1ea074d250fc702301ceb68665460f8eba59f",
+        "568fd8937ed2b9c7a5fdc51dabfc23a5eda4f26fa6ea7d91054c7a458520f47e",
     ),
     (
         "lakeformation",
@@ -902,7 +906,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "lambda",
-        "f9f9cbbb4ea7b486782ef8891a410ef4accb9364916e6058d89faa99339fd1d4",
+        "3b50dfa7373aef0f0e08a7f9d762ff8f6c116a6ac4d7bf627af36c4d099883e7",
     ),
     (
         "lambda-core",
@@ -1122,7 +1126,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "network-firewall",
-        "205ef8e582eecd3eef0e9a8071d0f7c4054cfbc5fd71453080f6a457d6cdc134",
+        "250bdeb718b95a37f85190cf51a9139edd45585b1d98fa79f391982eef4ddc24",
     ),
     (
         "network-security-manager",
@@ -1130,11 +1134,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "networkflowmonitor",
-        "5499701393e9ab60d564227b792dbd0b47bd9f9da55efcd36465d7de14852b02",
+        "8a55421d31acce6e070e37ec4f9387528f070d1c6dace6866ea4fa4c5cb5940f",
     ),
     (
         "networkmanager",
-        "0c14d8106e66bf9f56f7ae3c07aa793850c1c5baf652b874f7158ce1f09ab9ca",
+        "11b18e9d93351afec9744825ed8b42515e36590e4aeac84a44e92b8aea8f6fd6",
     ),
     (
         "networkmonitor",
@@ -1171,6 +1175,10 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     (
         "opensearch",
         "53c147a5ef3dc9414550198e2182ef3f2e0eb225cbcc5e24e9b82b796213861a",
+    ),
+    (
+        "opensearchmemory",
+        "a82056f8ee755d89d9de05b2e0a1f41cad47cba147f4747eb6e9aa9dedbc97b9",
     ),
     (
         "opensearchserverless",
@@ -1414,11 +1422,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "s3vectors",
-        "9f8a7c6c882409d5ee65e43e4e895305d9da507f0209c32d826804351bc5e7d3",
+        "d4ad3bc51eb7e268d4cc47e2d6a2c1f85389301806565f8732fb072dee44f8cf",
     ),
     (
         "sagemaker",
-        "fdd50b28d1431ed96d8767a7fd66e3f6f060d2f13811b584cc7e5e55a364c4e6",
+        "a2b72f87a6a1a2b8f335b4fea29300e305141390dbc72f2d9d33ac15317194fb",
     ),
     (
         "sagemaker-a2i-runtime",
@@ -1435,6 +1443,10 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     (
         "sagemaker-geospatial",
         "93460b19d915894c7017a6e7327f35cc0d9aa5081901d685fb1d17310c2e8b61",
+    ),
+    (
+        "sagemaker-inference-router-runtime",
+        "c5eedda28dd09e8e41aed55253318bfc253f05ede8ecd00b25ffa1b71e21aac6",
     ),
     (
         "sagemaker-metrics",
@@ -1698,7 +1710,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "wellarchitected",
-        "a206c537b7e8aff71f6132193a348b5edb0bf6a87a1b162089b29e95ad1d561a",
+        "aa41ab513c3c242653ec69ee8af5648abcff8e3b7f39c5d8399831cf62aa032b",
     ),
     (
         "wickr",
@@ -1722,7 +1734,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "workspaces",
-        "4c66850cf53db4ee646eab865bd68c3c16acbdd1fc5f8281b6917d60a8842669",
+        "a0988b8bb516823d6cd51f169fe14fbb01af43eeb8fe6d837e83d0531e780da0",
     ),
     (
         "workspaces-instances",

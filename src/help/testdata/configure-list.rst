@@ -1,5 +1,5 @@
 .. meta::
-   :description: Use the AWS CLI 2.40.3 to run the configure list command.
+   :description: Use the AWS CLI 2.40.4 to run the configure list command.
 
 
 

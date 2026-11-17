@@ -70,7 +70,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "apigateway",
-        "52c53b9cca714beaacb7d09bd77a7416b87cb385fe7d52a7a76fe66525d1b247",
+        "d42bfa67cc64551d4427ccb905b7ebe99d4d75383b5513d6ab210dda787ae456",
     ),
     (
         "apigatewaymanagementapi",
@@ -210,11 +210,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-agentcore",
-        "08ec4fb667a8a2cb717faaef02fc176596e2d55f92a2ee06d2d03da1706b3ace",
+        "61cd873d82b364f1b750a7c1441fece7ac8930e02457f0fff22f338630b687bf",
     ),
     (
         "bedrock-agentcore-control",
-        "e57786e466c81d284ab5b7b09692431da4d08967e6b32e9e2f83f32b1ff001ed",
+        "64ae91e465fdc09a743680151dd0696a3654ed58e3358b759b1a5cac799614f3",
     ),
     (
         "bedrock-data-automation",
@@ -230,7 +230,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "billing",
-        "ffce6206b877b213c484e4b38c6040b94d68dfa5164ea6c8249674091a583a9b",
+        "c147aa7f356e0f9d538c726159cbb878ff5204fbc522004b298c016c2549700d",
     ),
     (
         "billingconductor",
@@ -506,7 +506,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "devops-agent",
-        "4f3f5090934285c288c674803452c6d2d5db2070286ac72bdd3f07038fa28056",
+        "7c59b4028d6b18cef2e7dc2a010d25d917798a60754b7dce22569ea3334fd3b8",
     ),
     (
         "devops-guru",
@@ -566,7 +566,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ec2",
-        "18ffb42beb618d26af9a5d8dea58f119ec228f8a8c8422c15e316da3f91512d8",
+        "8a4c7b292392271cb13e66ef17490b9b78d4dcb7e7f57086597a82ce324d2387",
     ),
     (
         "ec2-instance-connect",
@@ -598,7 +598,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "elasticache",
-        "1324ce0255893889a93cd5f12bbf3d50053bb9b2e765e3e81badb9651d770b11",
+        "9cf13cb7d23daf4d0092fbc37c6df3d9ad8a3e0a1e9487b6325099ada8d2cf73",
     ),
     (
         "elasticbeanstalk",
@@ -614,7 +614,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "elementalinference",
-        "ae9f0d36aff278f96d6b84d55a9a27493bf8122a9ecaac09c5a885aaf859aea2",
+        "0d35908065e5e984d7395dce9d8e7873154e2062517a8f0dcf847192a4b853fb",
     ),
     (
         "emr",
@@ -866,7 +866,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "kinesis",
-        "1b8eb1c27d5c2a3182d15e7b2c65048f814418bbb87745ffd4b031db9db8167d",
+        "d0e9d744606f05993206cd6784e8c401a666642ee94c0d98f1b6e974f5b9460d",
     ),
     (
         "kinesis-video-archived-media",
@@ -906,7 +906,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "lambda",
-        "3b50dfa7373aef0f0e08a7f9d762ff8f6c116a6ac4d7bf627af36c4d099883e7",
+        "628666ac19c4e6e086fda39a2f54b587e8b2ab7f178d349016950106042627b8",
     ),
     (
         "lambda-core",
@@ -994,7 +994,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "marketplace-agreement",
-        "837e646e5aa5ca4282a504f488d9e1a1dd603571c05cd8d62afb73c9b84f07b9",
+        "8033cb8624cc637956226654d3056ff41b8897db8b6bfce9b06d2b9f0bc581b0",
     ),
     (
         "marketplace-catalog",
@@ -1074,7 +1074,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "mgn",
-        "af50bbc1850925800f8cb8a6bcf211cc4d8c0b9e2798414cedf82daad4ac1712",
+        "bec0e9f4cf2b061a0efe773c352a17e6192abfdf6b97674557c7b3800846841f",
     ),
     (
         "migration-hub-refactor-spaces",
@@ -1162,7 +1162,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "observabilityadmin",
-        "4c772ad0cd3341c7a8173039128d1c2e61c23b16015547b87e797fb1d67e7f8a",
+        "e6f4d63465ddfbe9b639379528195162a1ea9910ffc6d1b8c3f7a2839c32351c",
     ),
     (
         "odb",
@@ -1386,7 +1386,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "route53globalresolver",
-        "305946e83fea41db58878107896adfdf47f6c2201f483230bcba450eb7fd656e",
+        "d029191548a51477b9f1711eb1f3e977722acd4ea19d60bf4d468dfcb4eba295",
     ),
     (
         "route53profiles",
@@ -1402,7 +1402,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "rum",
-        "476a317cd948e129cbbf93f3f8e94e79cfa4520acbfb181e14c90763f056b6e3",
+        "ed853e6ed198492565e0a33f76e3026b1edd80a4b904c9830ba505a797b5006e",
     ),
     (
         "s3control",
@@ -1762,7 +1762,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "configservice",
-        "2efef39461993fe518192c9285802e3a52b13696009df94a21090fc6b63acc70",
+        "6f055b456f868cf1e5bade0a6285288090a3e259f453764f9269d9b932c569f3",
     ),
     (
         "agent-toolkit",

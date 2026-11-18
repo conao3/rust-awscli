@@ -1,6 +1,8 @@
 //! `agent-toolkit get-skill-file`, `list-installed-skills`, and
 //! `remove-skill` (`awscli/customizations/agenttoolkit/`).
 
+mod atomic;
+
 use super::basic::{self, ArgDef};
 use super::exec::{Client, sub_context};
 use crate::driver::{Context, write_stdout};
@@ -84,6 +86,7 @@ struct AgentConfig {
     display_name: String,
     detection_path: &'static str,
     detection_path_env_override: Option<&'static str>,
+    home_env_override: Option<&'static str>,
     skills_dir: &'static str,
     skills_path_override: Option<&'static str>,
 }
@@ -100,6 +103,7 @@ fn config(
         display_name: display_name.to_string(),
         detection_path,
         detection_path_env_override: env,
+        home_env_override: None,
         skills_dir: "skills",
         skills_path_override,
     }
@@ -156,13 +160,16 @@ fn agent_configs() -> Vec<AgentConfig> {
         ),
         config("cursor", "Cursor", "~/.cursor/", None, None),
         config("devin", "Devin", "~/.config/devin/", None, agents_skills),
-        config(
-            "gemini-cli",
-            "Gemini CLI",
-            "~/.gemini/",
-            None,
-            agents_skills,
-        ),
+        AgentConfig {
+            home_env_override: Some("GEMINI_CLI_HOME"),
+            ..config(
+                "gemini-cli",
+                "Gemini CLI",
+                "~/.gemini/",
+                None,
+                agents_skills,
+            )
+        },
         config("kiro", "Kiro", "~/.kiro/", None, None),
         config("openclaw", "OpenClaw", "~/.openclaw/", None, None),
         config(
@@ -218,6 +225,20 @@ fn is_dir(path: &str) -> bool {
 }
 
 impl AgentConfig {
+    /// `expand_path`: a leading `~` is the home directory the agent uses
+    /// (`home_env_override` when set).
+    fn expand_path(&self, path: &str) -> String {
+        if let Some(var) = self.home_env_override
+            && let Ok(home) = std::env::var(var)
+            && !home.is_empty()
+            && (path == "~" || path.starts_with("~/"))
+        {
+            let rest = path.get(2..).unwrap_or_default();
+            return atomic::join(&expanduser(&home), rest);
+        }
+        expanduser(path)
+    }
+
     /// `resolve_base_dir` (`resolved_override_dir`, then the detection
     /// path).
     fn detect(&self) -> Option<DetectedAgent<'_>> {
@@ -233,7 +254,7 @@ impl AgentConfig {
                 });
             }
         }
-        let expanded = rstrip_sep(&expanduser(self.detection_path));
+        let expanded = rstrip_sep(&self.expand_path(self.detection_path));
         is_dir(&expanded).then_some(DetectedAgent {
             config: self,
             base_dir: expanded,
@@ -256,7 +277,7 @@ fn collapse_home(path: &str) -> String {
 impl DetectedAgent<'_> {
     fn skills_path(&self) -> String {
         match self.config.skills_path_override {
-            Some(p) => expanduser(p),
+            Some(p) => self.config.expand_path(p),
             None => format!("{}/{}", self.base_dir, self.config.skills_dir),
         }
     }
@@ -318,7 +339,7 @@ fn resolve_agents<'c>(
     configs: &'c [AgentConfig],
     filter: Option<&str>,
 ) -> Result<Vec<DetectedAgent<'c>>, CliError> {
-    match filter.filter(|f| !f.is_empty()) {
+    let agents: Vec<DetectedAgent<'c>> = match filter.filter(|f| !f.is_empty()) {
         Some(f) => {
             let Some(config) = configs
                 .iter()
@@ -331,21 +352,112 @@ fn resolve_agents<'c>(
                     &format!("Invalid agent \"{f}\". Valid values: {}.", ids.join(", ")),
                 ));
             };
-            Ok(config.detect().into_iter().collect())
+            config.detect().into_iter().collect()
         }
-        None => Ok(configs.iter().filter_map(AgentConfig::detect).collect()),
+        None => configs.iter().filter_map(AgentConfig::detect).collect(),
+    };
+    recover_interrupted_changes(&agents);
+    Ok(agents)
+}
+
+/// `_recover_interrupted_changes`: restore or clean up the skill
+/// directories an interrupted change left, as far as the locks allow.
+fn recover_interrupted_changes(agents: &[DetectedAgent<'_>]) {
+    let roots: std::collections::BTreeSet<String> =
+        agents.iter().map(|a| realpath(&a.skills_path())).collect();
+    let mut work: Vec<(String, Option<String>)> = roots.iter().map(|r| (r.clone(), None)).collect();
+    work.extend(symlinked_skill_targets(&roots).into_iter().map(|t| {
+        let (parent, name) = atomic::split(&t);
+        (parent, Some(name))
+    }));
+    for (parent, name) in work {
+        if !atomic::has_leftovers(&parent, name.as_deref()) {
+            continue;
+        }
+        let Ok(_lock) = atomic::skills_lock(&parent, std::time::Duration::ZERO) else {
+            continue;
+        };
+        let _ = match &name {
+            None => atomic::recover_all(&parent),
+            Some(name) => atomic::recover(&atomic::join(&parent, name)),
+        };
     }
+}
+
+/// `_symlinked_skill_targets`: the resolved targets of skill symlinks
+/// outside `roots`, sorted.
+fn symlinked_skill_targets(roots: &std::collections::BTreeSet<String>) -> Vec<String> {
+    let mut targets = std::collections::BTreeSet::new();
+    for root in roots {
+        let Ok(entries) = std::fs::read_dir(root) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = atomic::join(root, &entry.file_name().to_string_lossy());
+            if !atomic::islink(&path) {
+                continue;
+            }
+            let target = realpath(&path);
+            if !roots.contains(&atomic::split(&target).0) {
+                targets.insert(target);
+            }
+        }
+    }
+    targets.into_iter().collect()
 }
 
 fn agent_arg() -> ArgDef {
     ArgDef::new("agent").type_name("string")
 }
 
-/// `os.path.realpath`.
+/// `os.path.realpath` (`posixpath._joinrealpath`, not strict): symlinks
+/// are followed even when their targets are missing, and missing
+/// components are kept.
 fn realpath(path: &str) -> String {
-    std::fs::canonicalize(path)
-        .map(|p| p.to_string_lossy().into_owned())
-        .unwrap_or_else(|_| path.to_string())
+    if let Ok(p) = std::fs::canonicalize(path) {
+        return p.to_string_lossy().into_owned();
+    }
+    let mut pending: std::collections::VecDeque<String> = std::collections::VecDeque::new();
+    let absolute = if path.starts_with('/') {
+        path.to_string()
+    } else {
+        let cwd = std::env::current_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        atomic::join(&cwd, path)
+    };
+    pending.extend(absolute.split('/').map(str::to_string));
+    let mut resolved = std::path::PathBuf::from("/");
+    let mut links = 0;
+    while let Some(part) = pending.pop_front() {
+        match part.as_str() {
+            "" | "." => continue,
+            ".." => {
+                resolved.pop();
+                continue;
+            }
+            _ => {}
+        }
+        let candidate = resolved.join(&part);
+        let target = std::fs::symlink_metadata(&candidate)
+            .ok()
+            .filter(|m| m.file_type().is_symlink() && links < 40)
+            .and_then(|_| std::fs::read_link(&candidate).ok());
+        match target {
+            Some(target) => {
+                links += 1;
+                let target = target.to_string_lossy().into_owned();
+                if target.starts_with('/') {
+                    resolved = std::path::PathBuf::from("/");
+                }
+                for c in target.split('/').rev() {
+                    pending.push_front(c.to_string());
+                }
+            }
+            None => resolved = candidate,
+        }
+    }
+    resolved.to_string_lossy().into_owned()
 }
 
 /// `ListInstalledSkillsCommand._run_main`.
@@ -418,15 +530,33 @@ fn remove_skill(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
     }
     universal_first(&mut matches, |s| s.agent.config.id);
     let mut removed = std::collections::HashSet::new();
+    let fail = |f: atomic::Failure| ctx.general_error(&anyhow::anyhow!(f.0));
     for skill in &matches {
-        let dir = skill.path[..skill.path.rfind('/').unwrap_or(0)].to_string();
-        if removed.contains(&dir) {
+        let (skill_dir, _) = atomic::split(&skill.path);
+        let (parent, base) = atomic::split(&skill_dir);
+        let entry = atomic::join(&realpath(&parent), &base);
+        if removed.contains(&entry) {
             continue;
         }
-        std::fs::remove_dir_all(&dir).map_err(|e| {
-            ctx.general_error(&anyhow::anyhow!(crate::cli::paramfile::os_error(&e, &dir)))
-        })?;
-        removed.insert(dir);
+        {
+            let _lock = atomic::skills_lock(&atomic::split(&entry).0, atomic::DEFAULT_LOCK_TIMEOUT)
+                .map_err(fail)?;
+            atomic::recover(&entry).map_err(fail)?;
+            if !atomic::lexists(&entry) {
+                removed.insert(entry);
+                continue;
+            }
+            if atomic::islink(&entry) {
+                std::fs::remove_file(&entry).map_err(|e| {
+                    ctx.general_error(&anyhow::anyhow!(crate::cli::paramfile::os_error(
+                        &e, &entry
+                    )))
+                })?;
+            } else {
+                atomic::remove_dir(&entry).map_err(fail)?;
+            }
+        }
+        removed.insert(entry);
         crate::output::stdout::write_flushed(
             format!(
                 "Removed {} from {}.\n",

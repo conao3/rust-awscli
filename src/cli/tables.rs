@@ -803,6 +803,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     ("cli-dev", None),
     ("login", None),
     ("logout", None),
+    ("signup", None),
     ("agent-toolkit", Some("agenttoolkit")),
     ("update", None),
     ("eventsv2", Some("eventbridgev2")),
@@ -1192,7 +1193,7 @@ pub(crate) static CUSTOM_FLAGS: &[(&str, &[&str])] = &[
     ),
     ("configure import", &["skip-invalid"]),
     ("configure sso", &["no-browser", "use-device-code"]),
-    ("configure agent-toolkit", &["yes"]),
+    ("configure agent-toolkit", &["yes", "no-auto-update"]),
     (
         "deploy push",
         &["ignore-hidden-files", "no-ignore-hidden-files"],
@@ -1201,7 +1202,8 @@ pub(crate) static CUSTOM_FLAGS: &[(&str, &[&str])] = &[
     ("deploy install", &["override-config"]),
     ("login", &["remote"]),
     ("logout", &["all"]),
-    ("agent-toolkit update-skill", &["all"]),
+    ("signup", &["remote"]),
+    ("agent-toolkit update-skill", &["all", "hook"]),
     ("agent-toolkit check-skill-updates", &["all"]),
     ("update", &["skip-signature-verification"]),
 ];

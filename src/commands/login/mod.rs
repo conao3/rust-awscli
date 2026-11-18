@@ -1,6 +1,8 @@
-//! `aws login` (`awscli/customizations/login/login.py`, `utils.py`):
-//! console credentials through AWS Sign-In with PKCE and DPoP, cached in
-//! the login token cache.
+//! `aws login` and `aws signup` (`awscli/customizations/login/login.py`,
+//! `signup.py`, `utils.py`): console credentials through AWS Sign-In with
+//! PKCE and DPoP, cached in the login token cache.
+
+use std::io::IsTerminal;
 
 use base64::Engine;
 
@@ -28,14 +30,52 @@ fn code_error(msg: &str) -> SessionError {
     )
 }
 
-/// `aws login` (`LoginCommand._run_main`).
+/// `SignupCommand`'s `DEFAULT_SIGNUP_REGION`.
+const DEFAULT_SIGNUP_REGION: &str = "us-east-1";
+
+/// `LoginCommand` and its subclass `SignupCommand`.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Command {
+    Login,
+    Signup,
+}
+
+impl Command {
+    /// `NAME`.
+    fn name(self) -> &'static str {
+        match self {
+            Command::Login => "login",
+            Command::Signup => "signup",
+        }
+    }
+
+    /// `AUTHORIZE_PROMPT`.
+    fn authorize_prompt(self) -> Option<&'static str> {
+        match self {
+            Command::Login => None,
+            Command::Signup => Some("create"),
+        }
+    }
+}
+
+/// `aws login`.
 pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
+    run_command(ctx, args, Command::Login)
+}
+
+/// `aws signup` (`SignupCommand`).
+pub(crate) fn signup(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> {
+    run_command(ctx, args, Command::Signup)
+}
+
+/// `LoginCommand._run_main` of `command`.
+fn run_command(ctx: &Context, args: &[String], command: Command) -> Result<ExitCode, CliError> {
     let mut port = ArgSpec::option("redirect-port");
     port.cli_type = CliType::Integer;
     let table = [ArgSpec::flag("remote"), port];
     let args = match basic::parse_args(args, &table, &[]).map_err(|f| fail(ctx, f))? {
         Outcome::Help => {
-            out("login\n");
+            out(&format!("{}\n", command.name()));
             return Ok(ExitCode::Success);
         }
         Outcome::Run(a) => a,
@@ -45,6 +85,7 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
     let mut prompted_for_region = false;
     let region = match ctx.globals.region.clone().filter(|r| !r.is_empty()) {
         Some(r) => r,
+        None if command == Command::Signup => DEFAULT_SIGNUP_REGION.to_string(),
         None => match config.region().ok().flatten().filter(|r| !r.is_empty()) {
             Some(r) => r,
             None => {
@@ -87,10 +128,18 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
         return Err(crate::commands::configure::configuration_error(
             ctx,
             &format!(
-                "Profile '{profile_name}' is already configured with {style} credentials.\n\nYou may run 'aws login --profile new-profile-name' to create a new profile with the specified name. Otherwise you must first manually remove the existing credentials from '{profile_name}'.\n"
+                "Profile '{profile_name}' is already configured with {style} credentials.\n\nYou may run 'aws {} --profile new-profile-name' to create a new profile with the specified name. Otherwise you must first manually remove the existing credentials from '{profile_name}'.\n",
+                command.name()
             ),
         ));
     }
+    let with_profile;
+    let config = if is_new_profile {
+        with_profile = config.with_profile(&profile_name);
+        &with_profile
+    } else {
+        config
+    };
     let client = ApiClient::new(
         config,
         "signin",
@@ -129,14 +178,18 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
             format!("{base}/v1/sessions/confirmation"),
         ),
     };
-    let query = percent_encode_sequence(&[
+    let mut query_params = vec![
         ("response_type", "code".to_string()),
         ("client_id", client_id.to_string()),
         ("state", state.clone()),
         ("code_challenge_method", "SHA-256".to_string()),
         ("scope", "openid".to_string()),
         ("redirect_uri", redirect_uri.clone()),
-    ]);
+    ];
+    if let Some(prompt) = command.authorize_prompt() {
+        query_params.push(("prompt", prompt.to_string()));
+    }
+    let query = percent_encode_sequence(&query_params);
     let uri = format!(
         "{base}/v1/authorize?{query}&code_challenge={}",
         &challenge[..challenge.len() - 1]
@@ -145,7 +198,7 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
         Some(fetcher) => {
             PendingHandler::OpenBrowser.call(config, None, &uri, &uri, Some("--remote"));
             fetcher
-                .get_auth_code_and_state()
+                .get_auth_code_and_state(&state)
                 .map_err(|e| ctx.session_error(&e))?
         }
         None => {
@@ -240,13 +293,8 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
         let prompt_text = format!(
             "\nProfile {profile_name} is already configured to use session {existing}. Do you want to overwrite it to use {session_id} instead? (y/n): "
         );
-        loop {
-            let r = prompt::input(&prompt_text).map_err(prompt_error)?;
-            match r.to_lowercase().as_str() {
-                "y" | "yes" => break,
-                "n" | "no" => return Ok(ExitCode::Success),
-                _ => out("Invalid response. Please enter \"y\" or \"n\"\n"),
-            }
+        if !yes_no_choice(&prompt_text).map_err(prompt_error)? {
+            return Ok(ExitCode::Success);
         }
     }
     if !has_endpoint_override(ctx) {
@@ -258,10 +306,29 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
     } else {
         format!("profile {profile_name}")
     };
+    let home_region = home_region(&id_token);
+    let existing_region = profile
+        .get("region")
+        .and_then(IniValue::as_str)
+        .map(str::to_string);
+    let profile_region = match command {
+        Command::Login => resolve_profile_region(
+            &profile_name,
+            &region,
+            prompted_for_region,
+            existing_region.as_deref(),
+            home_region.as_deref(),
+        ),
+        Command::Signup => signup_profile_region(
+            &profile_name,
+            existing_region.as_deref(),
+            home_region.as_deref(),
+        ),
+    };
     let mut nv = NewValues::new();
     nv.insert("login_session".into(), WriterValue::Str(session_id.clone()));
-    if prompted_for_region {
-        nv.insert("region".into(), WriterValue::Str(region.clone()));
+    if let Some(r) = profile_region.filter(|r| !r.is_empty()) {
+        nv.insert("region".into(), WriterValue::Str(r));
     }
     let path = crate::cli::paramfile::expanduser(
         &config.get("config_file").ok().flatten().unwrap_or_default(),
@@ -276,7 +343,6 @@ pub(crate) fn run(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
             "Use \"--profile {profile_name}\" to use the new credentials, such as \"aws sts get-caller-identity --profile {profile_name}\"\n"
         ));
     }
-    let _ = is_new_profile;
     Ok(ExitCode::Success)
 }
 
@@ -306,8 +372,126 @@ fn has_endpoint_override(ctx: &Context) -> bool {
     }
 }
 
-/// `_extract_login_session_from_id_token`.
-fn login_session_from_id_token(id_token: &str) -> Result<String, String> {
+/// `is_stdin_a_tty`.
+fn is_stdin_a_tty() -> bool {
+    std::io::stdin().is_terminal()
+}
+
+/// `yes_no_choice`.
+fn yes_no_choice(prompt_text: &str) -> Result<bool, prompt::PromptError> {
+    loop {
+        let r = prompt::input(prompt_text)?;
+        match r.to_lowercase().as_str() {
+            "y" | "yes" => return Ok(true),
+            "n" | "no" => return Ok(false),
+            _ => out("Invalid response. Please enter \"y\" or \"n\"\n"),
+        }
+    }
+}
+
+/// `LoginCommand._get_home_region`: Sign-In only includes it for accounts
+/// that have a home region.
+fn home_region(id_token: &str) -> Option<String> {
+    decode_id_token_payload(id_token)
+        .ok()?
+        .get("aws_home_region")
+        .and_then(Value::as_str)
+        .map(str::to_string)
+}
+
+/// `LoginCommand._resolve_profile_region`: the region to save to the
+/// profile, if any.
+fn resolve_profile_region(
+    profile_name: &str,
+    region: &str,
+    prompted_for_region: bool,
+    existing_region: Option<&str>,
+    home_region: Option<&str>,
+) -> Option<String> {
+    if prompted_for_region {
+        if should_use_home_region(profile_name, region, home_region) {
+            return home_region.map(str::to_string);
+        }
+        return Some(region.to_string());
+    }
+    if let Some(existing) = existing_region.filter(|r| !r.is_empty()) {
+        if should_use_home_region(profile_name, existing, home_region) {
+            return home_region.map(str::to_string);
+        }
+        return None;
+    }
+    if !is_stdin_a_tty() {
+        return None;
+    }
+    prompt_for_profile_region(
+        profile_name,
+        home_region.filter(|h| !h.is_empty()).unwrap_or(region),
+    )
+}
+
+/// `LoginCommand._should_use_home_region`.
+fn should_use_home_region(profile_name: &str, region: &str, home_region: Option<&str>) -> bool {
+    let Some(home) = home_region.filter(|h| !h.is_empty() && *h != region) else {
+        return false;
+    };
+    if !is_stdin_a_tty() {
+        return false;
+    }
+    let question = format!(
+        "\nProfile {profile_name} is configured for region {region}, but the home region for this account is {home}. Regional services outside the home region are denied. Do you want to set the region to {home}? (y/n): "
+    );
+    if !yes_no_choice(&question).unwrap_or(false) {
+        return false;
+    }
+    print_home_region_set(home);
+    true
+}
+
+/// `LoginCommand._print_home_region_set`.
+fn print_home_region_set(home_region: &str) {
+    out(&format!(
+        "\nSet region to {home_region}, the home region for this account.\n"
+    ));
+}
+
+/// `LoginCommand._prompt_for_profile_region`.
+fn prompt_for_profile_region(profile_name: &str, default_region: &str) -> Option<String> {
+    out(&format!("\nNo region is set for profile {profile_name}.\n"));
+    let r = prompt::ptk_prompt(&format!("AWS Region [{default_region}]: ")).ok()?;
+    Some(if r.is_empty() {
+        default_region.to_string()
+    } else {
+        r
+    })
+}
+
+/// `SignupCommand._resolve_profile_region`.
+fn signup_profile_region(
+    profile_name: &str,
+    existing_region: Option<&str>,
+    home_region: Option<&str>,
+) -> Option<String> {
+    let existing_region = existing_region.filter(|r| !r.is_empty());
+    let Some(home) = home_region.filter(|h| !h.is_empty()) else {
+        if existing_region.is_none() {
+            out(&format!(
+                "\nCould not determine the home region for this account. To set the region for this profile, run \"aws configure set region REGION --profile {profile_name}\".\n"
+            ));
+        }
+        return None;
+    };
+    if let Some(existing) = existing_region {
+        if should_use_home_region(profile_name, existing, Some(home)) {
+            return Some(home.to_string());
+        }
+        return None;
+    }
+    print_home_region_set(home);
+    Some(home.to_string())
+}
+
+/// `decode_id_token_payload`.
+fn decode_id_token_payload(id_token: &str) -> Result<Value, String> {
     let parts: Vec<&str> = id_token.split('.').collect();
     if parts.len() != 3 {
         return Err("Invalid JWT token - cannot extract payload".to_string());
@@ -320,7 +504,12 @@ fn login_session_from_id_token(id_token: &str) -> Result<String, String> {
         .decode(data.as_bytes())
         .map_err(|_| "Incorrect padding".to_string())?;
     let text = String::from_utf8_lossy(&bytes);
-    let payload = crate::cli::pyjson::loads(&text)?;
+    crate::cli::pyjson::loads(&text)
+}
+
+/// `_extract_login_session_from_id_token`.
+fn login_session_from_id_token(id_token: &str) -> Result<String, String> {
+    let payload = decode_id_token_payload(id_token)?;
     payload
         .get("sub")
         .and_then(Value::as_str)

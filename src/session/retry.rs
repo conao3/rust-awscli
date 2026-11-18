@@ -228,6 +228,10 @@ fn is_long_polling(service_id: &str, operation: &str) -> bool {
         ("sqs", "ReceiveMessage")
             | ("sfn", "GetActivityTask")
             | ("swf", "PollForActivityTask" | "PollForDecisionTask")
+            | (
+                "kinesis",
+                "ReceiveQueueRecords" | "ReceiveDeadLetterQueueRecords"
+            )
     )
 }
 

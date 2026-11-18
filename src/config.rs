@@ -493,6 +493,20 @@ impl Config {
         &self.full
     }
 
+    /// This configuration with an empty profile `name` added when the
+    /// files have none (`session._profile_map[name] = {}`).
+    pub fn with_profile(&self, name: &str) -> Config {
+        let mut full = self.full.clone();
+        full.profiles.entry(name.to_string()).or_default();
+        Config {
+            env: self.env.clone(),
+            instance: self.instance.clone(),
+            globals: self.globals.clone(),
+            full,
+            imds_region: OnceLock::new(),
+        }
+    }
+
     /// Whether `--profile` was given (`disable_env_vars` in
     /// `create_credential_resolver`).
     pub fn profile_explicitly_set(&self) -> bool {

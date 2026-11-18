@@ -17,7 +17,7 @@ PORT=${CREDSTUB_PORT:-18799}
 FILTER=${1:-}
 rm -rf "$WORK"
 mkdir -p "$WORK"
-touch "$WORK/stub.log" "$WORK/stub-multi.log" "$WORK/stub-many.log"
+touch "$WORK/stub.log" "$WORK/stub-multi.log" "$WORK/stub-many.log" "$WORK/stub-home.log"
 python3 "$ROOT/difftest/scripts/credstub.py" "$PORT" "$WORK/stub.log" &
 STUB=$!
 # Stubs with several accounts and roles for the configure sso menus.
@@ -25,7 +25,10 @@ CREDSTUB_ACCOUNTS=3 CREDSTUB_ROLES=2 python3 "$ROOT/difftest/scripts/credstub.py
 STUB_MULTI=$!
 CREDSTUB_ACCOUNTS=12 python3 "$ROOT/difftest/scripts/credstub.py" "$((PORT + 2))" "$WORK/stub-many.log" &
 STUB_MANY=$!
-trap 'kill $STUB $STUB_MULTI $STUB_MANY 2>/dev/null' EXIT
+# A stub whose Sign-In ID token names a home region.
+CREDSTUB_HOME_REGION=eu-west-1 python3 "$ROOT/difftest/scripts/credstub.py" "$((PORT + 3))" "$WORK/stub-home.log" &
+STUB_HOME=$!
+trap 'kill $STUB $STUB_MULTI $STUB_MANY $STUB_HOME 2>/dev/null' EXIT
 sleep 0.5
 STUBURL=http://127.0.0.1:$PORT
 pass=0
@@ -281,6 +284,7 @@ case_ sso-logout "$SSO" "" --profile sso sso logout
 case_ sso-login-device "$SSO" "" --profile sso sso login --use-device-code --no-browser
 case_ sso-login-device-legacy "$SSO" "" --profile legacy sso login --no-browser
 case_ sso-login-pkce "$SSO" "" --profile sso sso login
+CASE_ENV=FAKEBROWSER_PROBE=1 case_ sso-login-callback-probe "$SSO" "" --profile sso sso login
 case_ sso-login-pkce-nobrowser "$SSO
 $WATCH" "" --profile sso sso login --no-browser
 case_ sso-login-missing "" "" sso login
@@ -330,6 +334,28 @@ CASE_ENV=$ENVCRED case_ login-envcreds "" "" --region us-east-1 login
 case_ login-same-device-profile "$CFG <<<'[profile p]
 region = eu-west-1'" "" --profile p login
 case_ login-remote-badcode "" 'bm90LWJhc2U2NA\n' --region us-east-1 login --remote
+CASE_ENV=FAKEBROWSER_PROBE=1 case_ login-callback-probe "" "" --region us-east-1 login
+HOME_SIGNIN="AWS_ENDPOINT_URL_SIGNIN=http://127.0.0.1:$((PORT + 3))"
+CASE_ENV=$HOME_SIGNIN case_ login-home-region "" "" --region us-east-1 login
+CASE_ENV=$HOME_SIGNIN case_ login-home-region-prompted "" 'us-west-2\n' login
+CASE_ENV=$HOME_SIGNIN case_ login-home-region-profile "$CFG <<<'[profile p]
+region = us-west-2'" "" --profile p login
+case_ login-new-profile "" "" --region us-east-1 --profile n login
+case_ signup "" "" signup
+case_ signup-new-profile "" "" --profile n signup
+case_ signup-region "" "" --region eu-west-1 signup
+CASE_ENV="AWS_REGION=eu-west-1" case_ signup-env-region "" "" signup
+case_ signup-profile-region "$CFG <<<'[profile p]
+region = eu-west-1'" "" --profile p signup
+case_ signup-existing-creds "$CRED <<<'[default]
+aws_access_key_id = A
+aws_secret_access_key = B'" "" signup --remote
+case_ signup-remote-badcode "" 'bm90LWJhc2U2NA\n' signup --remote
+CASE_ENV=$HOME_SIGNIN case_ signup-home-region "" "" --profile n signup
+CASE_ENV=$HOME_SIGNIN case_ signup-home-region-profile "$CFG <<<'[profile p]
+region = us-west-2'" "" --profile p signup
+CASE_ENV=$HOME_SIGNIN case_ signup-home-region-same "$CFG <<<'[profile p]
+region = eu-west-1'" "" --profile p signup
 LOGIN="$CFG <<<'[profile l]
 login_session = arn:aws:signin:us-east-1:123456789012:login-session/stub
 region = us-east-1'

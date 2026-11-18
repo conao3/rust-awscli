@@ -155,6 +155,9 @@ pub(crate) struct AuthCodeFetcher {
     port: u16,
 }
 
+/// `AuthCodeFetcher._REDIRECT_PATH`.
+const REDIRECT_PATH: &str = "/oauth/callback";
+
 impl AuthCodeFetcher {
     pub(crate) fn new(redirect_port: Option<u16>) -> Result<AuthCodeFetcher, SessionError> {
         let listener = TcpListener::bind(("127.0.0.1", redirect_port.unwrap_or(0))).map_err(|e| {
@@ -168,17 +171,20 @@ impl AuthCodeFetcher {
     }
 
     pub(crate) fn redirect_uri_without_port(&self) -> String {
-        "http://127.0.0.1/oauth/callback".to_string()
+        format!("http://127.0.0.1{REDIRECT_PATH}")
     }
 
     pub(crate) fn redirect_uri_with_port(&self) -> String {
-        format!("http://127.0.0.1:{}/oauth/callback", self.port)
+        format!("http://127.0.0.1:{}{REDIRECT_PATH}", self.port)
     }
 
-    /// `get_auth_code_and_state`: serve requests until one carries the
-    /// code and state (or an error), for at most ten minutes.
+    /// `get_auth_code_and_state(expected_state=...)`: serve requests until
+    /// a GET on the redirect path with the expected `state` carries a code
+    /// or an error, for at most ten minutes. Other requests are rejected
+    /// and the wait continues.
     pub(crate) fn get_auth_code_and_state(
         &self,
+        expected_state: &str,
     ) -> Result<(Option<String>, Option<String>), SessionError> {
         let start = Instant::now();
         let _ = self.listener.set_nonblocking(true);
@@ -191,7 +197,7 @@ impl AuthCodeFetcher {
                 }
                 Err(_) => continue,
             };
-            if let Some(result) = handle_callback(stream) {
+            if let Some(result) = handle_callback(stream, expected_state) {
                 return Ok(result);
             }
         }
@@ -215,8 +221,55 @@ fn os_error_text(e: &std::io::Error) -> String {
     }
 }
 
-/// `OAuthCallbackHandler.do_GET`.
-fn handle_callback(mut stream: TcpStream) -> Option<(Option<String>, Option<String>)> {
+/// `BaseHTTPRequestHandler.send_response`: the status line with the
+/// `Server` and `Date` headers.
+fn response_head(status: &str) -> String {
+    let date = chrono::Utc::now().format("%a, %d %b %Y %H:%M:%S GMT");
+    format!(
+        "HTTP/1.0 {status}\r\nServer: AWS CLI/{}\r\nDate: {date}\r\n",
+        crate::model::REFERENCE_VERSION.trim()
+    )
+}
+
+/// `OAuthCallbackHandler._send_index_page`.
+fn send_index_page(stream: &mut TcpStream) {
+    let mut response = format!("{}\r\n", response_head("200 OK")).into_bytes();
+    response.extend_from_slice(INDEX_HTML);
+    let _ = stream.write_all(&response);
+    let _ = stream.flush();
+}
+
+/// `OAuthCallbackHandler._send_text`.
+fn send_text(stream: &mut TcpStream, status: &str, text: &str) {
+    let body = format!("{text}\n");
+    let response = format!(
+        "{}Content-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\n\r\n{body}",
+        response_head(status),
+        body.len()
+    );
+    let _ = stream.write_all(response.as_bytes());
+    let _ = stream.flush();
+}
+
+/// `urlparse(path)`: the path (without `;params`) and the query.
+fn split_request_path(target: &str) -> (&str, &str) {
+    let target = target.split('#').next().unwrap_or_default();
+    let (path, query) = target.split_once('?').unwrap_or((target, ""));
+    let last = path.rfind('/').map_or(0, |i| i + 1);
+    let path = match path[last..].find(';') {
+        Some(i) => &path[..last + i],
+        None => path,
+    };
+    (path, query)
+}
+
+/// `OAuthCallbackHandler.do_GET` with an expected state
+/// (`_handle_strict_callback`): `Some` ends the wait with the code (or
+/// `None` after an error) and the state.
+fn handle_callback(
+    mut stream: TcpStream,
+    expected_state: &str,
+) -> Option<(Option<String>, Option<String>)> {
     let _ = stream.set_nonblocking(false);
     let _ = stream.set_read_timeout(Some(Duration::from_secs(10)));
     let mut buf = Vec::new();
@@ -234,38 +287,46 @@ fn handle_callback(mut stream: TcpStream) -> Option<(Option<String>, Option<Stri
     let line = request.lines().next().unwrap_or_default();
     let mut words = line.split_whitespace();
     let method = words.next().unwrap_or_default();
-    let path = words.next().unwrap_or_default();
+    let target = words.next().unwrap_or_default();
     if method != "GET" {
         let _ = stream.write_all(b"HTTP/1.0 501 Unsupported method\r\n\r\n");
         return None;
     }
-    let date = chrono::Utc::now().format("%a, %d %b %Y %H:%M:%S GMT");
-    let mut response = format!(
-        "HTTP/1.0 200 OK\r\nServer: AWS CLI/{}\r\nDate: {date}\r\n\r\n",
-        crate::model::REFERENCE_VERSION.trim()
-    )
-    .into_bytes();
-    response.extend_from_slice(INDEX_HTML);
-    let _ = stream.write_all(&response);
-    let _ = stream.flush();
-    let query = path.split_once('?').map(|(_, q)| q).unwrap_or_default();
-    let query = query.split('#').next().unwrap_or_default();
+    let (path, query) = split_request_path(target);
+    if path != REDIRECT_PATH {
+        send_text(&mut stream, "404 Not Found", "Not found.");
+        return None;
+    }
     let params = parse_qs(query);
-    if params.iter().any(|(k, _)| k == "error") {
-        return Some((None, None));
+    let get = |key: &str| {
+        params
+            .iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v.clone())
+    };
+    let state = get("state");
+    if state.as_deref() != Some(expected_state) {
+        send_text(
+            &mut stream,
+            "400 Bad Request",
+            "This request does not belong to the sign-in in progress. Return to the terminal and use the URL it displayed.",
+        );
+        return None;
     }
-    let code = params
-        .iter()
-        .find(|(k, _)| k == "code")
-        .map(|(_, v)| v.clone());
-    let state = params
-        .iter()
-        .find(|(k, _)| k == "state")
-        .map(|(_, v)| v.clone());
-    match (code, state) {
-        (Some(c), Some(s)) => Some((Some(c), Some(s))),
-        _ => None,
-    }
+    let result = if get("error").is_some() {
+        (None, state)
+    } else if let Some(code) = get("code") {
+        (Some(code), state)
+    } else {
+        send_text(
+            &mut stream,
+            "400 Bad Request",
+            "The request has neither an authorization code nor an error.",
+        );
+        return None;
+    };
+    send_index_page(&mut stream);
+    Some(result)
 }
 
 /// `parse_qs` (first value of each key; blank values dropped).
@@ -641,7 +702,7 @@ async fn auth_code_token(
     );
     args.handler
         .call(config, None, &uri, &uri, Some("--use-device-code"));
-    let (code, got_state) = fetcher.get_auth_code_and_state()?;
+    let (code, got_state) = fetcher.get_auth_code_and_state(&state)?;
     let Some(code) = code else {
         return Err(general(
             "Error loading authorization code: Failed to retrieve an authorization code.",

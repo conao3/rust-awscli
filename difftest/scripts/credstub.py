@@ -14,8 +14,11 @@ Behavior switches (environment variables of the stub process):
                         AuthorizationPendingException (default 0)
   CREDSTUB_ACCOUNTS     number of SSO accounts (default 1)
   CREDSTUB_ROLES        number of SSO roles per account (default 1)
+  CREDSTUB_HOME_REGION  the `aws_home_region` claim of the Sign-In ID token
+                        (default: none)
 """
 
+import base64
 import json
 import os
 import sys
@@ -26,6 +29,7 @@ EXPIRATION = os.environ.get("CREDSTUB_EXPIRATION", "2099-01-01T00:00:00Z")
 PENDING = int(os.environ.get("CREDSTUB_PENDING", "0"))
 ACCOUNTS = int(os.environ.get("CREDSTUB_ACCOUNTS", "1"))
 ROLES = int(os.environ.get("CREDSTUB_ROLES", "1"))
+HOME_REGION = os.environ.get("CREDSTUB_HOME_REGION")
 STATE = {"pending": PENDING}
 
 LOGGED_HEADERS = (
@@ -35,6 +39,15 @@ LOGGED_HEADERS = (
     "dpop",
     "x-amz-security-token",
 )
+
+
+def login_id_token():
+    claims = {"sub": "arn:aws:signin:us-east-1:123456789012:login-session/stub"}
+    if HOME_REGION:
+        claims["aws_home_region"] = HOME_REGION
+    payload = base64.urlsafe_b64encode(json.dumps(claims).encode()).decode()
+    payload = payload.rstrip("=")
+    return f"eyJhbGciOiJub25lIn0.{payload}.sig"
 
 
 def sts_credentials(action, form):
@@ -229,8 +242,7 @@ class Handler(BaseHTTPRequestHandler):
                     "tokenType": "aws_sigv4",
                     "expiresIn": 900,
                     "refreshToken": "login-refresh",
-                    "idToken": "eyJhbGciOiJub25lIn0."  # gitleaks:allow
-                    "eyJzdWIiOiAiYXJuOmF3czpzaWduaW46dXMtZWFzdC0xOjEyMzQ1Njc4OTAxMjpsb2dpbi1zZXNzaW9uL3N0dWIifQ.sig",
+                    "idToken": login_id_token(),
                 },
             )
         self._send(404, {"message": "not found"})

@@ -25,6 +25,7 @@ pub(crate) fn run(ctx: &Context, path: &[String], args: &[String]) -> Result<Exi
         ["sso", "logout"] => sso::logout(ctx, args),
         ["login"] => login::run(ctx, args),
         ["logout"] => logout::run(ctx, args),
+        ["signup"] => login::signup(ctx, args),
         ["s3"] => s3::run(ctx, args),
         [service, name] if services::handles(service) => services::run(ctx, service, name, args),
         _ => Err(not_implemented()),

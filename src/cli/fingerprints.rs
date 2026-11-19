@@ -17,6 +17,10 @@ pub(super) const MODEL_GAPS: &[(&str, &str)] = &[
 /// (CLI service, SHA-256 of the sorted per-command fingerprints).
 pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     (
+        "abuse-signal",
+        "5ba6bf700be737cca8d76fd4f65507de2a6ea4ddaf2074e2c16423918b5a2c28",
+    ),
+    (
         "accessanalyzer",
         "85eeeabd2b4433157a524d444007077b900c0caddc51f2b5b8ea05f61fcfcd43",
     ),
@@ -390,7 +394,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cognito-idp",
-        "0fbfe2c91d19931629434dc1b6db6ca8f20e5b5f4a97b612abd61b021a4ab7f9",
+        "03992d90b9bd701dd23364a9d6e354788574a5c54c102baecca03d9521a09588",
     ),
     (
         "cognito-sync",
@@ -742,7 +746,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "iam",
-        "61676ee5c7b3afba659f177a9ff62e266045bf1a68a255d60267d527a5301bbf",
+        "fe8ac0c6b399e5061d37adb37fa46984b1cdf0b2ef21d2841bf4c7c9aca17026",
     ),
     (
         "iam-toolbox",
@@ -1114,7 +1118,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "neptune",
-        "21e879ddb872dc51129f94a60269bc8f12027ebfce267e784b000a12df30c7d7",
+        "67eabfeeb86dec0956671be8ad132adc3afbd10ffba2cba00516b52cc2a0634f",
     ),
     (
         "neptune-graph",
@@ -1346,7 +1350,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "resiliencehubv2",
-        "e7cee707e8e4e00a033d1433aef0fb8859960ec38b8c43ced05c544952395d76",
+        "7a849470e7bd8b81fdd1cc706a8dc087b298236ad9736fa637c8210430a373b7",
     ),
     (
         "resource-explorer-2",
@@ -1490,7 +1494,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "securityagent",
-        "87156f7d9b142b7996e34391bdf4ee0f2fdb4c881a3f92467ffb3c5386d97f80",
+        "989a01f4a498185d17fed94b57c4c5be676cd93785e6a82b8254d64d225577be",
     ),
     (
         "securityhub",
@@ -1526,7 +1530,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "sesv2",
-        "470cd049be438192175ade903853efed696bae8fd5b9bb8a598eefcd255ad7cd",
+        "2e22dccd2a9ed5e5ae65e6d5147806826f7b180e70543cef026cb4d35457469b",
     ),
     (
         "shield",
@@ -1542,7 +1546,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "signin",
-        "9c2aa5a93c39fc51cc000b0744aab3113d97f24178994a8c4628c243160b5744",
+        "327102740d63bd9934c6d6dd253834d075d0a1892a623fed44fd7949d4a2b4bf",
     ),
     (
         "simpledbv2",
@@ -1706,7 +1710,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "wafv2",
-        "07a87399f616e5640fe95aa71dd905ef4acf7d5a65c371c3f432f5918086f7fc",
+        "46169044cfd98236e5353870bb788abdb8ecf894198532726cae6981f1d948b8",
     ),
     (
         "wellarchitected",

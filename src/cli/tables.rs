@@ -305,6 +305,7 @@ pub(crate) static XFORM_CACHE: &[(&str, char, &str)] = &[
 /// name and the botocore service name, `None` for commands that are
 /// not model-driven services.
 pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
+    ("abuse-signal", Some("abuse-signal")),
     ("accessanalyzer", Some("accessanalyzer")),
     ("account", Some("account")),
     ("account-access", Some("account-access")),

@@ -38,7 +38,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "acm",
-        "22b308d99f9784816c02af7c16316369365562e8c7c1956114207ccce4804486",
+        "d772993a396f9474b4f2544ac3164306c2a73177544e317f5d127d8575afefb7",
     ),
     (
         "acm-pca",
@@ -46,11 +46,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "agent-registry",
-        "cd08069475a754550dd4c895fbc1adfeb427776e09e2a378608cec149afcfb31",
+        "97c4fadc98529baeefddcb415ffa4471a8280d545b511a8cdcbe28d4c411cd10",
     ),
     (
         "agent-registry-control",
-        "1e8862d3350c163783b4cbcfc502c86f11c558d832d195ef5cfb43e9205c5646",
+        "cba51856accecb59a7ac5f66daed351e677dfddbf85aae6b4b275d6d47ff7bb3",
     ),
     (
         "aiops",
@@ -130,7 +130,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "appstream",
-        "a9ef9c7b0f120939639f658ce8c9f7a075d3d205d6cc49775a416eff23f4ad01",
+        "f98e0459c560275b93e0019112d786d3069dbee83e8a4a761353ad40a4e53d16",
     ),
     (
         "appsync",
@@ -194,7 +194,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bcm-pricing-calculator",
-        "2f618996a89ea85b6d30c9f81312eb6f4960b0e524e8dbeb81260c71edde5162",
+        "9c56ac07b83dfe6f8e335cc29d9a452913bdeeb22f9cb28150de450fce0996fe",
     ),
     (
         "bcm-recommended-actions",
@@ -218,7 +218,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-agentcore-control",
-        "64ae91e465fdc09a743680151dd0696a3654ed58e3358b759b1a5cac799614f3",
+        "ba74341cdfe73f0438c3386d78183d5753cc182a585f7ae12ed58d9d18076afb",
     ),
     (
         "bedrock-data-automation",
@@ -302,11 +302,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cloudformation",
-        "7a3e07118ae7cabc802cbc32fa6ac8f29c2b8c59aa412be713f9e46ca9ce29a1",
+        "621ab0b614f8ddd40b7d261ad3311d4f0c2a515a9417a83f07ed9bbb206f3954",
     ),
     (
         "cloudfront",
-        "f6ad02214beb4c8ab80449a2f17e65ac1a818af155c568b91cdac24663f00536",
+        "1394f7dd5af457a4f08ffbe51e57e0c76539060567843c1c4915dc132ba9d5ff",
     ),
     (
         "cloudfront-keyvaluestore",
@@ -362,7 +362,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "codeconnections",
-        "9fa4a7ed2af8be4685b1f821cf3bc10aecc6cef405f6828ae4021a5f02e124a0",
+        "6cbeb14f0ec9e01c9ee053c1a3a7256c26c0d86c509b38cb8b38d23dbe8d586a",
     ),
     (
         "codeguru-reviewer",
@@ -394,7 +394,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cognito-idp",
-        "03992d90b9bd701dd23364a9d6e354788574a5c54c102baecca03d9521a09588",
+        "01f36f358cdadd83dda68d1ecb657624806e0665231a7f0b655a0d112f7ae715",
     ),
     (
         "cognito-sync",
@@ -510,7 +510,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "devops-agent",
-        "7c59b4028d6b18cef2e7dc2a010d25d917798a60754b7dce22569ea3334fd3b8",
+        "c4b91629d698e6c9358d086f3bd11ac3dcbf2e51607f5a9331ecf1b221a72842",
     ),
     (
         "devops-guru",
@@ -746,7 +746,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "iam",
-        "fe8ac0c6b399e5061d37adb37fa46984b1cdf0b2ef21d2841bf4c7c9aca17026",
+        "e22ae28dc33e1653ec43b83fb83ce298bb9bed86f312dd3266e622f20b9ffed6",
     ),
     (
         "iam-toolbox",
@@ -846,7 +846,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "kafka",
-        "b0ebfc889cebadf71e9fabda10ecb6b61a52708171e1efda98f1c921be967788",
+        "5f099596caeb45bad107be4e05972742a67f2b2309fd29c0a768d2d9225995a6",
     ),
     (
         "kafkaconnect",
@@ -1002,11 +1002,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "marketplace-catalog",
-        "31eb2d462cdfaa794e9fea3e4c40c94d0a868f4872c2aafd946073aec806120d",
+        "6dc07a286f513dc4dc77be42c0d5533a9f3566645d60da831dbc3b6aa1d9e39e",
     ),
     (
         "marketplace-deployment",
-        "a970299d717f3e60d9c2b37e0666a6871921ff4ca3140486402114dcc8100801",
+        "d508691f1690a4f8f1d73a5e71427c5696cf23c6137ea828cc4577055fe852e5",
     ),
     (
         "marketplace-discovery",
@@ -1034,7 +1034,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "medialive",
-        "a3b370b0e4ff7990aa27ef9d752641aec12899c96ea838eafb48d9dabe7fac8e",
+        "3e73ef4239b3b8720de3eba635ca0ad8f13337c08604b5078acc828e8299ac67",
     ),
     (
         "mediapackage",
@@ -1213,12 +1213,16 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
         "dcb4676cc7d8d91787f9f9bd9ce49dd32672f2adc4bc158d6b0dc4187541d5f1",
     ),
     (
+        "partnercentral-marketing",
+        "f8e903e386c1ca66a3f504fe30080676ddb5f7c34a0693ff42cc9dd1dad48f96",
+    ),
+    (
         "partnercentral-revenue-measurement",
-        "35356e4982e44e83318f32d76268768320fae2f6532bbf2276350266dff409f1",
+        "e26e51603ede16572a49c6f38e949741bc3823efe431641af201e8661cc5d0f0",
     ),
     (
         "partnercentral-selling",
-        "bc2d0d21c21963ec6b6c44742cb15eca7be250044a5b8bbcd4bcd3cdc67d8780",
+        "ea28cb00be90c55e4232a2578954565aa692477ce8f610e4647fdf6aa022b535",
     ),
     (
         "payment-cryptography",
@@ -1278,7 +1282,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "polly",
-        "49698b73e030f69fdc49447fd32eeb5b36a36962223718be282259ae3df11be2",
+        "960c158f5deb98a4d1388949788d66f102d98b785afe3c124b9b30b010d7a6ee",
     ),
     (
         "pricing",
@@ -1318,7 +1322,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "rds",
-        "d47193f6497c6a7aaf05e6de1f1a8ad7d99ccaa25eea233efda43059947b91e3",
+        "77497f4aa678f4e9615dc2f395613564d19f696f12c73a7ed362449a3a502bdd",
     ),
     (
         "rds-data",
@@ -1366,11 +1370,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "rolesanywhere",
-        "89d109f0b293beb5a60d022fe0a4ba7ae5605f4e33ce6b014ff5520479872f2c",
+        "76c260da8102affbba84f1145fc6405f93b5ffe409c8c4c9339e81aee9b2183b",
     ),
     (
         "route53",
-        "661ad275dec5794bbe7d9b07a76f5a65369b2c447ab9f34dc9d8aa39ec3c60be",
+        "23023a9431695d1e6cc9cbad44a25877f98f7dc7a1b2e886c6f1b77a29168540",
     ),
     (
         "route53-recovery-cluster",
@@ -1398,11 +1402,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "route53resolver",
-        "16862d0fca1de30362e70bd4bba03e13f46e011f21623bdb6928512b065905ed",
+        "f7dc09b3d9eec04181df81386491604dc26da335282207f1274ab971b0a0d347",
     ),
     (
         "rtbfabric",
-        "32ad24d2a6f8c09d4c698d1fa70833bb97f44ab4656d09ec44465af53f1e68f0",
+        "1adbd17384acc31e1e9257437fa6701f844db8130a96a8b41381644881ae8e4b",
     ),
     (
         "rum",
@@ -1422,7 +1426,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "s3tables",
-        "45a6bc14a821e1fb276607caeb5ed48993308387f9743842a5896884d73a1702",
+        "0d39a5ab56d812f69d18ede6b6c89bf3e8b07bc4f129c89f10eac43893f61a6d",
     ),
     (
         "s3vectors",
@@ -1618,7 +1622,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "sts",
-        "a046b5eb66fcb5dc49264fed1d3eb0a97a487ddb5de9d48987799131a50fdbae",
+        "e638fe71f78e0bf1ae67edfa015c3955adb3d07d715a4177b7faa569da14a5e3",
     ),
     (
         "supplychain",
@@ -1774,6 +1778,6 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "eventsv2",
-        "5ea18a60a2b3e08783fb074a8a861d51e34c7930c12aefa512bacd91f8ffd4ed",
+        "b780c2a747943493d19f1135dbf0050047d4b8df7c12e6461bb01665866721ba",
     ),
 ];

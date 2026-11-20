@@ -125,7 +125,11 @@ fn get(ctx: &Context, ignore_host_check: bool) -> Result<(), CliError> {
             .ok_or_else(|| general(ctx, &format!("'{k}'")))
     };
     let host = param("host")?;
-    if !(host.contains("amazon.com") || host.contains("amazonaws.com") || ignore_host_check) {
+    if !(host.contains("amazon.com")
+        || host.contains("amazonaws.com")
+        || host.contains("amazonaws.eu")
+        || ignore_host_check)
+    {
         return Ok(());
     }
     let url = format!("{}://{host}/{}", param("protocol")?, param("path")?);
@@ -155,9 +159,10 @@ fn get(ctx: &Context, ignore_host_check: bool) -> Result<(), CliError> {
 
 /// `CodeCommitGetCommand.extract_region` (the host part).
 fn extract_region(host: &str) -> Option<String> {
-    let re =
-        regex::Regex::new(r"^(vpce-.+\.)?git-codecommit(-fips)?\.([^.]+)\.(vpce\.)?amazonaws\.com")
-            .expect("regex");
+    let re = regex::Regex::new(
+        r"^(vpce-.+\.)?git-codecommit(-fips)?\.([^.]+)\.(vpce\.)?amazonaws\.(com|eu)",
+    )
+    .expect("regex");
     re.captures(host).map(|c| c[3].to_string())
 }
 
@@ -191,6 +196,10 @@ mod tests {
         assert_eq!(
             extract_region("vpce-1.git-codecommit-fips.us-east-2.vpce.amazonaws.com").as_deref(),
             Some("us-east-2")
+        );
+        assert_eq!(
+            extract_region("git-codecommit.eusc-de-east-1.amazonaws.eu").as_deref(),
+            Some("eusc-de-east-1")
         );
         assert_eq!(extract_region("example.com"), None);
         let creds = Credentials {

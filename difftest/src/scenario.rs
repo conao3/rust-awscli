@@ -15,7 +15,7 @@
 //!  "outputs": ["cert.pem"]}
 //! ```
 //!
-//! `{endpoint}` and `{casedir}` in `argv` and file contents are replaced
+//! `{endpoint}` and `{casedir}` in `argv`, `env` values, and file contents are replaced
 //! with the stub URL and the scenario's working directory. A body that
 //! starts with `base64:` is decoded.
 
@@ -88,6 +88,10 @@ pub struct Scenario {
     /// `AWS_MAX_ATTEMPTS` of the runs in place of `--max-attempts`.
     #[serde(default)]
     pub max_attempts: Option<u32>,
+    /// Variables added to the environment of the runs, with `{endpoint}`
+    /// and `{casedir}` replaced as in `argv`.
+    #[serde(default)]
+    pub env: BTreeMap<String, String>,
 }
 
 /// The output of `history show` with the events of each request id
@@ -336,6 +340,10 @@ async fn run_side(
             .open(&path)?
             .set_modified(fixture_mtime())?;
     }
+    let env = &Env {
+        extra: s.env.iter().map(|(k, v)| (k.clone(), subst(v))).collect(),
+        ..env.clone()
+    };
     for step in &s.setup {
         let step: Vec<String> = step.iter().map(|a| subst(a)).collect();
         run::run(bin, &step, &dir, env, None, None).await?;
@@ -390,6 +398,7 @@ pub async fn exec(
     let env = &Env {
         max_attempts: s.max_attempts.unwrap_or(env.max_attempts),
         timeout: env.timeout,
+        extra: vec![],
     };
     let (mut ra, mut qa, oa, argv) = run_side(reference, s, &stub, work, env).await?;
     let (mut rb, mut qb, ob, _) = run_side(candidate, s, &stub, work, env).await?;

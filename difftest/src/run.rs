@@ -16,6 +16,8 @@ use tokio::process::Command;
 pub struct Env {
     pub max_attempts: u32,
     pub timeout: Duration,
+    /// Variables added to the environment of each run.
+    pub extra: Vec<(String, String)>,
 }
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
@@ -74,6 +76,7 @@ pub async fn run(
         .current_dir(dir)
         .env_clear()
         .envs(child_env(&home, env))
+        .envs(env.extra.iter().map(|(k, v)| (k.as_str(), v.as_str())))
         .stdin(Stdio::null())
         .stderr(Stdio::piped())
         .process_group(0)

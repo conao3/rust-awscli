@@ -421,6 +421,7 @@ async fn run_scenarios(common: &Common, filter: Option<&str>, files: &[PathBuf])
     let env = Arc::new(run::Env {
         max_attempts: common.max_attempts,
         timeout: Duration::from_secs(common.timeout),
+        extra: vec![],
     });
     let work = Arc::new(target.join("work"));
     let mut scenarios = vec![];
@@ -519,6 +520,7 @@ async fn run_cases(common: &Common, cases: Vec<Case>) -> Result<()> {
     let env = run::Env {
         max_attempts: common.max_attempts,
         timeout: Duration::from_secs(common.timeout),
+        extra: vec![],
     };
     let refserver = if common.no_refserver {
         None

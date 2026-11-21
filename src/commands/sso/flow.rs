@@ -72,10 +72,13 @@ impl PendingHandler {
                         "\nThen enter the code:\n\n{}\n",
                         user_code.unwrap_or_default()
                     ));
+                } else if let Some(flag) = cross_device_flag.filter(|f| !f.is_empty()) {
+                    out(&format!(
+                        "Attempting to open your default browser. If the browser does not open, open the following URL.\nIf you are unable to open the URL on this device, run this command again with the '{flag}' option.\n\n{uri}\n\n"
+                    ));
                 } else {
                     out(&format!(
-                        "Attempting to open your default browser. If the browser does not open, open the following URL.\nIf you are unable to open the URL on this device, run this command again with the '{}' option.\n\n{uri}\n\n",
-                        cross_device_flag.unwrap_or("None")
+                        "Attempting to open your default browser. If the browser does not open, open the following URL.\n\n{uri}\n\n"
                     ));
                 }
                 open_browser(config, uri_complete);
@@ -158,6 +161,16 @@ pub(crate) struct AuthCodeFetcher {
 /// `AuthCodeFetcher._REDIRECT_PATH`.
 const REDIRECT_PATH: &str = "/oauth/callback";
 
+/// `AuthCodeFetcher._REQUEST_TIMEOUT`.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// `AuthCodeFetcher._OVERALL_TIMEOUT`.
+const OVERALL_TIMEOUT: Duration = Duration::from_secs(600);
+
+/// `_MIN_READ_TIMEOUT`: the shortest per-read timeout a strict callback
+/// connection gets.
+const MIN_READ_TIMEOUT: Duration = Duration::from_millis(10);
+
 impl AuthCodeFetcher {
     pub(crate) fn new(redirect_port: Option<u16>) -> Result<AuthCodeFetcher, SessionError> {
         let listener = TcpListener::bind(("127.0.0.1", redirect_port.unwrap_or(0))).map_err(|e| {
@@ -180,15 +193,17 @@ impl AuthCodeFetcher {
 
     /// `get_auth_code_and_state(expected_state=...)`: serve requests until
     /// a GET on the redirect path with the expected `state` carries a code
-    /// or an error, for at most ten minutes. Other requests are rejected
-    /// and the wait continues.
+    /// or an error, for at most `_OVERALL_TIMEOUT` (ten minutes). Other
+    /// requests are rejected and the wait continues. Each connection gets
+    /// at most `_REQUEST_TIMEOUT` in total, and no more than the wait has
+    /// left (`_DeadlineOAuthCallbackHandler`).
     pub(crate) fn get_auth_code_and_state(
         &self,
         expected_state: &str,
     ) -> Result<(Option<String>, Option<String>), SessionError> {
-        let start = Instant::now();
+        let deadline = Instant::now() + OVERALL_TIMEOUT;
         let _ = self.listener.set_nonblocking(true);
-        while start.elapsed() < Duration::from_secs(600) {
+        while Instant::now() < deadline {
             let stream = match self.listener.accept() {
                 Ok((s, _)) => s,
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
@@ -197,7 +212,9 @@ impl AuthCodeFetcher {
                 }
                 Err(_) => continue,
             };
-            if let Some(result) = handle_callback(stream, expected_state) {
+            let allowed = REQUEST_TIMEOUT.min(deadline.saturating_duration_since(Instant::now()));
+            if let Some(result) = handle_callback(stream, expected_state, Instant::now() + allowed)
+            {
                 return Ok(result);
             }
         }
@@ -263,20 +280,32 @@ fn split_request_path(target: &str) -> (&str, &str) {
     (path, query)
 }
 
-/// `OAuthCallbackHandler.do_GET` with an expected state
+/// `_DeadlineOAuthCallbackHandler.do_GET` with an expected state
 /// (`_handle_strict_callback`): `Some` ends the wait with the code (or
-/// `None` after an error) and the state.
+/// `None` after an error) and the state. The connection is cut off at
+/// `cut_off`.
 fn handle_callback(
     mut stream: TcpStream,
     expected_state: &str,
+    cut_off: Instant,
 ) -> Option<(Option<String>, Option<String>)> {
     let _ = stream.set_nonblocking(false);
-    let _ = stream.set_read_timeout(Some(Duration::from_secs(10)));
+    let left = || {
+        cut_off
+            .saturating_duration_since(Instant::now())
+            .max(MIN_READ_TIMEOUT)
+    };
+    let _ = stream.set_write_timeout(Some(left()));
     let mut buf = Vec::new();
     let mut chunk = [0u8; 4096];
     while !buf.windows(4).any(|w| w == b"\r\n\r\n") && !buf.windows(2).any(|w| w == b"\n\n") {
+        if Instant::now() >= cut_off {
+            return None;
+        }
+        let _ = stream.set_read_timeout(Some(left()));
         match stream.read(&mut chunk) {
-            Ok(0) | Err(_) => break,
+            Ok(0) => break,
+            Err(_) => return None,
             Ok(n) => buf.extend_from_slice(&chunk[..n]),
         }
         if buf.len() > 65536 {

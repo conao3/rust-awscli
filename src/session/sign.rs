@@ -922,6 +922,10 @@ pub fn choose_signer(inputs: &AuthInputs<'_>) -> Result<SignerChoice, SessionErr
     } else {
         None
     };
+    let handler_response = match handler_response {
+        Some(v) => Some(v),
+        None => auth_scheme_preference_signer(inputs, client_version.as_deref())?,
+    };
     let version_name = match handler_response {
         Some(v) => Some(v),
         None => auth_type.clone().or(client_version),
@@ -947,6 +951,31 @@ pub fn choose_signer(inputs: &AuthInputs<'_>) -> Result<SignerChoice, SessionErr
         region,
         payload_signing_enabled,
     })
+}
+
+/// `handlers._set_auth_scheme_preference_signer`, the last `choose-signer`
+/// handler: with no signature version set in code (`--no-sign-request`
+/// sets one), the `auth_scheme_preference` resolved against the service's
+/// `auth`, unless that is the client's own signature version.
+fn auth_scheme_preference_signer(
+    inputs: &AuthInputs<'_>,
+    client_version: Option<&str>,
+) -> Result<Option<String>, SessionError> {
+    if inputs.no_sign_request {
+        return Ok(None);
+    }
+    let (Some(pref), Some(auth)) = (
+        inputs
+            .auth_scheme_preference
+            .as_deref()
+            .filter(|p| !p.is_empty()),
+        inputs.service_auth.as_ref().filter(|a| !a.is_empty()),
+    ) else {
+        return Ok(None);
+    };
+    let prefs: Vec<String> = pref.split(',').map(str::to_string).collect();
+    let resolved = resolve_auth_scheme_preference(&prefs, auth)?;
+    Ok((Some(resolved.as_str()) != client_version).then_some(resolved))
 }
 
 /// `_resolve_sigv4a_region`.

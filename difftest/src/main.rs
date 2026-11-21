@@ -202,10 +202,37 @@ fn absolute(path: &Path) -> PathBuf {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
+    let _crt_lock = hold_crt_process_lock()?;
     let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
     rt.block_on(async_main(cli))
+}
+
+/// Hold the cross-process lock of the reference's CRT S3 client
+/// (`awscrt.s3.CrossProcessLock('aws-cli')`, an `flock` on
+/// `/tmp/aws_crt_cross_process_lock/aws-cli.lock`) for the whole run, so
+/// that the reference's `TransferManagerFactory` sees the CRT client running
+/// in another process and resolves `preferred_transfer_client = auto` to the
+/// classic client, the only one awsr implements. A shared lock lets several
+/// runs hold it at once.
+fn hold_crt_process_lock() -> Result<nix::fcntl::Flock<std::fs::File>> {
+    use std::os::unix::fs::PermissionsExt as _;
+    let dir = Path::new("/tmp/aws_crt_cross_process_lock");
+    if !dir.exists() {
+        std::fs::create_dir_all(dir)?;
+        std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777))?;
+    }
+    let path = dir.join("aws-cli.lock");
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(&path)
+        .with_context(|| format!("open {}", path.display()))?;
+    nix::fcntl::Flock::lock(file, nix::fcntl::FlockArg::LockSharedNonblock)
+        .map_err(|(_, e)| anyhow::anyhow!("lock {}: {e}", path.display()))
 }
 
 async fn async_main(cli: Cli) -> Result<()> {

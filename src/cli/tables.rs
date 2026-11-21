@@ -312,6 +312,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     ("account-access-runtime", Some("account-access-runtime")),
     ("acm", Some("acm")),
     ("acm-pca", Some("acm-pca")),
+    ("agent-discovery", Some("agent-discovery")),
     ("agent-registry", Some("agent-registry")),
     ("agent-registry-control", Some("agent-registry-control")),
     ("aiops", Some("aiops")),
@@ -322,6 +323,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     ("apigateway", Some("apigateway")),
     ("apigatewaymanagementapi", Some("apigatewaymanagementapi")),
     ("apigatewayv2", Some("apigatewayv2")),
+    ("apiportal", Some("apiportal")),
     ("appconfig", Some("appconfig")),
     ("appconfigdata", Some("appconfigdata")),
     ("appfabric", Some("appfabric")),
@@ -645,6 +647,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
         "payment-cryptography-data",
         Some("payment-cryptography-data"),
     ),
+    ("payments", Some("payments")),
     ("pca-connector-ad", Some("pca-connector-ad")),
     ("pca-connector-scep", Some("pca-connector-scep")),
     ("pcs", Some("pcs")),
@@ -707,6 +710,10 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     (
         "sagemaker-featurestore-runtime",
         Some("sagemaker-featurestore-runtime"),
+    ),
+    (
+        "sagemaker-gateway-runtime",
+        Some("sagemaker-gateway-runtime"),
     ),
     ("sagemaker-geospatial", Some("sagemaker-geospatial")),
     (
@@ -998,6 +1005,12 @@ pub(crate) static SERVICE_TABLE_DIFFS: &[(&str, &[&str], &[(&str, &str)], &[&str
             ("remove-option-from-option-group", "ModifyOptionGroup"),
         ],
         &["generate-db-auth-token"],
+    ),
+    (
+        "sagemaker-gateway-runtime",
+        &["invoke-global-inference-gateway-with-response-stream"],
+        &[],
+        &[],
     ),
     (
         "sagemaker-runtime",

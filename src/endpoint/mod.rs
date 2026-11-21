@@ -2,7 +2,7 @@
 //! the standard library and `partitions.json`
 //! (`botocore/endpoint_provider.py`, `botocore/regions.py`).
 
-mod pyurl;
+pub(crate) mod pyurl;
 mod stdlib;
 
 use anyhow::Result;

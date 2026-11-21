@@ -67,6 +67,16 @@ impl<'c> Client<'c> {
 
     /// `client.get_paginator(operation).paginate(**params)`: every page.
     pub(crate) fn paginate(&self, operation: &str, params: &Value) -> Result<Vec<Value>, CliError> {
+        self.paginate_with(operation, params, &PaginationConfig::default())
+    }
+
+    /// [`Client::paginate`] with a `PaginationConfig`.
+    pub(crate) fn paginate_with(
+        &self,
+        operation: &str,
+        params: &Value,
+        config: &PaginationConfig,
+    ) -> Result<Vec<Value>, CliError> {
         let Some(paginator) = self.model.paginator(operation) else {
             return Ok(vec![self.call(operation, params)?]);
         };
@@ -86,7 +96,7 @@ impl<'c> Client<'c> {
         let result = paginate::paginate(
             paginator,
             params,
-            &PaginationConfig::default(),
+            config,
             paginate::limit_key_type(&op, paginator),
             &mut call,
         );

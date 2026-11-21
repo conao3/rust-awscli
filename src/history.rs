@@ -219,6 +219,7 @@ pub(crate) fn record(event_type: &str, payload: Value, source: &str) {
     let Some(recorder) = guard.as_mut() else {
         return;
     };
+    let payload = crate::secret_redaction::history_payload(payload);
     let command_id = recorder
         .command_id
         .get_or_insert_with(|| uuid::Uuid::new_v4().to_string())

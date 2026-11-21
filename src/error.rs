@@ -20,6 +20,11 @@ pub enum ExitCode {
     General = 255,
 }
 
+impl ExitCode {
+    /// A command's own `return 1`.
+    pub const FAILURE: ExitCode = ExitCode::S3TransferFailed;
+}
+
 /// An error that stops the CLI. `message` is written to stderr exactly as
 /// given (the formatting rules of `awscli/errorformat.py` and
 /// `awscli/errorhandler.py` are applied by whoever builds it).

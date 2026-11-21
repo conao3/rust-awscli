@@ -354,6 +354,24 @@ pub(crate) enum CallResult {
     ServiceError(Box<ClientErrorInfo>),
 }
 
+/// The URL and `url_path` of a request of `operation` that an unsigned
+/// client of `model` in `region` builds, stopped before it is signed or
+/// sent (no credentials are loaded).
+pub(crate) fn probe_request_url(
+    ctx: &Context,
+    model: &ServiceModel,
+    operation: &str,
+    region: Option<&str>,
+    params: &Value,
+) -> Result<(String, String)> {
+    let client = ClientConfig {
+        region: region.map(|r| Some(r.to_string())),
+        secondary: true,
+        ..ClientConfig::default()
+    };
+    Caller::with_config(ctx, model, operation, client)?.request_url_of(params)
+}
+
 /// How a customization creates its client (`session.create_client(...,
 /// region_name=..., endpoint_url=...)`) when it differs from the command's.
 #[derive(Debug, Clone, Default)]
@@ -667,6 +685,16 @@ impl<'a> Caller<'a> {
         crate::history::record("API_CALL", Value::Map(payload), "BOTOCORE");
     }
 
+    /// The URL of the request `params` make, and its `url_path`, as a
+    /// `before-call` handler sees them in the request dict.
+    pub(crate) fn request_url_of(&self, params: &Value) -> Result<(String, String)> {
+        self.record_api_call(params);
+        let (params, _, endpoint) = self.prepare(params)?;
+        let request = protocol::serialize(self.model, &self.operation, &params)?;
+        let url = self.ctx.session.request_url(&endpoint, &request)?;
+        Ok((url, request.url_path))
+    }
+
     /// `BaseClient._make_api_call`.
     pub(crate) fn call(&self, params: &Value) -> Result<CallResult> {
         self.call_as(params, params)
@@ -779,6 +807,11 @@ impl<'a> Caller<'a> {
             map.extend(customized);
         }
         set_retry_attempts(&mut parsed, outcome.attempts);
+        crate::commands::services::agent_registry::after_call(
+            self.model,
+            self.operation.name,
+            response.status,
+        );
         handlers::after_call(
             self.model,
             &self.operation,
@@ -869,6 +902,12 @@ fn run_operation(ctx: &Context, inv: OperationInvocation) -> Result<ExitCode, Cl
         .operation(&inv.operation)
         .ok_or_else(|| ctx.general_error(&anyhow::anyhow!("unknown operation")))?;
     ctx.session.set_command(
+        &inv.cli_service,
+        &cli::arguments::xform_name(&inv.operation, '-'),
+    );
+    // `calling-command.<service>.<operation>`.
+    crate::commands::services::agent_registry::calling_command(
+        ctx,
         &inv.cli_service,
         &cli::arguments::xform_name(&inv.operation, '-'),
     );

@@ -77,13 +77,13 @@ fn get_skill_file(ctx: &Context, args: &[String]) -> Result<ExitCode, CliError> 
 }
 
 const SKILL_FILENAME: &str = "SKILL.md";
-const SKILL_METADATA_FILENAME: &str = ".aws-skill-metadata";
+pub(crate) const SKILL_METADATA_FILENAME: &str = ".aws-skill-metadata";
 const UNIVERSAL_ROW_ID: &str = "universal";
 
 /// `AgentConfig` (the fields the skill commands use).
-struct AgentConfig {
-    id: &'static str,
-    display_name: String,
+pub(crate) struct AgentConfig {
+    pub(crate) id: &'static str,
+    pub(crate) display_name: String,
     detection_path: &'static str,
     detection_path_env_override: Option<&'static str>,
     home_env_override: Option<&'static str>,
@@ -140,7 +140,7 @@ fn rstrip_sep(path: &str) -> String {
 }
 
 /// `AGENT_CONFIGS` with the universal row `_build_universal_row` appends.
-fn agent_configs() -> Vec<AgentConfig> {
+pub(crate) fn agent_configs() -> Vec<AgentConfig> {
     let agents_skills = Some("~/.agents/skills/");
     let mut configs = vec![
         config(
@@ -208,8 +208,8 @@ fn agent_configs() -> Vec<AgentConfig> {
 }
 
 /// `DetectedAgent`.
-struct DetectedAgent<'c> {
-    config: &'c AgentConfig,
+pub(crate) struct DetectedAgent<'c> {
+    pub(crate) config: &'c AgentConfig,
     base_dir: String,
 }
 
@@ -275,7 +275,7 @@ fn collapse_home(path: &str) -> String {
 }
 
 impl DetectedAgent<'_> {
-    fn skills_path(&self) -> String {
+    pub(crate) fn skills_path(&self) -> String {
         match self.config.skills_path_override {
             Some(p) => self.config.expand_path(p),
             None => format!("{}/{}", self.base_dir, self.config.skills_dir),
@@ -329,12 +329,12 @@ impl DetectedAgent<'_> {
 }
 
 /// `universal_first`: a stable sort putting the universal row first.
-fn universal_first<T>(items: &mut [T], id: impl Fn(&T) -> &str) {
+pub(crate) fn universal_first<T>(items: &mut [T], id: impl Fn(&T) -> &str) {
     items.sort_by_key(|i| if id(i) == UNIVERSAL_ROW_ID { 0 } else { 1 });
 }
 
 /// `resolve_agents`.
-fn resolve_agents<'c>(
+pub(crate) fn resolve_agents<'c>(
     ctx: &Context,
     configs: &'c [AgentConfig],
     filter: Option<&str>,
@@ -413,7 +413,7 @@ fn agent_arg() -> ArgDef {
 /// `os.path.realpath` (`posixpath._joinrealpath`, not strict): symlinks
 /// are followed even when their targets are missing, and missing
 /// components are kept.
-fn realpath(path: &str) -> String {
+pub(crate) fn realpath(path: &str) -> String {
     if let Ok(p) = std::fs::canonicalize(path) {
         return p.to_string_lossy().into_owned();
     }

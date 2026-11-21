@@ -423,30 +423,8 @@ fn runtime_config(ctx: &Context, p: &Params) -> Result<TransferConfig, S3Fail> {
     // `TransferManagerFactory`: the classic client is used; report the
     // settings the reference reports while choosing.
     let explicit = |k: &str| scoped.contains_key(k);
-    if preferred == "auto" && p.paths_type() != "s3s3" {
-        let classic_only: Vec<&str> = if explicit("max_bandwidth") {
-            vec!["max_bandwidth"]
-        } else {
-            vec![]
-        };
-        let mut unsupported: Vec<String> = classic_only.iter().map(|s| s.to_string()).collect();
-        if ctx.session.config_variable("retry_mode").as_deref() == Some("adaptive") {
-            unsupported.push("retry_mode = adaptive".into());
-        }
-        if p.t("is_stream") && p.paths_type() == "locals3" {
-            unsupported.push("uploads from a non-seekable stream".into());
-        }
-        if let Some(n) = ctx
-            .session
-            .config_variable("max_attempts")
-            .and_then(|v| v.trim().parse::<i64>().ok())
-            && !(2..=64).contains(&n)
-        {
-            unsupported.push(format!("max_attempts = {n} (must be between 2 and 64)"));
-        }
-        if !unsupported.is_empty() && !classic_only.is_empty() {
-            super::err(format!("warning: Using the 'classic' s3 transfer client because the 'crt' s3 transfer client does not support: {}. A future version of the AWS CLI will use the 'crt' s3 transfer client by default, at which point these values will be ignored. Set the preferred_transfer_client configuration value to 'classic' to continue using the 'classic' s3 transfer client.\n", classic_only.join(", ")).as_bytes());
-        }
+    if preferred == "auto" && p.paths_type() != "s3s3" && explicit("max_bandwidth") {
+        super::err(b"warning: Using the 'classic' s3 transfer client because the 'crt' s3 transfer client does not support: max_bandwidth. A future version of the AWS CLI will use the 'crt' s3 transfer client by default, at which point these values will be ignored. Set the preferred_transfer_client configuration value to 'classic' to continue using the 'classic' s3 transfer client.\n");
     }
     crate::session::useragent::register_command(&[
         crate::session::useragent::Feature::S3Transfer,

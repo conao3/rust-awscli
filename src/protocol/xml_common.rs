@@ -914,33 +914,6 @@ pub(crate) fn timestamp_str(v: &Value, format: Option<&str>) -> Result<String> {
     )?))
 }
 
-/// `Serializer._expand_host_prefix`.
-pub(crate) fn expand_host_prefix(
-    operation: &crate::model::Operation<'_>,
-    params: &Value,
-) -> Result<Option<String>> {
-    let Some(prefix) = operation
-        .get("endpoint")
-        .and_then(|e| e.get("hostPrefix"))
-        .and_then(crate::bjson::Node::as_str)
-    else {
-        return Ok(None);
-    };
-    let Some(input) = operation.input() else {
-        return Ok(Some(prefix.to_string()));
-    };
-    let mut out = prefix.to_string();
-    for (name, member) in input.members() {
-        if member.get_bool("hostLabel") {
-            let value = params
-                .get(name)
-                .ok_or_else(|| anyhow!("missing host label parameter: {name}"))?;
-            out = out.replace(&format!("{{{name}}}"), &py_str(value));
-        }
-    }
-    Ok(Some(out))
-}
-
 /// A `dict` of query parameters whose values may be lists (expanded the
 /// way `percent_encode_sequence` does).
 #[derive(Debug, Default)]
@@ -958,7 +931,7 @@ pub(crate) fn rest_serialize(
         url_path: "/".into(),
         ..HttpRequest::default()
     };
-    req.host_prefix = expand_host_prefix(operation, params)?;
+    req.host_prefix = crate::protocol::common::expand_host_prefix(operation, params)?;
     let Some(shape) = operation.input() else {
         req.url_path = operation.request_uri().to_string();
         return Ok(req);

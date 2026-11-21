@@ -4,7 +4,7 @@
 mod deploy;
 mod package;
 mod uploader;
-mod yamlhelper;
+pub(crate) mod yamlhelper;
 mod zip;
 
 use super::basic;

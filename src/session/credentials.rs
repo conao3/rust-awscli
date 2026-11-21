@@ -1372,16 +1372,26 @@ pub async fn resolve_token(
     region: Option<&str>,
 ) -> Result<Option<String>, SessionError> {
     let _ = region;
-    if let Some(t) = env_bearer_token(config, signing_name) {
+    if let Some(t) = token_from_environment(config, signing_name) {
         return Ok(Some(t));
     }
     let profile = config.profile().unwrap_or_else(|| "default".to_string());
     super::sso_token::sso_bearer_token(config, &profile).await
 }
 
-/// `get_token_from_environment` for `_should_prefer_bearer_auth`.
+/// `get_token_from_environment` for `_should_prefer_bearer_auth`, which
+/// only considers the services of `get_bearer_auth_supported_services`.
 pub fn env_bearer_token(config: &Config, signing_name: &str) -> Option<String> {
     if signing_name != "bedrock" {
+        return None;
+    }
+    token_from_environment(config, signing_name)
+}
+
+/// `utils.get_token_from_environment` (`ScopedEnvTokenProvider`):
+/// `AWS_BEARER_TOKEN_<SIGNING_NAME>` for any signing name.
+pub fn token_from_environment(config: &Config, signing_name: &str) -> Option<String> {
+    if signing_name.trim().is_empty() {
         return None;
     }
     config

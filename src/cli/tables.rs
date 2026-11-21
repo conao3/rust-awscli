@@ -634,6 +634,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     ("partnercentral-account", Some("partnercentral-account")),
     ("partnercentral-benefits", Some("partnercentral-benefits")),
     ("partnercentral-channel", Some("partnercentral-channel")),
+    ("partnercentral-marketing", Some("partnercentral-marketing")),
     (
         "partnercentral-revenue-measurement",
         Some("partnercentral-revenue-measurement"),
@@ -817,6 +818,17 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
 /// model operations).
 #[allow(clippy::type_complexity)]
 pub(crate) static SERVICE_TABLE_DIFFS: &[(&str, &[&str], &[(&str, &str)], &[&str])] = &[
+    (
+        "agent-registry",
+        &[],
+        &[],
+        &[
+            "list-skills",
+            "install-skill",
+            "uninstall-skill",
+            "sign-out",
+        ],
+    ),
     (
         "bedrock-agent-runtime",
         &[
@@ -1064,6 +1076,10 @@ pub(crate) static SERVICE_TABLE_DIFFS: &[(&str, &[&str], &[(&str, &str)], &[&str
 /// take no value (their argparse action has `nargs=0`): (command
 /// path, option names).
 pub(crate) static CUSTOM_FLAGS: &[(&str, &[&str])] = &[
+    ("agent-registry list-skills", &["no-browser"]),
+    ("agent-registry install-skill", &["no-browser", "force"]),
+    ("agent-registry uninstall-skill", &["yes"]),
+    ("agent-registry sign-out", &["all"]),
     ("cloudformation package", &["use-json", "force-upload"]),
     (
         "cloudformation deploy",

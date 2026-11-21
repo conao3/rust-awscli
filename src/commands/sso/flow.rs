@@ -51,6 +51,26 @@ impl PendingHandler {
         uri_complete: &str,
         cross_device_flag: Option<&str>,
     ) {
+        self.call_to(
+            config,
+            user_code,
+            uri,
+            uri_complete,
+            cross_device_flag,
+            &out,
+        );
+    }
+
+    /// [`PendingHandler::call`] with `outfile` (`out` writes to it).
+    pub(crate) fn call_to(
+        self,
+        config: &Config,
+        user_code: Option<&str>,
+        uri: &str,
+        uri_complete: &str,
+        cross_device_flag: Option<&str>,
+        out: &dyn Fn(&str),
+    ) {
         match self {
             PendingHandler::PrintOnly => {
                 out(&format!(
@@ -72,10 +92,13 @@ impl PendingHandler {
                         "\nThen enter the code:\n\n{}\n",
                         user_code.unwrap_or_default()
                     ));
+                } else if let Some(flag) = cross_device_flag.filter(|f| !f.is_empty()) {
+                    out(&format!(
+                        "Attempting to open your default browser. If the browser does not open, open the following URL.\nIf you are unable to open the URL on this device, run this command again with the '{flag}' option.\n\n{uri}\n\n"
+                    ));
                 } else {
                     out(&format!(
-                        "Attempting to open your default browser. If the browser does not open, open the following URL.\nIf you are unable to open the URL on this device, run this command again with the '{}' option.\n\n{uri}\n\n",
-                        cross_device_flag.unwrap_or("None")
+                        "Attempting to open your default browser. If the browser does not open, open the following URL.\n\n{uri}\n\n"
                     ));
                 }
                 open_browser(config, uri_complete);
@@ -158,16 +181,37 @@ pub(crate) struct AuthCodeFetcher {
 /// `AuthCodeFetcher._REDIRECT_PATH`.
 const REDIRECT_PATH: &str = "/oauth/callback";
 
+/// `AuthCodeFetcher._REQUEST_TIMEOUT`.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// `AuthCodeFetcher._OVERALL_TIMEOUT`.
+const OVERALL_TIMEOUT: Duration = Duration::from_secs(600);
+
+/// `_MIN_READ_TIMEOUT`: the shortest per-read timeout a strict callback
+/// connection gets.
+const MIN_READ_TIMEOUT: Duration = Duration::from_millis(10);
+
 impl AuthCodeFetcher {
     pub(crate) fn new(redirect_port: Option<u16>) -> Result<AuthCodeFetcher, SessionError> {
-        let listener = TcpListener::bind(("127.0.0.1", redirect_port.unwrap_or(0))).map_err(|e| {
+        AuthCodeFetcher::bind(redirect_port).map_err(|e| {
             general(format!(
-                "Unable to initialize the OAuth 2.0 authorization callback handler: {} \n You may use --use-device-code to fall back to the device code flow which does not require the callback handler.",
-                os_error_text(&e)
+                "Unable to initialize the OAuth 2.0 authorization callback handler: {e} \n You may use --use-device-code to fall back to the device code flow which does not require the callback handler."
             ))
-        })?;
+        })
+    }
+
+    /// [`AuthCodeFetcher::new`]: `Err` is the `error_msg` of the
+    /// `AuthCodeFetcherError` (`str(OSError)`).
+    pub(crate) fn bind(redirect_port: Option<u16>) -> Result<AuthCodeFetcher, String> {
+        let listener = TcpListener::bind(("127.0.0.1", redirect_port.unwrap_or(0)))
+            .map_err(|e| os_error_text(&e))?;
         let port = listener.local_addr().map(|a| a.port()).unwrap_or_default();
         Ok(AuthCodeFetcher { listener, port })
+    }
+
+    /// `overall_timeout`, in seconds.
+    pub(crate) fn overall_timeout(&self) -> u64 {
+        OVERALL_TIMEOUT.as_secs()
     }
 
     pub(crate) fn redirect_uri_without_port(&self) -> String {
@@ -180,15 +224,33 @@ impl AuthCodeFetcher {
 
     /// `get_auth_code_and_state(expected_state=...)`: serve requests until
     /// a GET on the redirect path with the expected `state` carries a code
-    /// or an error, for at most ten minutes. Other requests are rejected
-    /// and the wait continues.
+    /// or an error, for at most `_OVERALL_TIMEOUT` (ten minutes). Other
+    /// requests are rejected and the wait continues. Each connection gets
+    /// at most `_REQUEST_TIMEOUT` in total, and no more than the wait has
+    /// left (`_DeadlineOAuthCallbackHandler`).
     pub(crate) fn get_auth_code_and_state(
         &self,
         expected_state: &str,
     ) -> Result<(Option<String>, Option<String>), SessionError> {
-        let start = Instant::now();
+        match self.wait(expected_state) {
+            Some(c) => Ok((c.code, c.state)),
+            None => Err(general(
+                "The pending authorization to retrieve an SSO token has expired. The login flow to retrieve an SSO token must be restarted.",
+            )),
+        }
+    }
+
+    /// [`AuthCodeFetcher::get_auth_code_and_state`] with the `error` the
+    /// authorization server redirected back with; `None` is
+    /// `PendingAuthorizationExpiredError`.
+    pub(crate) fn wait(&self, expected_state: &str) -> Option<Callback> {
+        crate::debuglog::debug(
+            "awscli.customizations.sso.utils",
+            &format!("Waiting for auth code at {}", self.redirect_uri_with_port()),
+        );
+        let deadline = Instant::now() + OVERALL_TIMEOUT;
         let _ = self.listener.set_nonblocking(true);
-        while start.elapsed() < Duration::from_secs(600) {
+        while Instant::now() < deadline {
             let stream = match self.listener.accept() {
                 Ok((s, _)) => s,
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
@@ -197,17 +259,26 @@ impl AuthCodeFetcher {
                 }
                 Err(_) => continue,
             };
-            if let Some(result) = handle_callback(stream, expected_state) {
-                return Ok(result);
+            let allowed = REQUEST_TIMEOUT.min(deadline.saturating_duration_since(Instant::now()));
+            if let Some(result) = handle_callback(stream, expected_state, Instant::now() + allowed)
+            {
+                return Some(result);
             }
         }
-        Err(general(
-            "The pending authorization to retrieve an SSO token has expired. The login flow to retrieve an SSO token must be restarted.",
-        ))
+        None
     }
 }
 
-fn os_error_text(e: &std::io::Error) -> String {
+/// What the redirect that ended the wait carried: the code, or the
+/// `error` and `error_description` (`AuthCodeFetcher.error`), and the
+/// state.
+pub(crate) struct Callback {
+    pub code: Option<String>,
+    pub state: Option<String>,
+    pub error: Option<(String, Option<String>)>,
+}
+
+pub(crate) fn os_error_text(e: &std::io::Error) -> String {
     match e.raw_os_error() {
         Some(code) => format!(
             "[Errno {code}] {}",
@@ -241,6 +312,13 @@ fn send_index_page(stream: &mut TcpStream) {
 
 /// `OAuthCallbackHandler._send_text`.
 fn send_text(stream: &mut TcpStream, status: &str, text: &str) {
+    crate::debuglog::debug(
+        "awscli.customizations.sso.utils",
+        &format!(
+            "Rejected OAuth callback request with HTTP {}",
+            status.split(' ').next().unwrap_or_default()
+        ),
+    );
     let body = format!("{text}\n");
     let response = format!(
         "{}Content-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\n\r\n{body}",
@@ -263,20 +341,32 @@ fn split_request_path(target: &str) -> (&str, &str) {
     (path, query)
 }
 
-/// `OAuthCallbackHandler.do_GET` with an expected state
+/// `_DeadlineOAuthCallbackHandler.do_GET` with an expected state
 /// (`_handle_strict_callback`): `Some` ends the wait with the code (or
-/// `None` after an error) and the state.
+/// `None` after an error) and the state. The connection is cut off at
+/// `cut_off`.
 fn handle_callback(
     mut stream: TcpStream,
     expected_state: &str,
-) -> Option<(Option<String>, Option<String>)> {
+    cut_off: Instant,
+) -> Option<Callback> {
     let _ = stream.set_nonblocking(false);
-    let _ = stream.set_read_timeout(Some(Duration::from_secs(10)));
+    let left = || {
+        cut_off
+            .saturating_duration_since(Instant::now())
+            .max(MIN_READ_TIMEOUT)
+    };
+    let _ = stream.set_write_timeout(Some(left()));
     let mut buf = Vec::new();
     let mut chunk = [0u8; 4096];
     while !buf.windows(4).any(|w| w == b"\r\n\r\n") && !buf.windows(2).any(|w| w == b"\n\n") {
+        if Instant::now() >= cut_off {
+            return None;
+        }
+        let _ = stream.set_read_timeout(Some(left()));
         match stream.read(&mut chunk) {
-            Ok(0) | Err(_) => break,
+            Ok(0) => break,
+            Err(_) => return None,
             Ok(n) => buf.extend_from_slice(&chunk[..n]),
         }
         if buf.len() > 65536 {
@@ -313,10 +403,18 @@ fn handle_callback(
         );
         return None;
     }
-    let result = if get("error").is_some() {
-        (None, state)
+    let result = if let Some(error) = get("error") {
+        Callback {
+            code: None,
+            state,
+            error: Some((error, get("error_description"))),
+        }
     } else if let Some(code) = get("code") {
-        (Some(code), state)
+        Callback {
+            code: Some(code),
+            state,
+            error: None,
+        }
     } else {
         send_text(
             &mut stream,

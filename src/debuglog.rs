@@ -21,6 +21,7 @@ pub fn log(name: &str, level: &str, message: &str) {
     if !enabled() {
         return;
     }
+    let message = crate::secret_redaction::log_message(message);
     let now = chrono::Local::now();
     let line = format!(
         "{},{:03} - MainThread - {name} - {level} - {message}\n",

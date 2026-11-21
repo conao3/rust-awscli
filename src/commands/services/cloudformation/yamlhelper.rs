@@ -58,7 +58,7 @@ pub(super) fn yaml_parse(text: &str) -> Result<Value, String> {
 }
 
 #[derive(Debug, Clone)]
-enum Node {
+pub(crate) enum Node {
     Scalar {
         tag: Option<String>,
         value: String,
@@ -105,7 +105,7 @@ unsafe fn parse_error(parser: *const unsafe_sys::yaml_parser_t) -> String {
 }
 
 /// Compose the first document into nodes (aliases resolved).
-fn parse_nodes(text: &str) -> Result<Option<Node>, String> {
+pub(crate) fn parse_nodes(text: &str) -> Result<Option<Node>, String> {
     let input = text.as_bytes();
     let mut parser = Box::new(MaybeUninit::<unsafe_sys::yaml_parser_t>::uninit());
     let parser = parser.as_mut_ptr();

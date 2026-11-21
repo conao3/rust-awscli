@@ -8,8 +8,9 @@ pub(crate) mod basic;
 #[allow(dead_code)]
 pub(crate) mod exec;
 
-mod agent_toolkit;
-mod cloudformation;
+pub(crate) mod agent_registry;
+pub(crate) mod agent_toolkit;
+pub(crate) mod cloudformation;
 mod cloudfront;
 mod cloudsearch;
 mod cloudtrail;
@@ -61,6 +62,7 @@ type Run = fn(&Context, &str, &[String]) -> Result<ExitCode, CliError>;
 
 fn module(service: &str) -> Option<Run> {
     Some(match service {
+        "agent-registry" => agent_registry::run,
         "agent-toolkit" => agent_toolkit::run,
         "cloudformation" => cloudformation::run,
         "cloudfront" => cloudfront::run,

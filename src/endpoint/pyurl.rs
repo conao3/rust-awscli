@@ -172,6 +172,20 @@ pub fn urlparse(url: &str) -> Result<ParseResult, UrlError> {
     })
 }
 
+/// `urllib.parse.urlsplit(url)`, as a [`ParseResult`] whose path keeps
+/// any `;params`.
+pub fn urlsplit_parts(url: &str) -> Result<ParseResult, UrlError> {
+    let (scheme, netloc, path, query, fragment) = urlsplit(url)?;
+    Ok(ParseResult {
+        scheme,
+        netloc: netloc.unwrap_or_default(),
+        path,
+        params: String::new(),
+        query,
+        fragment,
+    })
+}
+
 /// `urllib.parse._splitparams(url, allow_none=True)`.
 fn split_params(url: &str) -> (String, Option<String>) {
     let i = if let Some(slash) = url.rfind('/') {

@@ -16,6 +16,7 @@ pub mod paginate;
 pub mod progname;
 pub mod protocol;
 pub mod pyfmt;
+pub(crate) mod secret_redaction;
 pub mod session;
 pub mod value;
 pub mod waiter;

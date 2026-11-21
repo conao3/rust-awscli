@@ -793,6 +793,8 @@ impl Session {
                     headers: base_headers.clone(),
                     body: request.body.clone(),
                 };
+                // `before-sign.<service>`.
+                crate::commands::services::agent_registry::before_sign(&sid, &choice.version)?;
                 self.sign(&mut req, &choice, &ctx, settings.region.as_deref())
                     .await?;
                 let ua = user_agent
@@ -821,6 +823,12 @@ impl Session {
                 if crate::history::enabled() {
                     record_request(operation, &req);
                 }
+                // `before-send.<service>`.
+                crate::commands::services::agent_registry::before_send(
+                    &sid,
+                    &req.headers,
+                    &req.url,
+                )?;
                 let result = http
                     .send(&req.method, &req.url, &req.headers, &req.body)
                     .await;

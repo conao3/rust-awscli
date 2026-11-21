@@ -51,6 +51,26 @@ impl PendingHandler {
         uri_complete: &str,
         cross_device_flag: Option<&str>,
     ) {
+        self.call_to(
+            config,
+            user_code,
+            uri,
+            uri_complete,
+            cross_device_flag,
+            &out,
+        );
+    }
+
+    /// [`PendingHandler::call`] with `outfile` (`out` writes to it).
+    pub(crate) fn call_to(
+        self,
+        config: &Config,
+        user_code: Option<&str>,
+        uri: &str,
+        uri_complete: &str,
+        cross_device_flag: Option<&str>,
+        out: &dyn Fn(&str),
+    ) {
         match self {
             PendingHandler::PrintOnly => {
                 out(&format!(
@@ -173,14 +193,25 @@ const MIN_READ_TIMEOUT: Duration = Duration::from_millis(10);
 
 impl AuthCodeFetcher {
     pub(crate) fn new(redirect_port: Option<u16>) -> Result<AuthCodeFetcher, SessionError> {
-        let listener = TcpListener::bind(("127.0.0.1", redirect_port.unwrap_or(0))).map_err(|e| {
+        AuthCodeFetcher::bind(redirect_port).map_err(|e| {
             general(format!(
-                "Unable to initialize the OAuth 2.0 authorization callback handler: {} \n You may use --use-device-code to fall back to the device code flow which does not require the callback handler.",
-                os_error_text(&e)
+                "Unable to initialize the OAuth 2.0 authorization callback handler: {e} \n You may use --use-device-code to fall back to the device code flow which does not require the callback handler."
             ))
-        })?;
+        })
+    }
+
+    /// [`AuthCodeFetcher::new`]: `Err` is the `error_msg` of the
+    /// `AuthCodeFetcherError` (`str(OSError)`).
+    pub(crate) fn bind(redirect_port: Option<u16>) -> Result<AuthCodeFetcher, String> {
+        let listener = TcpListener::bind(("127.0.0.1", redirect_port.unwrap_or(0)))
+            .map_err(|e| os_error_text(&e))?;
         let port = listener.local_addr().map(|a| a.port()).unwrap_or_default();
         Ok(AuthCodeFetcher { listener, port })
+    }
+
+    /// `overall_timeout`, in seconds.
+    pub(crate) fn overall_timeout(&self) -> u64 {
+        OVERALL_TIMEOUT.as_secs()
     }
 
     pub(crate) fn redirect_uri_without_port(&self) -> String {
@@ -201,6 +232,22 @@ impl AuthCodeFetcher {
         &self,
         expected_state: &str,
     ) -> Result<(Option<String>, Option<String>), SessionError> {
+        match self.wait(expected_state) {
+            Some(c) => Ok((c.code, c.state)),
+            None => Err(general(
+                "The pending authorization to retrieve an SSO token has expired. The login flow to retrieve an SSO token must be restarted.",
+            )),
+        }
+    }
+
+    /// [`AuthCodeFetcher::get_auth_code_and_state`] with the `error` the
+    /// authorization server redirected back with; `None` is
+    /// `PendingAuthorizationExpiredError`.
+    pub(crate) fn wait(&self, expected_state: &str) -> Option<Callback> {
+        crate::debuglog::debug(
+            "awscli.customizations.sso.utils",
+            &format!("Waiting for auth code at {}", self.redirect_uri_with_port()),
+        );
         let deadline = Instant::now() + OVERALL_TIMEOUT;
         let _ = self.listener.set_nonblocking(true);
         while Instant::now() < deadline {
@@ -215,16 +262,23 @@ impl AuthCodeFetcher {
             let allowed = REQUEST_TIMEOUT.min(deadline.saturating_duration_since(Instant::now()));
             if let Some(result) = handle_callback(stream, expected_state, Instant::now() + allowed)
             {
-                return Ok(result);
+                return Some(result);
             }
         }
-        Err(general(
-            "The pending authorization to retrieve an SSO token has expired. The login flow to retrieve an SSO token must be restarted.",
-        ))
+        None
     }
 }
 
-fn os_error_text(e: &std::io::Error) -> String {
+/// What the redirect that ended the wait carried: the code, or the
+/// `error` and `error_description` (`AuthCodeFetcher.error`), and the
+/// state.
+pub(crate) struct Callback {
+    pub code: Option<String>,
+    pub state: Option<String>,
+    pub error: Option<(String, Option<String>)>,
+}
+
+pub(crate) fn os_error_text(e: &std::io::Error) -> String {
     match e.raw_os_error() {
         Some(code) => format!(
             "[Errno {code}] {}",
@@ -258,6 +312,13 @@ fn send_index_page(stream: &mut TcpStream) {
 
 /// `OAuthCallbackHandler._send_text`.
 fn send_text(stream: &mut TcpStream, status: &str, text: &str) {
+    crate::debuglog::debug(
+        "awscli.customizations.sso.utils",
+        &format!(
+            "Rejected OAuth callback request with HTTP {}",
+            status.split(' ').next().unwrap_or_default()
+        ),
+    );
     let body = format!("{text}\n");
     let response = format!(
         "{}Content-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\n\r\n{body}",
@@ -288,7 +349,7 @@ fn handle_callback(
     mut stream: TcpStream,
     expected_state: &str,
     cut_off: Instant,
-) -> Option<(Option<String>, Option<String>)> {
+) -> Option<Callback> {
     let _ = stream.set_nonblocking(false);
     let left = || {
         cut_off
@@ -342,10 +403,18 @@ fn handle_callback(
         );
         return None;
     }
-    let result = if get("error").is_some() {
-        (None, state)
+    let result = if let Some(error) = get("error") {
+        Callback {
+            code: None,
+            state,
+            error: Some((error, get("error_description"))),
+        }
     } else if let Some(code) = get("code") {
-        (Some(code), state)
+        Callback {
+            code: Some(code),
+            state,
+            error: None,
+        }
     } else {
         send_text(
             &mut stream,

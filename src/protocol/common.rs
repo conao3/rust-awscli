@@ -385,7 +385,9 @@ pub fn handle_float(v: &Value) -> Value {
     }
 }
 
-/// `Serializer._expand_host_prefix`.
+/// `Serializer._expand_host_prefix`: every `hostLabel` member must be a
+/// string matching `HOST_PREFIX_RE` (`^[A-Za-z0-9\.\-]+$`), or the
+/// operation fails with a `ParamValidationError` naming them.
 pub fn expand_host_prefix(operation: &Operation<'_>, params: &Value) -> Result<Option<String>> {
     let Some(expr) = operation
         .get("endpoint")
@@ -398,14 +400,28 @@ pub fn expand_host_prefix(operation: &Operation<'_>, params: &Value) -> Result<O
         return Ok(Some(expr.to_string()));
     };
     let mut out = expr.to_string();
+    let mut bad_labels = vec![];
     for (name, member) in input.members() {
         if !member.get_bool("hostLabel") {
             continue;
         }
-        let value = params
-            .get(name)
-            .ok_or_else(|| anyhow!("missing host label parameter {name}"))?;
-        out = out.replace(&format!("{{{name}}}"), &py_str(value)?);
+        match params.get(name) {
+            Some(Value::Str(s))
+                if !s.is_empty()
+                    && s.bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b == b'.' || b == b'-') =>
+            {
+                out = out.replace(&format!("{{{name}}}"), s);
+            }
+            _ => bad_labels.push(name),
+        }
+    }
+    if !bad_labels.is_empty() {
+        return Err(crate::handlers::ParamValidationError(format!(
+            "Invalid value for parameter(s): {}. Must contain only alphanumeric characters, hyphen, or period.",
+            bad_labels.join(", ")
+        ))
+        .into());
     }
     Ok(Some(out))
 }

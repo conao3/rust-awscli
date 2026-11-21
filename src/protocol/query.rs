@@ -6,8 +6,8 @@ use indexmap::IndexMap;
 
 use crate::model::{Operation, ServiceModel, Shape};
 use crate::protocol::xml_common::{
-    self, Flavor, XmlParser, b64encode, expand_host_prefix, float_str, py_str, quote_plus,
-    serialized_name, timestamp_str,
+    self, Flavor, XmlParser, b64encode, float_str, py_str, quote_plus, serialized_name,
+    timestamp_str,
 };
 use crate::protocol::{HttpRequest, HttpResponse, ParseOptions, ServiceError};
 use crate::value::Value;
@@ -179,7 +179,7 @@ pub(crate) fn serialize_variant(
             "application/x-www-form-urlencoded; charset=utf-8".into(),
         )],
         body: encoded.join("&").into_bytes(),
-        host_prefix: expand_host_prefix(operation, params)?,
+        host_prefix: crate::protocol::common::expand_host_prefix(operation, params)?,
     })
 }
 

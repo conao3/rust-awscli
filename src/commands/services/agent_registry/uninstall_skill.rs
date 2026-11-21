@@ -40,11 +40,7 @@ fn require_installed_skill(path: &str, name: &str) -> Result<()> {
     Ok(())
 }
 
-/// `str.casefold()` for the names a folder can have (ASCII letters,
-/// digits, `.`, `_`, `-`) and other characters by `to_lowercase`.
-fn fold(s: &str) -> String {
-    s.chars().flat_map(char::to_lowercase).collect()
-}
+use super::install_skill::casefold as fold;
 
 /// `_on_disk_path(path)`.
 fn on_disk_path(path: &str) -> String {

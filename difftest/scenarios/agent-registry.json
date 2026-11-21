@@ -455,6 +455,46 @@
   ]
  },
  {
+  "name": "agent-registry list-skills user agent",
+  "argv": [
+   "agent-registry",
+   "list-skills",
+   "--registry-id",
+   "abcdefghijkl12",
+   "--endpoint-url",
+   "{endpoint}"
+  ],
+  "files": {
+   "home/.claude/skills/whatever/SKILL.md": "---\nname: pdf-tools\ndescription: d\n---\n# Skill\n",
+   "home/.claude/skills/whatever/.agent-registry-skill.json": "{\"registryId\": \"abcdefghijkl12\", \"recordId\": \"rec000000001\", \"endpoint\": \"{endpoint}\", \"sha256\": \"old\", \"content\": \"skillMd\"}\n",
+   "home/.agents/skills/notes/SKILL.md": "x",
+   "home/.agents/skills/notes/.agent-registry-skill.json": "{\"registryId\": \"abcdefghijkl12\", \"recordId\": \"rec000000003\", \"endpoint\": \"{endpoint}/\", \"sha256\": \"x\", \"content\": \"skillMd\"}\n",
+   "home/.gemini/settings.json": "{}",
+   "home/.cursor/skills/pdf/SKILL.md": "x",
+   "home/.cursor/skills/pdf/.agent-registry-skill.json": "{\"registryId\": \"otherregistry1\", \"recordId\": \"rec000000001\", \"endpoint\": \"{endpoint}\", \"sha256\": \"x\", \"content\": \"skillMd\"}\n",
+   "home/.kiro/skills/.hidden/SKILL.md": "x",
+   "home/.kiro/skills/.hidden/.agent-registry-skill.json": "{\"registryId\": \"abcdefghijkl12\", \"recordId\": \"rec000000001\", \"endpoint\": \"{endpoint}\", \"sha256\": \"x\", \"content\": \"skillMd\"}\n"
+  },
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"registryRecords\": [{\"registryArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12\", \"recordArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12/record/rec000000001\", \"recordId\": \"rec000000001\", \"name\": \"pdf tools\", \"recordType\": \"SKILL\", \"recordVersion\": \"1\", \"status\": \"APPROVED\", \"createdAt\": 1700000000, \"updatedAt\": 1700000000, \"description\": \"Extract\\ttext\\u001b[31m\"}, {\"registryArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12\", \"recordArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12/record/rec000000002\", \"recordId\": \"rec000000002\", \"name\": \"mcp\", \"recordType\": \"MCP\", \"recordVersion\": \"1\", \"status\": \"APPROVED\", \"createdAt\": 1700000000, \"updatedAt\": 1700000000}]}"
+   },
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"registryRecords\": [{\"registryArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12\", \"recordArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12/record/rec000000001\", \"recordId\": \"rec000000001\", \"name\": \"pdf tools\", \"recordType\": \"SKILL\", \"recordVersion\": \"1\", \"status\": \"APPROVED\", \"createdAt\": 1700000000, \"updatedAt\": 1700000000, \"descriptors\": {\"agentSkillsDefinition\": {\"additionalData\": {\"skillMd\": {\"data\": \"---\\nname: pdf-tools\\ndescription: d\\n---\\n# Skill\\n\"}}}}}], \"errors\": []}"
+   }
+  ],
+  "user_agent_command": true,
+  "user_agent_features": true
+ },
+ {
   "name": "agent-registry list-skills text",
   "argv": [
    "agent-registry",
@@ -849,6 +889,32 @@
    "skills/pdf-tools/SKILL.md",
    "skills/pdf-tools/.agent-registry-skill.json"
   ]
+ },
+ {
+  "name": "agent-registry install-skill user agent",
+  "argv": [
+   "agent-registry",
+   "install-skill",
+   "--registry-id",
+   "abcdefghijkl12",
+   "--record-id",
+   "rec000000001",
+   "--endpoint-url",
+   "{endpoint}",
+   "--target-directory",
+   "skills"
+  ],
+  "responses": [
+   {
+    "status": 200,
+    "headers": {
+     "Content-Type": "application/json"
+    },
+    "body": "{\"registryRecords\": [{\"registryArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12\", \"recordArn\": \"arn:aws:agent-registry:us-east-1:123456789012:registry/abcdefghijkl12/record/rec000000001\", \"recordId\": \"rec000000001\", \"name\": \"pdf tools\", \"recordType\": \"SKILL\", \"recordVersion\": \"1\", \"status\": \"APPROVED\", \"createdAt\": 1700000000, \"updatedAt\": 1700000000, \"descriptors\": {\"agentSkillsDefinition\": {\"additionalData\": {\"skillMd\": {\"data\": \"---\\nname: pdf-tools\\ndescription: d\\n---\\n# Skill\\n\"}}}}}], \"errors\": []}"
+   }
+  ],
+  "user_agent_command": true,
+  "user_agent_features": true
  },
  {
   "name": "agent-registry install-skill skill md by arn",

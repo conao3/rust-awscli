@@ -5,6 +5,7 @@
 
 mod browserflow;
 mod cache;
+mod casefold;
 mod constants;
 mod dataplane;
 mod frontmatter;

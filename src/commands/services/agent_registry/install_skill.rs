@@ -1244,34 +1244,15 @@ fn collision_key(name: &str) -> String {
     casefold(&nfc)
 }
 
-/// `str.casefold()` (full case folding as Python applies it for the
-/// characters that differ from `lower()`).
-fn casefold(s: &str) -> String {
+/// `str.casefold()`.
+pub(crate) fn casefold(s: &str) -> String {
     s.chars()
-        .flat_map(|c| match c {
-            '\u{df}' => "ss".chars().collect::<Vec<_>>(),
-            '\u{130}' => "i\u{307}".chars().collect(),
-            '\u{149}' => "\u{2bc}n".chars().collect(),
-            '\u{17f}' => vec!['s'],
-            '\u{1f0}' => "j\u{30c}".chars().collect(),
-            '\u{345}' => vec!['\u{3b9}'],
-            '\u{3c2}' => vec!['\u{3c3}'],
-            '\u{3d0}' => vec!['\u{3b2}'],
-            '\u{3d1}' => vec!['\u{3b8}'],
-            '\u{3d5}' => vec!['\u{3c6}'],
-            '\u{3d6}' => vec!['\u{3c0}'],
-            '\u{3f0}' => vec!['\u{3ba}'],
-            '\u{3f1}' => vec!['\u{3c1}'],
-            '\u{3f5}' => vec!['\u{3b5}'],
-            '\u{1e9e}' => "ss".chars().collect(),
-            '\u{fb00}' => "ff".chars().collect(),
-            '\u{fb01}' => "fi".chars().collect(),
-            '\u{fb02}' => "fl".chars().collect(),
-            '\u{fb03}' => "ffi".chars().collect(),
-            '\u{fb04}' => "ffl".chars().collect(),
-            '\u{fb05}' | '\u{fb06}' => "st".chars().collect(),
-            c => c.to_lowercase().collect(),
-        })
+        .flat_map(
+            |c| match super::casefold::CASEFOLD.binary_search_by_key(&c, |(k, _)| *k) {
+                Ok(i) => super::casefold::CASEFOLD[i].1.chars().collect::<Vec<_>>(),
+                Err(_) => c.to_lowercase().collect(),
+            },
+        )
         .collect()
 }
 
@@ -1859,6 +1840,82 @@ mod tests {
         ] {
             assert_eq!(is_s3_host(host, region), expected, "{host} {region}");
         }
+    }
+
+    /// `testdata/archives.json` (`gen_archives.py`): `_check_archive` and
+    /// `_safe_extract` of the reference on crafted packages.
+    #[test]
+    fn archives() {
+        use base64::Engine as _;
+        let cases: serde_json::Value =
+            serde_json::from_str(include_str!("testdata/archives.json")).unwrap();
+        let base = std::env::temp_dir().join(format!("awsr-archives-{}", std::process::id()));
+        for (i, case) in cases.as_array().unwrap().iter().enumerate() {
+            let name = case["name"].as_str().unwrap();
+            let dir = base.join(i.to_string());
+            std::fs::create_dir_all(&dir).unwrap();
+            let archive = dir.join("package.zip").to_string_lossy().into_owned();
+            let data = base64::engine::general_purpose::STANDARD
+                .decode(case["zip"].as_str().unwrap())
+                .unwrap();
+            std::fs::write(&archive, data).unwrap();
+            let out = dir.join("out").to_string_lossy().into_owned();
+            let result = check_archive(&archive, "shown")
+                .and_then(|skill| safe_extract(&archive, &out).map(|()| skill));
+            match (result, case.get("error")) {
+                (Err(e), Some(expected)) => {
+                    assert_eq!(e.message(), expected.as_str().unwrap(), "{name}")
+                }
+                (Ok(skill), None) => {
+                    assert_eq!(skill, case["skill"].as_str().unwrap(), "{name}");
+                    assert_eq!(listing(&out), case["files"], "{name}");
+                }
+                (r, expected) => panic!("{name}: {:?} vs {expected:?}", r.map_err(|e| e.message())),
+            }
+        }
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// The `listing` of `gen_archives.py`: each folder of `os.walk` in
+    /// sorted order, its folders then its files, with modes and contents.
+    fn listing(root: &str) -> serde_json::Value {
+        fn dirs(d: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+            out.push(d.to_path_buf());
+            for e in std::fs::read_dir(d).unwrap().flatten() {
+                if e.file_type().unwrap().is_dir() {
+                    dirs(&e.path(), out);
+                }
+            }
+        }
+        let root = std::path::Path::new(root);
+        let mut all = Vec::new();
+        dirs(root, &mut all);
+        all.sort_by_key(|p| p.to_string_lossy().into_owned());
+        let mut out = Vec::new();
+        for d in all {
+            let mut entries: Vec<_> = std::fs::read_dir(&d).unwrap().flatten().collect();
+            entries.sort_by_key(|e| e.file_name());
+            let rel =
+                |p: &std::path::Path| p.strip_prefix(root).unwrap().to_string_lossy().into_owned();
+            let mode = |p: &std::path::Path| {
+                format!(
+                    "0o{:o}",
+                    std::fs::metadata(p).unwrap().permissions().mode() & 0o7777
+                )
+            };
+            for e in entries.iter().filter(|e| e.file_type().unwrap().is_dir()) {
+                out.push(serde_json::json!([
+                    format!("{}/", rel(&e.path())),
+                    mode(&e.path()),
+                    null
+                ]));
+            }
+            for e in entries.iter().filter(|e| !e.file_type().unwrap().is_dir()) {
+                let text = String::from_utf8_lossy(&std::fs::read(e.path()).unwrap()).into_owned();
+                out.push(serde_json::json!([rel(&e.path()), mode(&e.path()), text]));
+            }
+        }
+        serde_json::Value::Array(out)
     }
 
     #[test]

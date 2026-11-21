@@ -16,11 +16,21 @@ use super::{Error, Result};
 use crate::endpoint::pyurl::urlsplit_parts;
 use crate::value::Value;
 
-/// `prompt(message)`: `input(message).strip()`.
+/// `prompt(message)`: `input(message).strip()`. With stdin and stdout
+/// terminals, `input()` reads through `PyOS_StdioReadline` (the bundled
+/// interpreter has no readline), which writes the prompt to stderr;
+/// otherwise the prompt goes to `sys.stdout`.
 pub(crate) fn prompt(message: &str) -> Result<String> {
-    match crate::session::prompt::input(message) {
-        Ok(answer) => Ok(answer.trim().to_string()),
-        Err(e) => Err(Error::Other(e.message().to_string())),
+    use std::io::{BufRead as _, IsTerminal as _};
+    if std::io::stdin().is_terminal() && std::io::stdout().is_terminal() {
+        crate::commands::services::basic::eprint(message);
+    } else {
+        crate::output::stdout::write_flushed(message.as_bytes());
+    }
+    let mut line = String::new();
+    match std::io::stdin().lock().read_line(&mut line) {
+        Ok(0) | Err(_) => Err(Error::Other("EOF when reading a line".to_string())),
+        Ok(_) => Ok(line.trim().to_string()),
     }
 }
 

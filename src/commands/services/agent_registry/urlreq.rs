@@ -273,7 +273,7 @@ fn tls_config(ca_bundle: Option<&str>) -> Result<Arc<rustls::ClientConfig>, (Str
             if roots.is_empty() && !std::path::Path::new(path).is_dir() {
                 return Err((
                     path.to_string(),
-                    "[X509: NO_CERTIFICATE_OR_CRL_FOUND] no certificate or crl found (_ssl.c:4174)"
+                    "[X509: NO_CERTIFICATE_OR_CRL_FOUND] no certificate or crl found (_ssl.c:4489)"
                         .to_string(),
                 ));
             }
@@ -310,7 +310,7 @@ fn cert_error_text(e: &rustls::Error) -> String {
         },
         _ => "certificate verify failed",
     };
-    format!("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: {detail} (_ssl.c:1032)")
+    format!("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: {detail} (_ssl.c:1085)")
 }
 
 /// A request: `urllib.request.Request(url, data=..., headers=...)`.
@@ -420,7 +420,7 @@ pub(crate) fn urlopen(
                 }
                 None => UrlError::Url {
                     reason: match e.get_ref().and_then(|i| i.downcast_ref::<rustls::Error>()) {
-                        Some(r) => format!("[SSL] {r} (_ssl.c:1032)"),
+                        Some(r) => format!("[SSL] {r} (_ssl.c:1085)"),
                         None => os_text(&e),
                     },
                     cert: false,

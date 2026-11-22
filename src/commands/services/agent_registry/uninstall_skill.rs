@@ -49,6 +49,9 @@ fn on_disk_path(path: &str) -> String {
     let Ok(info) = std::fs::symlink_metadata(path) else {
         return path.to_string();
     };
+    if info.ino() == 0 {
+        return path.to_string();
+    }
     let Ok(entries) = std::fs::read_dir(&parent) else {
         return path.to_string();
     };

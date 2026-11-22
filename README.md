@@ -24,7 +24,9 @@
 
 ---
 
-`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints the same output. `awsr sts get-caller-identity` takes 6.4 ms where `aws` takes 646 ms on the same machine ([Performance](#performance)).
+`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints the same output. Against a local stub endpoint, `awsr sts get-caller-identity` takes 6.4 ms where `aws` takes 646 ms on the same machine; a real call adds the same network round trip to both ([Performance](#performance)).
+
+On Linux x86_64 (other platforms: [Install](#install)):
 
 ```console
 $ curl -L https://github.com/conao3/rust-awscli/releases/latest/download/awsr-x86_64-unknown-linux-musl.tar.gz | tar xz

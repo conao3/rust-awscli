@@ -125,15 +125,15 @@ fn get(ctx: &Context, ignore_host_check: bool) -> Result<(), CliError> {
             .ok_or_else(|| general(ctx, &format!("'{k}'")))
     };
     let host = param("host")?;
+    let suffixes = dns_suffixes();
     if !(host.contains("amazon.com")
-        || host.contains("amazonaws.com")
-        || host.contains("amazonaws.eu")
+        || suffixes.iter().any(|suffix| host.contains(suffix.as_str()))
         || ignore_host_check)
     {
         return Ok(());
     }
     let url = format!("{}://{host}/{}", param("protocol")?, param("path")?);
-    let region = extract_region(&host)
+    let region = extract_region(&host, &suffixes)
         .map(Ok)
         .unwrap_or_else(|| presign::region(ctx).map(Option::unwrap_or_default))?;
     let creds = match crate::driver::block_on(&ctx.runtime, ctx.session.credentials(Some(&region)))
@@ -157,11 +157,32 @@ fn get(ctx: &Context, ignore_host_check: bool) -> Result<(), CliError> {
     Ok(())
 }
 
+/// `CodeCommitGetCommand._get_dns_suffixes`: the `dnsSuffix` of every
+/// partition in `partitions.json`, longest first.
+fn dns_suffixes() -> Vec<String> {
+    let data = crate::model::partitions();
+    let mut suffixes: Vec<String> = Vec::new();
+    for p in data["partitions"].as_array().into_iter().flatten() {
+        if let Some(suffix) = p["outputs"]["dnsSuffix"].as_str()
+            && !suffixes.iter().any(|s| s == suffix)
+        {
+            suffixes.push(suffix.to_string());
+        }
+    }
+    suffixes.sort_by_key(|s| std::cmp::Reverse(s.len()));
+    suffixes
+}
+
 /// `CodeCommitGetCommand.extract_region` (the host part).
-fn extract_region(host: &str) -> Option<String> {
-    let re = regex::Regex::new(
-        r"^(vpce-.+\.)?git-codecommit(-fips)?\.([^.]+)\.(vpce\.)?amazonaws\.(com|eu)",
-    )
+fn extract_region(host: &str, suffixes: &[String]) -> Option<String> {
+    let alternatives = suffixes
+        .iter()
+        .map(|s| regex::escape(s))
+        .collect::<Vec<_>>()
+        .join("|");
+    let re = regex::Regex::new(&format!(
+        r"^(vpce-.+\.)?git-codecommit(-fips)?\.([^.]+)\.(vpce\.)?({alternatives})"
+    ))
     .expect("regex");
     re.captures(host).map(|c| c[3].to_string())
 }
@@ -189,19 +210,34 @@ mod tests {
 
     #[test]
     fn region_and_signature() {
+        let suffixes = dns_suffixes();
+        let region = |host: &str| extract_region(host, &suffixes);
         assert_eq!(
-            extract_region("git-codecommit.eu-west-1.amazonaws.com").as_deref(),
+            region("git-codecommit.eu-west-1.amazonaws.com").as_deref(),
             Some("eu-west-1")
         );
         assert_eq!(
-            extract_region("vpce-1.git-codecommit-fips.us-east-2.vpce.amazonaws.com").as_deref(),
+            region("vpce-1.git-codecommit-fips.us-east-2.vpce.amazonaws.com").as_deref(),
             Some("us-east-2")
         );
         assert_eq!(
-            extract_region("git-codecommit.eusc-de-east-1.amazonaws.eu").as_deref(),
+            region("git-codecommit.eusc-de-east-1.amazonaws.eu").as_deref(),
             Some("eusc-de-east-1")
         );
-        assert_eq!(extract_region("example.com"), None);
+        assert_eq!(
+            region("git-codecommit.cn-north-1.amazonaws.com.cn").as_deref(),
+            Some("cn-north-1")
+        );
+        assert_eq!(
+            region("git-codecommit.us-iso-east-1.c2s.ic.gov").as_deref(),
+            Some("us-iso-east-1")
+        );
+        assert_eq!(
+            region("git-codecommit.us-isob-east-1.sc2s.sgov.gov").as_deref(),
+            Some("us-isob-east-1")
+        );
+        assert_eq!(region("git-codecommit.us-east-1.example.com"), None);
+        assert_eq!(region("example.com"), None);
         let creds = Credentials {
             access_key: "AKIDEXAMPLE".to_string(),
             secret_key: "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY".to_string(),

@@ -45,12 +45,16 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
         "8eac4396f74479df40860afc1180840f4596c801bcef7173a7c978ed8c2c546f",
     ),
     (
+        "agent-discovery",
+        "4818827526e27e74d14955092ee7c58fb309620ed45b2fcd95237c998639ada6",
+    ),
+    (
         "agent-registry",
         "97c4fadc98529baeefddcb415ffa4471a8280d545b511a8cdcbe28d4c411cd10",
     ),
     (
         "agent-registry-control",
-        "cba51856accecb59a7ac5f66daed351e677dfddbf85aae6b4b275d6d47ff7bb3",
+        "efa52cb6645790a81a6f6d2056173fc640deaf782d6ed06c80dc22a905cfaab2",
     ),
     (
         "aiops",
@@ -83,6 +87,10 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     (
         "apigatewayv2",
         "d819836b86903f2f292bdfa0edc880c3436a714c7541f4fc23604360fb4ce451",
+    ),
+    (
+        "apiportal",
+        "494956b43b4e978ef9c3514da97ba9b3328db83ed7b1b810f3ded49b6fdea519",
     ),
     (
         "appconfig",
@@ -170,7 +178,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "backup",
-        "99c2bbabd17e4c7c996dadedf9f9d096b549028b7f6279338aff8a4ae1765246",
+        "0b7c0a7a68c21235c786262e1b9b1ca8e318d931122e828bd392b14dec03abe9",
     ),
     (
         "backup-gateway",
@@ -202,7 +210,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock",
-        "fd6ce708ba3e8d455e9754cf5581913f89c05b1fc57d8d1ab44a103853b89717",
+        "91cf3c7101411efe0739b52466c8e3269e333b615ffce938360daea68afd3804",
     ),
     (
         "bedrock-agent",
@@ -230,7 +238,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-runtime",
-        "3c527bbd16f40d20f9bc57f4842405903f6d1eafb1228a14b2df348719a2fa3e",
+        "398f0d673b045fc44be027d4992109551f41c9cedfbf40be714d24fb8b37bf7c",
     ),
     (
         "billing",
@@ -414,7 +422,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "compute-optimizer-automation",
-        "8fbb09b2d72af7579becaa468c716a16cfb939e27e70e51658d3ecb3619d4384",
+        "0cf9fbe9976fe45ff24db9b6328f3b3ec8f94231b48b6061713d363e8d6b9e7b",
     ),
     (
         "connect",
@@ -490,7 +498,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "datazone",
-        "cf75e19322c0abb8fba0f5d881426012c6ebf8575b00b5216d159cbeb1c0c6be",
+        "9ae0ccd3cd9404dbdc022654fc3175513ac53bafd4dba065f49e966a2a0aa4f3",
     ),
     (
         "dax",
@@ -714,7 +722,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "glue",
-        "7cebec57757b3c30c5282d92c992f940345f9b04c887bb5ab42712d6cced048d",
+        "d5f031d65383e60b7e3ce6714dcf94382f79dda8fe2d0876c4637542217e9258",
     ),
     (
         "grafana",
@@ -918,7 +926,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "lambda-microvms",
-        "31317edca0e81719a5c616fbc6a9664b1b8bbb3a7452a0ed1431605aed20977d",
+        "7a38607a235165aeda1024f4bdd9e80e687458230dc77f200edeb388ec0b6e93",
     ),
     (
         "lambda-web",
@@ -1010,7 +1018,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "marketplace-discovery",
-        "a25905788b1a11852400f5a0b510ec23ce17d8b77cb19802378aa063609f6401",
+        "4f54fada2848110a081ed136158dc839403accd116b25bfeef6fc21a1f131d86",
     ),
     (
         "marketplace-entitlement",
@@ -1130,11 +1138,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "network-firewall",
-        "250bdeb718b95a37f85190cf51a9139edd45585b1d98fa79f391982eef4ddc24",
+        "50299e77a3e7a03a9da1536535bc25f24850c91ca3a7060683adec83933b8d63",
     ),
     (
         "network-security-manager",
-        "ba2f4160a834f8a58aec2598af71009e83ad5be173c5d83886407a3e2588ff51",
+        "cfdd6e2f365b1c007c278cc3787228386f59398b4a8331c30ef490ea9cba953f",
     ),
     (
         "networkflowmonitor",
@@ -1170,11 +1178,11 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "odb",
-        "7bfb8e75e0111f1000b687ce3dde62595b3a5a2c5723539ee3466188da98028a",
+        "3c12f681c5137ff6e216ed6619691658418d713dccf3f7b121898cce3eb73aaa",
     ),
     (
         "omics",
-        "e232a014e22aac42e1354ac792f95534e3675d95737abc3239306819ead51da6",
+        "01b89861a84702d4db05d8ce8bae57035ba71a36f33b7802965b5b18567ea98f",
     ),
     (
         "opensearch",
@@ -1210,7 +1218,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "partnercentral-channel",
-        "dcb4676cc7d8d91787f9f9bd9ce49dd32672f2adc4bc158d6b0dc4187541d5f1",
+        "6d90f99deed72793fda492d250db29d91ef7d137a098cf6517b5858290a0858b",
     ),
     (
         "partnercentral-marketing",
@@ -1233,6 +1241,10 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
         "9e34afb7e75656cfee415003218b5c1a7df5ccd9ce0aa3f9778c352eda189aca",
     ),
     (
+        "payments",
+        "1f26816ca49e28f55b153c01907a6a88e672162e490ad8ddd640d5af2e8a5664",
+    ),
+    (
         "pca-connector-ad",
         "3c8a7615c3690582f63c71cb21b9e3f84e632a07043cf2e8ebceb99341d887b0",
     ),
@@ -1242,7 +1254,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "pcs",
-        "a536d71f7ae9c19dadb0106dbb1e14e0470bcf9cb9a6fa7591c31033f5ffbfcf",
+        "2c4aee65baddf98f7d87353c3c4bc7f95bc125c939883d3985d7dada08f25a59",
     ),
     (
         "personalize",
@@ -1310,7 +1322,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "quicksight",
-        "0c12ec3b7bb040e670e75c40128a94459b23af9b2433824d6f38d868d2434813",
+        "ca60d0b16e0694e6d00be05d74d969f6dc826c0d5dbe513a1d9faecc9b2c1523",
     ),
     (
         "ram",
@@ -1374,7 +1386,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "route53",
-        "23023a9431695d1e6cc9cbad44a25877f98f7dc7a1b2e886c6f1b77a29168540",
+        "2515f6229206b13e2d7f98417ae3ebb8680b4b9ade57494eea06945872f9e372",
     ),
     (
         "route53-recovery-cluster",
@@ -1434,7 +1446,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "sagemaker",
-        "a2b72f87a6a1a2b8f335b4fea29300e305141390dbc72f2d9d33ac15317194fb",
+        "f661c9a3a95639ffe43cebc59e8c6cf5686654d1894d9cd4f1f0ba1aa242aa9a",
     ),
     (
         "sagemaker-a2i-runtime",
@@ -1447,6 +1459,10 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     (
         "sagemaker-featurestore-runtime",
         "4a9b3c1d31d8d7e320da38fe4116fc81c4876f20abdc055f02b33f69a58873d9",
+    ),
+    (
+        "sagemaker-gateway-runtime",
+        "8e9f303bacc46dd77f214847198930cd8907263dc46ca13dedb2671cfc703c2c",
     ),
     (
         "sagemaker-geospatial",
@@ -1578,7 +1594,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "ssm",
-        "d1a774397d0e905a7be975816a20ad7a01a7f08a49d5e8d33c00f01d8a70ea6d",
+        "ef01257895799da90551106057824578a7133627fafc31d75672e65f8b99070a",
     ),
     (
         "ssm-contacts",
@@ -1658,7 +1674,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "textract",
-        "e3def3078c26332eab45c3dcfa299d9af6bc1080cd1adaea61aea75af33f3c3c",
+        "d2da4893b8871f684c27c1be70a8533cca80b70e7cd55f44c4049ed777a39e4a",
     ),
     (
         "timestream-influxdb",
@@ -1674,7 +1690,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "transcribe",
-        "a1d65f6fab65bc19d64f6ddf507b413367f2ea9029704eaf012326fb2c31292c",
+        "b2f50e9e62f5f7f684b11bc54505acffef12295eb613a996d24c2021c8156a18",
     ),
     (
         "transfer",
@@ -1714,7 +1730,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "wafv2",
-        "46169044cfd98236e5353870bb788abdb8ecf894198532726cae6981f1d948b8",
+        "98ae3087179079ae86f7ef9bcdd58905290f57fc284c19e234831276c121986f",
     ),
     (
         "wellarchitected",

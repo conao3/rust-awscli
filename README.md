@@ -24,7 +24,27 @@
 
 ---
 
-`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints byte-for-byte identical output. `awsr sts get-caller-identity` finishes in 6.0 ms; `aws` takes 659 ms on the same machine, 110 times as long.
+`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints the same output. `awsr sts get-caller-identity` takes 6.4 ms where `aws` takes 646 ms on the same machine ([Performance](#performance)).
+
+```console
+$ curl -L https://github.com/conao3/rust-awscli/releases/latest/download/awsr-x86_64-unknown-linux-musl.tar.gz | tar xz
+$ ./awsr sts get-caller-identity
+```
+
+<p align="center">
+  <img src="docs/assets/performance.svg" alt="Median wall time of awsr and aws 2.41.2 for five commands" width="100%">
+</p>
+
+The same command against the local stub endpoint of [`bench/`](bench/):
+
+```console
+$ time aws ec2 describe-regions --output table > aws.txt
+real 0.935 s
+$ time awsr ec2 describe-regions --output table > awsr.txt
+real 0.009 s
+$ cmp aws.txt awsr.txt && echo identical
+identical
+```
 
 - **Same output.** Your scripts, `--query` expressions, and `--output` formats give the same bytes they give with `aws`. [Differential testing](#differential-testing) runs both CLIs on the operations of all services and compares what they print.
 - **Its own name.** What `awsr` says about itself names `awsr`: `--version` prints `awsr/<version> (aws-cli/<reference version> compatible) <system>/<release> <machine>`, and the usage lines, the `awsr: [ERROR]:` prefix of error messages, and the command lines of the help pages name `awsr`. The text of messages and help pages is the reference's.
@@ -105,21 +125,22 @@ end
 
 ## Performance
 
-<p align="center">
-  <img src="docs/assets/performance.svg" alt="Mean wall time of awsr and aws 2.39.3 for seven commands" width="100%">
-</p>
-
-| Command | awsr | aws 2.39.3 | Speedup |
+| Command | awsr | aws 2.41.2 | Speedup |
 |---|---:|---:|---:|
-| `--version` | 1.3 ms | 497 ms | 380× |
-| `sts get-caller-identity` | 6.0 ms | 659 ms | 110× |
-| `dynamodb list-tables` | 5.3 ms | 728 ms | 140× |
-| `ec2 describe-regions` | 5.0 ms | 936 ms | 190× |
-| `help` | 1.9 ms | 759 ms | 400× |
-| `ec2 help` | 1.9 ms | 1052 ms | 550× |
-| `ec2 describe-instances help` | 3.5 ms | 1346 ms | 380× |
+| `sts get-caller-identity` | 6.4 ms | 646 ms | 101× |
+| `dynamodb list-tables` | 6.8 ms | 673 ms | 99× |
+| `ec2 describe-regions` | 7.8 ms | 846 ms | 109× |
+| `--version` | 2.3 ms | 502 ms | 216× |
+| `ec2 help` | 4.1 ms | 906 ms | 222× |
 
-The table shows the mean wall time of the flake package (statically linked). `hyperfine -N` ran each command against a local stub endpoint (`--endpoint-url http://127.0.0.1:<port>`) with static credentials on an Intel Core Ultra 5 225U. The reference is the official AWS CLI 2.39.3 Linux installer. The speedup is the aws time divided by the awsr time. The help pages come from the ones formatted at build time; the first help on a machine also runs `groff -v` once and takes 3.8 ms for `ec2 help`. A C hello world takes 1.1 ms on the same machine.
+The table shows the median wall time of the `x86_64-unknown-linux-musl` binary of the 0.2.23 release and the official AWS CLI 2.41.2 Linux installer on an Intel Core Ultra 5 225U. `hyperfine -N` ran each command at least 30 times against a local stub endpoint with static credentials, after checking that both CLIs print the same bytes for the API calls. A real API call adds the same network round trip to both. The speedup is the aws time divided by the awsr time. The machine ran other work during the runs; a second pass gave awsr 5.1 to 6.2 ms for the API calls and aws 679 to 804 ms. `ec2 help` reads the page cached on the first run, because the groff on this machine (1.24.2) differs from the one the release binary formatted its pages with (see below).
+
+To measure on your machine, give `bench/run.sh` the two executables. It needs `python3` and [hyperfine](https://github.com/sharkdp/hyperfine), and writes the hyperfine JSON; `bench/chart.py` turns it into the table and the chart:
+
+```console
+$ bench/run.sh ./awsr "$(command -v aws)" result.json
+$ python3 bench/chart.py result.json 2.41.2 "<CPU>" performance.svg
+```
 
 `awsr` embeds the service models and the help inputs uncompressed, in a form it reads in place. A command touches only the parts it uses and parses no JSON at start. With the formatted help pages (36 MB compressed), the binary of the flake package weighs 150 MiB.
 

@@ -10,7 +10,9 @@
 //! Assume role, web identity, and SSO credentials are cached in
 //! `~/.aws/cli/cache` (`awscli/customizations/assumerole.py` and
 //! `awscli/customizations/sso/__init__.py` inject a `JSONFileCache`) and
-//! reused until 15 minutes before they expire. Bearer tokens come from
+//! reused until 15 minutes before they expire; an assume role or web
+//! identity profile with `credential_cache = memory` keeps them out of
+//! that directory. Bearer tokens come from
 //! the environment for the services that allow it, else from the
 //! profile's SSO session (`botocore/tokens.py`).
 
@@ -217,6 +219,21 @@ fn has_assume_role_config_vars(profile: &Section) -> bool {
     profile.contains_key("role_arn") && !profile.contains_key("web_identity_token_file")
 }
 
+/// `_validate_credential_cache` and `_select_credential_cache`: whether
+/// the profile's `credential_cache` keeps its temporary credentials in
+/// memory (`memory`) rather than in `~/.aws/cli/cache` (`file` or unset).
+fn memory_credential_cache(profile_name: &str, profile: &Section) -> Result<bool, SessionError> {
+    match profile.get("credential_cache") {
+        None => Ok(false),
+        Some(IniValue::Str(v)) if v == "file" => Ok(false),
+        Some(IniValue::Str(v)) if v == "memory" => Ok(true),
+        Some(v) => Err(invalid_config(format!(
+            "The credential_cache \"{}\" in profile \"{profile_name}\" is not valid. Valid values are: file, memory.",
+            ini_str(v)
+        ))),
+    }
+}
+
 fn has_static_credentials(profile: &Section) -> bool {
     profile.contains_key("aws_secret_access_key") || profile.contains_key("aws_access_key_id")
 }
@@ -286,6 +303,7 @@ impl<'a> Resolver<'a> {
             let role_arn = section_str(&profile, "role_arn").unwrap_or_default();
             let source_profile = section_str(&profile, "source_profile");
             let credential_source = section_str(&profile, "credential_source");
+            let memory_cache = memory_credential_cache(profile_name, &profile)?;
             match (&credential_source, &source_profile) {
                 (Some(_), Some(_)) => {
                     return Err(invalid_config(format!(
@@ -377,9 +395,9 @@ impl<'a> Resolver<'a> {
             if !self.fetch {
                 return Ok(LoadedCredentials::deferred("assume-role"));
             }
-            let cache = cache::cli_cache(self.config);
+            let cache = (!memory_cache).then(|| cache::cli_cache(self.config));
             let response = async {
-                Ok::<Value, SessionError>(match fetcher.cached(&cache) {
+                Ok::<Value, SessionError>(match cache.as_ref().and_then(|c| fetcher.cached(c)) {
                     Some(r) => r,
                     None => {
                         let mut kwargs = fetcher.kwargs.clone();
@@ -407,7 +425,9 @@ impl<'a> Resolver<'a> {
                             .await
                             .map_err(ApiError::into_session_error)?;
                         add_account_id_to_response(&mut response);
-                        let _ = cache.set(&fetcher.cache_key, &response);
+                        if let Some(cache) = &cache {
+                            let _ = cache.set(&fetcher.cache_key, &response);
+                        }
                         response
                     }
                 })
@@ -536,6 +556,7 @@ impl<'a> Resolver<'a> {
         if let Some(v) = get("role_session_name", "AWS_ROLE_SESSION_NAME") {
             extra.insert("RoleSessionName".into(), Value::str(v));
         }
+        let memory_cache = memory_credential_cache(profile_name, &profile)?;
         let read_token = || {
             std::fs::read_to_string(&token_path).map_err(|e| {
                 SessionError::new(
@@ -557,9 +578,9 @@ impl<'a> Resolver<'a> {
                 "assume-role-with-web-identity",
             )));
         }
-        let cache = cache::cli_cache(self.config);
+        let cache = (!memory_cache).then(|| cache::cli_cache(self.config));
         let response = async {
-            Ok::<Value, SessionError>(match fetcher.cached(&cache) {
+            Ok::<Value, SessionError>(match cache.as_ref().and_then(|c| fetcher.cached(c)) {
                 Some(r) => r,
                 None => {
                     let mut kwargs = fetcher.kwargs.clone();
@@ -576,7 +597,9 @@ impl<'a> Resolver<'a> {
                         .await
                         .map_err(ApiError::into_session_error)?;
                     add_account_id_to_response(&mut response);
-                    let _ = cache.set(&fetcher.cache_key, &response);
+                    if let Some(cache) = &cache {
+                        let _ = cache.set(&fetcher.cache_key, &response);
+                    }
                     response
                 }
             })
@@ -1440,6 +1463,7 @@ fn preflight_assume_role(
     let profile = resolver.profile(profile_name);
     let source_profile = section_str(&profile, "source_profile");
     let credential_source = section_str(&profile, "credential_source");
+    memory_credential_cache(profile_name, &profile)?;
     match (&credential_source, &source_profile) {
         (Some(_), Some(_)) => Err(invalid_config(format!(
             "The profile \"{profile_name}\" contains both source_profile and credential_source."
@@ -1500,6 +1524,7 @@ fn preflight_profile(
                 "The provided profile or the current environment is configured to assume role with web identity but has no role ARN configured. Ensure that the profile has the role_arnconfiguration set or the AWS_ROLE_ARN env var is set.",
             ));
         }
+        memory_credential_cache(profile_name, &profile)?;
         return Ok(());
     }
     if profile.contains_key("sso_role_name") || profile.contains_key("sso_account_id") {

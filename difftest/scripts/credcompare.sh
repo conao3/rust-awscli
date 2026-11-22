@@ -53,7 +53,7 @@ snapshot() {
   echo "== stdout"; cat "$home.out"
   echo "== stderr"; cat "$home.err"
   if [ -d "$home/.aws" ]; then
-    (cd "$home" && find .aws -type f ! -name session.db | sort | while read -r f; do
+    (cd "$home" && find .aws -type f ! -name 'session.db*' | sort | while read -r f; do
       echo "== file $f $(stat -c %a "$f")"
       cat "$f"; echo
     done)
@@ -257,6 +257,119 @@ web_identity_token_file = '\$HOME'/token
 role_arn = arn:aws:iam::123456789012:role/w
 role_session_name = s
 region = us-east-1'" "" configure export-credentials
+
+# credential_cache on assume role and web identity profiles
+SEED="mkdir -p .aws/cli/cache
+printf '%s' '{\"Credentials\": {\"AccessKeyId\": \"ASIACACHED\", \"SecretAccessKey\": \"cs\", \"SessionToken\": \"ct\", \"Expiration\": \"2099-01-01T00:00:00+00:00\", \"AccountId\": \"123456789012\"}}' > .aws/cli/cache/5b4f30aca379fe07625746c18f3f425bb3231f15.json"
+CACHECFG="echo -n webtoken > token; $CFG <<<'[profile src]
+aws_access_key_id = AKIDSRC
+aws_secret_access_key = SECRETSRC
+[profile mem]
+role_arn = arn:aws:iam::123456789012:role/r
+source_profile = src
+region = us-east-1
+duration_seconds = 3600
+credential_cache = memory
+[profile file]
+role_arn = arn:aws:iam::123456789012:role/r
+source_profile = src
+region = us-east-1
+duration_seconds = 3600
+credential_cache = file
+[profile memmfa]
+role_arn = arn:aws:iam::123456789012:role/m
+source_profile = src
+mfa_serial = arn:aws:iam::123456789012:mfa/me
+region = us-east-1
+credential_cache = memory
+[profile memchain]
+role_arn = arn:aws:iam::123456789012:role/c
+source_profile = file
+region = us-east-1
+credential_cache = memory
+[profile filechain]
+role_arn = arn:aws:iam::123456789012:role/c
+source_profile = mem
+region = us-east-1
+[profile bad]
+role_arn = arn:aws:iam::123456789012:role/r
+source_profile = src
+region = us-east-1
+credential_cache = Memory
+[profile badempty]
+role_arn = arn:aws:iam::123456789012:role/r
+source_profile = src
+region = us-east-1
+credential_cache =
+[profile badnested]
+role_arn = arn:aws:iam::123456789012:role/r
+source_profile = src
+region = us-east-1
+credential_cache =
+    a = b
+[profile badboth]
+role_arn = arn:aws:iam::123456789012:role/r
+source_profile = src
+credential_source = Environment
+credential_cache = disk
+[profile badneither]
+role_arn = arn:aws:iam::123456789012:role/r
+credential_cache = disk
+[profile badhop]
+role_arn = arn:aws:iam::123456789012:role/c
+source_profile = bad
+region = us-east-1
+[profile static]
+aws_access_key_id = AKIDSTATIC
+aws_secret_access_key = SECRETSTATIC
+region = us-east-1
+credential_cache = disk
+[profile webmem]
+web_identity_token_file = '\$HOME'/token
+role_arn = arn:aws:iam::123456789012:role/w
+role_session_name = ss
+region = us-east-1
+credential_cache = memory
+[profile webbad]
+web_identity_token_file = '\$HOME'/token
+role_arn = arn:aws:iam::123456789012:role/w
+role_session_name = ss
+region = us-east-1
+credential_cache = none
+[profile webnoarn]
+web_identity_token_file = '\$HOME'/token
+region = us-east-1
+credential_cache = none
+[profile envmem]
+region = us-east-1
+credential_cache = memory
+[profile envbad]
+region = us-east-1
+credential_cache = none'"
+case_ cache-memory "$CACHECFG
+$SEED" "" --profile mem configure export-credentials
+case_ cache-file "$CACHECFG
+$SEED" "" --profile file configure export-credentials
+case_ cache-file-fetch "$CACHECFG" "" --profile file configure export-credentials
+case_ cache-memory-mfa "$CACHECFG" "123456\n" --profile memmfa configure export-credentials
+case_ cache-memory-chain "$CACHECFG" "" --profile memchain configure export-credentials
+case_ cache-file-chain "$CACHECFG" "" --profile filechain configure export-credentials
+case_ cache-memory-s3 "$CACHECFG" "" --profile mem --endpoint-url "$STUBURL" s3 ls
+case_ cache-invalid "$CACHECFG" "" --profile bad sts get-caller-identity
+case_ cache-invalid-list "$CACHECFG" "" --profile bad configure list
+case_ cache-invalid-empty "$CACHECFG" "" --profile badempty sts get-caller-identity
+case_ cache-invalid-nested "$CACHECFG" "" --profile badnested sts get-caller-identity
+case_ cache-invalid-both "$CACHECFG" "" --profile badboth sts get-caller-identity
+case_ cache-invalid-neither "$CACHECFG" "" --profile badneither sts get-caller-identity
+case_ cache-invalid-hop "$CACHECFG" "" --profile badhop configure export-credentials
+case_ cache-invalid-static "$CACHECFG" "" --profile static configure export-credentials
+case_ cache-web-memory "$CACHECFG" "" --profile webmem configure export-credentials
+case_ cache-web-invalid "$CACHECFG" "" --profile webbad sts get-caller-identity
+case_ cache-web-noarn "$CACHECFG" "" --profile webnoarn sts get-caller-identity
+echo -n webtoken >"$WORK/webtoken"
+WEBENV="AWS_WEB_IDENTITY_TOKEN_FILE=$WORK/webtoken AWS_ROLE_ARN=arn:aws:iam::123456789012:role/w AWS_ROLE_SESSION_NAME=ss"
+CASE_ENV="$WEBENV AWS_PROFILE=envmem" case_ cache-web-env-memory "$CACHECFG" "" configure export-credentials
+CASE_ENV="$WEBENV AWS_PROFILE=envbad" case_ cache-web-env-invalid "$CACHECFG" "" sts get-caller-identity
 
 # sso credentials
 SSO="$CFG <<<'[profile sso]

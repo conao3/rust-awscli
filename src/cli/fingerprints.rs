@@ -690,7 +690,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "fsx",
-        "dc71fcfb676a79431210b0595bb72d89be78f10bb3af4c29e1f39e27cb6e5846",
+        "1b6af240336f840d12e08443e6bbbd3168555c716ab07ceac8f8a47558f4232d",
     ),
     (
         "gamelift",

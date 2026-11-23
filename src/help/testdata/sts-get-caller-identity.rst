@@ -1,5 +1,5 @@
 .. meta::
-   :description: Use the AWS CLI 2.42.1 to run the sts get-caller-identity command.
+   :description: Use the AWS CLI 2.42.2 to run the sts get-caller-identity command.
 
 
 

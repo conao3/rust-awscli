@@ -222,7 +222,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "bedrock-agentcore",
-        "61cd873d82b364f1b750a7c1441fece7ac8930e02457f0fff22f338630b687bf",
+        "9665050b73a5e2f803495edf363aefd60679210d163749a3087b001a63f8215f",
     ),
     (
         "bedrock-agentcore-control",

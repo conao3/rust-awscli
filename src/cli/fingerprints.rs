@@ -621,6 +621,10 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
         "28f6e53fcd726dd8b3e031faac35843d02553922fd4951a297ab871c36fb069b",
     ),
     (
+        "elb-proxy",
+        "aab948f1eaf31bc5aa38f210f26031ecd33c6f0c6e0886dd27d0bbf129d799c2",
+    ),
+    (
         "elbv2",
         "feb4d0f3b2b4c3007d8e041f490776b3401b18ca1c818912d6a4e606112b46e4",
     ),

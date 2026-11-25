@@ -468,6 +468,7 @@ pub(crate) static MAIN_COMMANDS: &[(&str, Option<&str>)] = &[
     ("elasticache", Some("elasticache")),
     ("elasticbeanstalk", Some("elasticbeanstalk")),
     ("elb", Some("elb")),
+    ("elb-proxy", Some("elb-proxy")),
     ("elbv2", Some("elbv2")),
     ("elementalinference", Some("elementalinference")),
     ("emr", Some("emr")),

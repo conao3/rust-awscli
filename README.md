@@ -15,10 +15,10 @@
 </p>
 
 <p align="center">
-  <a href="#install">Install</a> ·
-  <a href="#usage">Usage</a> ·
-  <a href="#performance">Performance</a> ·
-  <a href="#development">Development</a> ·
+  <a href="#install">Install</a> |
+  <a href="#usage">Usage</a> |
+  <a href="#performance">Performance</a> |
+  <a href="#development">Development</a> |
   <a href="https://github.com/conao3/rust-awscli/releases">Releases</a>
 </p>
 

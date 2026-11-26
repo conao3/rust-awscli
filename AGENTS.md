@@ -36,3 +36,13 @@
 $ nix develop --command make check
 $ nix build
 ```
+
+## Release
+
+Release from `master` with the `Release` workflow:
+
+```console
+$ gh workflow run release.yml --ref master -f version_bump=patch
+```
+
+`version_bump` is `patch`, `minor`, or `major`. One run bumps the `awsr` version in `Cargo.toml` and `Cargo.lock`, runs `make check`, `nix build .#awsr-without-help-pages`, and `cargo publish --dry-run` over the data crates and `awsr`, pushes the version commit and the annotated tag `v<version>` to `master` together, formats the help pages and builds the five binaries from the tag, publishes to crates.io the data crates and `awsr` versions that crates.io lacks (data crates first) with trusted publishing, and creates the GitHub Release with the `awsr-<target>.tar.gz` archives. Keep the version on `master` at the latest published version, push no tags by hand, and push nothing to `master` while a release runs. If a job after the tag push fails, rerun the failed jobs of the same run (`gh run rerun <id> --failed`); the publish job skips the versions already on crates.io.

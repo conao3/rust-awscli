@@ -172,6 +172,14 @@ $ make difftest-full   # every operation of every service, 4 seeds, json / text 
 
 `difftest/exclusions.txt` lists the operations you cannot compare against a stub, with the reason for each.
 
+### Release
+
+The `Release` workflow bumps the version, pushes the version commit and the tag, publishes the crates to crates.io, and attaches the binaries to the GitHub Release:
+
+```console
+$ gh workflow run release.yml --ref master -f version_bump=patch
+```
+
 ## License
 
 Apache-2.0. The embedded models come from [aws/aws-cli](https://github.com/aws/aws-cli) (Apache-2.0).

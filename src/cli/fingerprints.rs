@@ -346,7 +346,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "cloudwatch",
-        "80d4b09ce0b9c1e104283490af4a9ba40ce01032e501ecbdfa4ea78a0aa48e49",
+        "f41143ff0843c3ecac97adeb6196931e526490330330307b3bfabfcbe09d59e1",
     ),
     (
         "cloudwatchomni",
@@ -654,7 +654,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "es",
-        "06f0f8bd3c31edb8dac2f89fc1291831dd7fab35fdc920b0961689f62e32df93",
+        "75727476088d1296582be8302dd8dda973d6895985bb333cb15047f940fe3e9a",
     ),
     (
         "events",
@@ -1134,7 +1134,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "neptune-graph",
-        "b17e9d3db14a39dfb13a8688084643d184dc19f8d5d6010faedf19671c4f1056",
+        "4f4808a04d451b9e2bd8acb78d042bc5f28a19be062b898b2dd80173d633f668",
     ),
     (
         "neptunedata",
@@ -1190,7 +1190,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "opensearch",
-        "53c147a5ef3dc9414550198e2182ef3f2e0eb225cbcc5e24e9b82b796213861a",
+        "f88f3d9e4e6e0a3fa4900b608cda71bc6e425c86d1e33aedd5e15e0c4d66715d",
     ),
     (
         "opensearchmemory",
@@ -1338,7 +1338,7 @@ pub(super) const FINGERPRINTS: &[(&str, &str)] = &[
     ),
     (
         "rds",
-        "77497f4aa678f4e9615dc2f395613564d19f696f12c73a7ed362449a3a502bdd",
+        "b8115fbf65f39f0afa7c8ea86ac0350d5e5defbd0b28914ac33716bf51fabb2c",
     ),
     (
         "rds-data",

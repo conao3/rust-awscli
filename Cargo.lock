@@ -404,15 +404,15 @@ dependencies = [
 
 [[package]]
 name = "awsr-models"
-version = "2.42.4"
+version = "2.42.5"
 
 [[package]]
 name = "awsr-models-services-a-l"
-version = "2.42.4"
+version = "2.42.5"
 
 [[package]]
 name = "awsr-models-services-m-z"
-version = "2.42.4"
+version = "2.42.5"
 
 [[package]]
 name = "base16ct"

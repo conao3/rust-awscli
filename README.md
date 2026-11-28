@@ -24,7 +24,7 @@
 
 ---
 
-`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints the same output. Against a local stub endpoint, `awsr sts get-caller-identity` takes 5.0 ms where `aws` takes 666 ms on the same machine; a real call adds the same network round trip to both ([Performance](#performance)).
+`awsr` takes the command line of the [AWS CLI v2](https://github.com/aws/aws-cli) and prints the same output. Against a local stub endpoint, `awsr sts get-caller-identity` takes 2.6 ms where `aws` takes 529 ms on the same machine; a real call adds the same network round trip to both ([Performance](#performance)).
 
 On Linux x86_64 (other platforms: [Install](#install)):
 
@@ -129,13 +129,13 @@ end
 
 | Command | awsr | aws 2.42.4 | Speedup |
 |---|---:|---:|---:|
-| `sts get-caller-identity` | 5.0 ms | 666 ms | 133× |
-| `dynamodb list-tables` | 6.7 ms | 653 ms | 98× |
-| `ec2 describe-regions` | 7.1 ms | 871 ms | 122× |
-| `--version` | 2.4 ms | 496 ms | 205× |
-| `ec2 help` | 4.0 ms | 957 ms | 240× |
+| `sts get-caller-identity` | 2.6 ms | 529 ms | 203× |
+| `dynamodb list-tables` | 2.5 ms | 537 ms | 214× |
+| `ec2 describe-regions` | 3.0 ms | 679 ms | 224× |
+| `--version` | 0.9 ms | 381 ms | 420× |
+| `ec2 help` | 1.7 ms | 863 ms | 517× |
 
-The table shows the median wall time of the `x86_64-unknown-linux-musl` binary of the 0.2.28 release and the official AWS CLI 2.42.4 Linux installer on an Intel Core Ultra 5 225U. `hyperfine -N` ran each command at least 30 times against a local stub endpoint with static credentials, after checking that both CLIs print the same bytes for the API calls. A real API call adds the same network round trip to both. The speedup is the aws time divided by the awsr time. Desktop programs were open during the runs; a second pass gave awsr 4.7 to 7.3 ms for the API calls and aws 672 to 919 ms. `ec2 help` reads the page cached on the first run, because the groff on this machine (1.24.2) differs from the one the release binary formatted its pages with (see below).
+The table shows the median wall time of the `x86_64-unknown-linux-musl` binary of the 0.2.28 release and the official AWS CLI 2.42.4 Linux installer on a cloud container with 4 vCPUs of an Intel Xeon @ 2.30GHz and groff 1.23.0. `hyperfine -N` ran each command at least 30 times against a local stub endpoint with static credentials, after checking that both CLIs print the same bytes for the API calls. A real API call adds the same network round trip to both. The speedup is the aws time divided by the awsr time. Nothing else ran on the container, and a second pass gave awsr 2.6 to 2.7 ms for the API calls and aws 563 to 775 ms.
 
 To measure on your machine, give `bench/run.sh` the two executables. It needs `python3` and [hyperfine](https://github.com/sharkdp/hyperfine), and writes the hyperfine JSON; `bench/chart.py` turns it into the table and the chart:
 

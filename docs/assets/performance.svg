@@ -2,36 +2,36 @@
 <rect width="1100" height="560" rx="16" fill="#fcfcfb"/>
 <text x="30" y="48" font-size="24" font-weight="bold" fill="#222">Median wall time (ms, lower is better)</text>
 <rect x="30" y="70" width="22" height="22" rx="4" fill="#d9622b"/><text x="62" y="88" font-size="19" fill="#222">awsr</text>
-<rect x="150" y="70" width="22" height="22" rx="4" fill="#4a7bb7"/><text x="182" y="88" font-size="19" fill="#222">aws 2.41.2</text>
+<rect x="150" y="70" width="22" height="22" rx="4" fill="#4a7bb7"/><text x="182" y="88" font-size="19" fill="#222">aws 2.42.4</text>
 <text x="300" y="154" font-size="19" text-anchor="end" font-family="monospace" fill="#222">sts get-caller-identity</text>
 <rect x="320" y="120" width="4.0" height="26" rx="4" fill="#d9622b"/>
-<text x="332.0" y="140" font-size="19" fill="#222">6.4 ms</text>
-<rect x="320" y="150" width="391.8" height="26" rx="4" fill="#4a7bb7"/>
-<text x="719.8" y="170" font-size="19" fill="#222">646 ms</text>
-<text x="1070" y="170" font-size="19" font-weight="bold" text-anchor="end" fill="#222">101×</text>
+<text x="332.0" y="140" font-size="19" fill="#222">2.6 ms</text>
+<rect x="320" y="150" width="337.4" height="26" rx="4" fill="#4a7bb7"/>
+<text x="665.4" y="170" font-size="19" fill="#222">529 ms</text>
+<text x="1070" y="170" font-size="19" font-weight="bold" text-anchor="end" fill="#222">203×</text>
 <text x="300" y="232" font-size="19" text-anchor="end" font-family="monospace" fill="#222">dynamodb list-tables</text>
-<rect x="320" y="198" width="4.1" height="26" rx="4" fill="#d9622b"/>
-<text x="332.1" y="218" font-size="19" fill="#222">6.8 ms</text>
-<rect x="320" y="228" width="408.2" height="26" rx="4" fill="#4a7bb7"/>
-<text x="736.2" y="248" font-size="19" fill="#222">673 ms</text>
-<text x="1070" y="248" font-size="19" font-weight="bold" text-anchor="end" fill="#222">99×</text>
+<rect x="320" y="198" width="4.0" height="26" rx="4" fill="#d9622b"/>
+<text x="332.0" y="218" font-size="19" fill="#222">2.5 ms</text>
+<rect x="320" y="228" width="342.2" height="26" rx="4" fill="#4a7bb7"/>
+<text x="670.2" y="248" font-size="19" fill="#222">537 ms</text>
+<text x="1070" y="248" font-size="19" font-weight="bold" text-anchor="end" fill="#222">214×</text>
 <text x="300" y="310" font-size="19" text-anchor="end" font-family="monospace" fill="#222">ec2 describe-regions</text>
-<rect x="320" y="276" width="4.7" height="26" rx="4" fill="#d9622b"/>
-<text x="332.7" y="296" font-size="19" fill="#222">7.8 ms</text>
-<rect x="320" y="306" width="513.7" height="26" rx="4" fill="#4a7bb7"/>
-<text x="841.7" y="326" font-size="19" fill="#222">846 ms</text>
-<text x="1070" y="326" font-size="19" font-weight="bold" text-anchor="end" fill="#222">109×</text>
+<rect x="320" y="276" width="4.0" height="26" rx="4" fill="#d9622b"/>
+<text x="332.0" y="296" font-size="19" fill="#222">3.0 ms</text>
+<rect x="320" y="306" width="432.8" height="26" rx="4" fill="#4a7bb7"/>
+<text x="760.8" y="326" font-size="19" fill="#222">679 ms</text>
+<text x="1070" y="326" font-size="19" font-weight="bold" text-anchor="end" fill="#222">224×</text>
 <text x="300" y="388" font-size="19" text-anchor="end" font-family="monospace" fill="#222">--version</text>
 <rect x="320" y="354" width="4.0" height="26" rx="4" fill="#d9622b"/>
-<text x="332.0" y="374" font-size="19" fill="#222">2.3 ms</text>
-<rect x="320" y="384" width="304.5" height="26" rx="4" fill="#4a7bb7"/>
-<text x="632.5" y="404" font-size="19" fill="#222">502 ms</text>
-<text x="1070" y="404" font-size="19" font-weight="bold" text-anchor="end" fill="#222">216×</text>
+<text x="332.0" y="374" font-size="19" fill="#222">0.9 ms</text>
+<rect x="320" y="384" width="243.1" height="26" rx="4" fill="#4a7bb7"/>
+<text x="571.1" y="404" font-size="19" fill="#222">381 ms</text>
+<text x="1070" y="404" font-size="19" font-weight="bold" text-anchor="end" fill="#222">420×</text>
 <text x="300" y="466" font-size="19" text-anchor="end" font-family="monospace" fill="#222">ec2 help</text>
 <rect x="320" y="432" width="4.0" height="26" rx="4" fill="#d9622b"/>
-<text x="332.0" y="452" font-size="19" fill="#222">4.1 ms</text>
+<text x="332.0" y="452" font-size="19" fill="#222">1.7 ms</text>
 <rect x="320" y="462" width="550.0" height="26" rx="4" fill="#4a7bb7"/>
-<text x="878.0" y="482" font-size="19" fill="#222">906 ms</text>
-<text x="1070" y="482" font-size="19" font-weight="bold" text-anchor="end" fill="#222">222×</text>
-<text x="30" y="540" font-size="15" fill="#555">hyperfine -N, local stub endpoint, Intel Core Ultra 5 225U. Reproduce with bench/run.sh.</text>
+<text x="878.0" y="482" font-size="19" fill="#222">863 ms</text>
+<text x="1070" y="482" font-size="19" font-weight="bold" text-anchor="end" fill="#222">517×</text>
+<text x="30" y="540" font-size="15" fill="#555">hyperfine -N, local stub endpoint, Intel Xeon @ 2.30GHz, 4 vCPU. Reproduce with bench/run.sh.</text>
 </svg>
